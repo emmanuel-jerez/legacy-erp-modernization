@@ -53,6 +53,13 @@ portfolio rules live in `../BUILD-BRIEF.md`; the sandbox contract in `../erp-san
   parameters of type `character` do not.
 - **Deduplicate cases on what the oracle saw** (normalized arguments plus fixture rows read back),
   not on the proposal text, and log every rejected case, sampled or proposed, instead of aborting.
+  This applies to review and differential scripts too, not just the workflow.
+- **A differential check must reach the branches, not just the rows.** Use every reference row
+  once before random draws, sort sampling queries with `ORDER BY` so a seed reproduces, and keep
+  rejected and duplicate cases with their details. When real rows never trigger a branch (for
+  example, no payment term has a fixed due date), add rolled-back synthetic fixture rows, or say
+  plainly which branches only the golden cases cover. Real data alone made a review look broader
+  than it was.
 - **Order snapshot rows by every selected column**, not just the first key column, so composite
   keys cannot reorder rows and change a prompt.
 - **PostgreSQL numeric has NaN, Infinity and -Infinity.** Parity compares special values by text
