@@ -1,27 +1,30 @@
 # erp-ui-operator
 
-A Python agent that completes a business task through a legacy ERP's web UI the way a
-person would, then proves the result in the database. The task: create a **draft**
-purchase order in iDempiere 12 (the Compiere/ADempiere lineage, ZK web UI) for the
-fictional "Fernhollow Skincare" catalog. Playwright drives headless Chromium through a
-deterministic step plan; Claude is consulted only when a step fails, and only to propose
-one action that code validates before it runs.
+This Python agent completes a business task through the web UI of a legacy ERP, as a
+person does. Then it uses the database to show that the result is correct. The task is to
+make a **draft** purchase order in iDempiere 12 (the Compiere/ADempiere lineage, ZK web UI)
+for the catalog of "Fernhollow Skincare", a fictional brand. Playwright controls headless
+Chromium through a deterministic plan of steps. The agent calls Claude only when a step does
+not complete correctly. Claude only recommends one action, and code validates that action
+before the action runs.
 
-This is a local demo against the shared [`erp-sandbox`](../erp-sandbox) stack. All data is
-fictional or synthetic. The model is Claude (`claude-opus-5-5`, medium effort) reached
-through the locally logged-in Claude Code CLI via `erp_sandbox.llm`; a production build
-would put the Anthropic SDK behind the same `complete_json` interface.
+This agent is a local demo that uses the shared [`erp-sandbox`](../erp-sandbox) stack. All
+data is fictional data or synthetic data. The model is Claude (`claude-opus-5-5`, effort
+"medium"). The agent gets access to Claude through `erp_sandbox.llm` and the Claude Code CLI,
+which has a local login. In a production build, the Anthropic SDK is behind the same
+`complete_json` interface.
 
-The patterns here mirror production work I've done; that code is proprietary and not included.
+The patterns here come from production work that I did. That code is proprietary, and this
+repository does not include it.
 
-## What it shows
+## Items that it shows
 
-| Posting asks for | Where it is here |
+| Item in the posting | Location here |
 |---|---|
-| Playwright-LLM hybrids | A deterministic Playwright plan with a selector map; an LLM fallback that sees a compact, normalized snapshot and returns one structured action ([`runner.py`](src/erp_ui_operator/runner.py), [`fallback.py`](src/erp_ui_operator/fallback.py), [`snapshot.py`](src/erp_ui_operator/snapshot.py)) |
-| Autonomous agents over complex ERP business logic | Logs in, picks role, org and warehouse, navigates iDempiere's menu search, fills a purchase order header and lines, handles the Product Info disambiguation dialog, recovers from simulated UI drift and heals its selector map ([`plan.py`](src/erp_ui_operator/plan.py), [`selectors.py`](src/erp_ui_operator/selectors.py)) |
-| Deterministic mindset: validation, evals, guardrails | Postconditions on every step, an action guardrail (allowlist, destructive-control block, scope, budgets), success defined by a SQL check, a database read-back with one bounded repair, an eval matrix with cassette replay, and a guardrail probe ([`guardrails.py`](src/erp_ui_operator/guardrails.py), [`erpdb.py`](src/erp_ui_operator/erpdb.py), [`evals.py`](src/erp_ui_operator/evals.py)) |
-| Python and SQL | Python 3.12, Playwright for Python, psycopg 3, PostgreSQL 16 |
+| "Playwright-LLM hybrids" | A deterministic Playwright plan that has a selector map. An LLM fallback that gets a small, normalized snapshot and gives one action as a JSON object ([`runner.py`](src/erp_ui_operator/runner.py), [`fallback.py`](src/erp_ui_operator/fallback.py), [`snapshot.py`](src/erp_ui_operator/snapshot.py)) |
+| "Autonomous agents over complex ERP business logic" | The agent completes the login and selects the role, organization and warehouse. It navigates the menu search of iDempiere and fills the header and lines of a purchase order. It uses the Product Info dialog to select the correct product. It continues after simulated UI drift, and it updates its selector map ([`plan.py`](src/erp_ui_operator/plan.py), [`selectors.py`](src/erp_ui_operator/selectors.py)) |
+| "Deterministic mindset: validation, evals, guardrails" | A postcondition on each step. An action guardrail (allowlist, a stop for destructive controls, scope, limits). A SQL check that shows if a run is satisfactory. A database read-back with a maximum of one repair. An eval matrix with cassette replay. A guardrail probe ([`guardrails.py`](src/erp_ui_operator/guardrails.py), [`erpdb.py`](src/erp_ui_operator/erpdb.py), [`evals.py`](src/erp_ui_operator/evals.py)) |
+| "Python and SQL" | Python 3.12, Playwright for Python, psycopg 3, PostgreSQL 16 |
 
 ## Architecture
 
@@ -47,49 +50,65 @@ flowchart TD
     DB --> R[run.json, screenshots,<br/>trace, prompts]
 ```
 
-### Why the deterministic layer comes first
+### Decision: the deterministic layer comes first
 
-Most of the flow is known in advance: the login form, the Purchase Order window, the
-header fields, the line tab. A selector map built on what iDempiere deliberately exposes
-(label cells, toolbar tooltips, visible text, and the `instancename` attributes it derives
-from its application dictionary, never ZK's per-load ids like `wFTB10`) runs those steps
-in milliseconds, the same way every time, with no model cost. The model is the exception
-path for when the UI does not match the plan. A clean run makes zero model calls.
+You know most of the flow before the run starts: the login screen, the Purchase Order
+window, the header fields and the line tab. The selector map uses only the stable items that
+iDempiere makes available to the UI. These items are label cells, toolbar tooltips, text
+that you can see, and the `instancename` attributes. iDempiere makes these attributes from
+its application dictionary. The selector map does not use ZK IDs that change at each page
+load, for example `wFTB10`, at any time. Thus, the selector map runs those steps in
+milliseconds, with the same result each time, and with no model cost.
 
-### Why the model only proposes
+The agent uses the model only for the condition when the UI does not agree with the plan. A
+clean run makes no calls to the model.
 
-The fallback returns `{action, element_index, value, reason}` against a numbered snapshot.
-Code then decides. Only `click`, `fill`, `press`, `select` and `wait` exist; keys are
-limited to Tab, Enter and Escape; the target must be in the step's regions; text typed must
-be a value the task supplies (run ids and the password are masked as `<run>` and
-`<password>` and mapped back by code); and any target whose label, text, dialog title,
-dialog body or value matches Delete, Void, Complete, Process, Post, Reverse, Close,
-Document Action and their word forms aborts the run. Budgets cap actions (150), fallback
-calls per run (10) and per step (3). The purchase order can only end in Draft.
+### Decision: the model only recommends
 
-### Why success is defined by the database
+The fallback gives `{action, element_index, value, reason}` for a snapshot in which each
+element has a number. Then code makes the decision. The only actions are `click`, `fill`,
+`press`, `select` and `wait`. The agent can use only the Tab, Enter and Escape keys. The
+element for the action must be in the areas of the step. Text that the agent types must be a
+value from the task.
 
-A ZK form shows typed text before the server has applied it, and iDempiere skips a field's
-callout while another is still running. During development the UI twice looked right while
-the stored row was wrong: once a line saved with quantity 1 instead of 300, once a header
-saved without its POReference after a slow partner callout reset it. Both were caught by
-SQL, not by the screen. So:
+Code shows run IDs and the password to the model only as `<run>` and `<password>`. Then code
+changes them back to the initial values. The guardrail has a list of words: Delete, Void,
+Complete, Process, Post, Reverse, Close, Document Action and their word forms. The guardrail
+examines the label, text, dialog title, dialog body and value of the element for the action. If
+one of them agrees with a word in this list, the guardrail aborts the run.
 
-- postconditions check server-computed fields (PO Quantity after Quantity, Unit Price after
-  Product, invoice partner and price list after Business Partner);
-- a `po.readback` step reads the saved header from the database and repairs it once;
-- after the flow, `verify_run` checks as `adempiere`: exactly one order carrying the run's
-  tags (`Description` starts `erp-ui-operator run <id>:`, `POReference` is `UIOP-<id>`),
-  `IsSOTrx='N'`, `DocStatus='DR'` and unprocessed, the vendor's `C_BPartner_ID`, the
-  promised date, exactly the expected product and quantity lines, and unchanged counts and
-  update stamps for every other order, line, partner and product in the tenant.
+The limits are a maximum of 150 actions, 10 fallback calls for each run, and 3 fallback calls
+for each step. At the end, the purchase order can only be in Draft.
 
-A run succeeds only if the UI flow completed and that check passed.
+### Decision: the database shows if a run is satisfactory
+
+The ZK UI shows typed text before the server applies it. Also, iDempiere does not do the
+callout of a field while a different callout runs.
+
+Two times during the work on this agent, the UI showed correct data, but the row in the
+database was incorrect. The first time, the database stored a line with quantity 1, not 300.
+The second time, a slow partner callout removed the POReference value, and the header went
+into the database without its POReference. In the two problems, SQL found the error, but the
+screen did not show it.
+Because of this, the agent does these checks:
+
+- Postconditions examine fields that the server calculates (PO Quantity after Quantity, Unit
+  Price after Product, invoice partner and price list after Business Partner).
+- A `po.readback` step reads the saved header from the database and repairs it one time.
+- After the flow, `verify_run` does a check as `adempiere`. There must be one order, and only
+  one, that has the tags of the run (`Description` starts `erp-ui-operator run <id>:`,
+  `POReference` is `UIOP-<id>`). That order must have `IsSOTrx='N'` and `DocStatus='DR'`, and
+  it must be unprocessed. It must have the `C_BPartner_ID` of the vendor and the promised date.
+  Its lines must be the specified product and quantity lines, with no other lines. For all
+  other orders, lines, partners and products in the tenant, the counts and update timestamps
+  must not change.
+
+A run is satisfactory only if the UI flow completed and that check passed.
 
 ## Run it
 
-Requires the `erp-sandbox` stack running (`uv run erp-sandbox status` in `../erp-sandbox`),
-[uv](https://docs.astral.sh/uv/) and Python 3.12.
+Before you start, make sure that the `erp-sandbox` stack runs
+(`uv run erp-sandbox status` in `../erp-sandbox`). You must also have [uv](https://docs.astral.sh/uv/) and Python 3.12.
 
 ```sh
 uv sync
@@ -99,9 +118,10 @@ uv run ui-operator demo                 # one clean and one drifted task, headle
 ERP_LLM_MODE=replay uv run ui-operator demo   # fallback decisions strictly from committed cassettes
 ```
 
-The demo drives the local web UI and writes real draft orders to the shared `idempiere`
-database, then deletes the drafts its own two runs created. With `ERP_LLM_MODE=replay` it
-needs no model access at all; the browser and database are local.
+The demo controls the local web UI and writes draft orders into the shared `idempiere`
+database. These draft orders are not simulated. Then the demo deletes the drafts that its two
+runs made. With `ERP_LLM_MODE=replay`, access to the model is not necessary at any time. The
+browser and the database are local.
 
 Other commands:
 
@@ -113,26 +133,32 @@ uv run ui-operator cleanup [--run-id <id>] [--dry-run] [--yes]
 uv run ui-operator eval
 ```
 
-`derive` builds a task spec in plain SQL from the vendor's active Fernhollow products whose
-on-hand stock in HQ Warehouse is below `M_Replenish.Level_Min`, ordering up to `Level_Max`
-in the vendor's minimum and pack size. `cleanup` lists and counts this tool's unprocessed
-drafts (matched by both tags), asks, then deletes them in one transaction.
+`derive` uses only SQL to make a task spec. It uses the active Fernhollow products of the
+vendor that have on-hand stock in HQ Warehouse below `M_Replenish.Level_Min`. For each
+product, the order quantity increases the stock to a maximum of `Level_Max`. The quantity
+also agrees with the minimum quantity and pack quantity of the vendor. `cleanup` shows a list
+and a count of the unprocessed drafts of this tool (drafts that have the two tags). It waits
+for your approval, and then it deletes them in one transaction.
 
-Each run writes evidence to `runs/<run-id>/` (gitignored): a screenshot per step,
-`trace.zip` (open with `uv run playwright show-trace`), every fallback prompt, and
-`run.json` with steps, fallback decisions, guardrail verdicts, healed selectors, usage and
-the verification result. A representative bundle from a drifted eval run is committed in
+Each run writes evidence to `runs/<run-id>/` (Git ignores this directory). The evidence
+contains a screenshot for each step, `trace.zip` (open it with `uv run playwright show-trace`),
+all fallback prompts, and `run.json`. This file contains the steps, fallback decisions,
+guardrail decisions, updated selectors, model use and the result of the database check. The
+repository contains a typical evidence set from a drift eval run in
 [`docs/evidence/`](docs/evidence).
 
 ## Self-healing demo
 
-`--drift drifted` perturbs three selector-map entries to simulate a UI change: the
-"Business Partner" label renamed "Vendor", the toolbar's "Save Changes" tooltip changed to
-"Save Record", and the line's "Quantity" label renamed "Order Quantity". Postconditions are
-not perturbed; they read `instancename` attributes, which a label change does not touch.
-Each broken step falls back to the model once; after the action passes its postcondition,
-the runner heals that selector-map entry from the chosen element's real label, so later
-steps (the line saves, the second line's quantity) run deterministically again.
+`--drift drifted` changes three entries in the selector map to simulate a UI change. The
+"Business Partner" label changes to "Vendor". The "Save Changes" tooltip of the toolbar
+changes to "Save Record". The "Quantity" label of the line changes to "Order Quantity". The
+postconditions do not change. They read `instancename` attributes, and a label change does
+not change these attributes.
+
+Each defective step calls the model one time through the fallback. After the action passes
+its postcondition, the runner updates that selector-map entry from the label that the selected
+element has in the UI. Thus, subsequent steps (the saves of the lines, the quantity of the
+second line) run through the deterministic layer again.
 
 ## Tests and evals
 
@@ -142,78 +168,95 @@ uv run pytest -m "not browser"   # no browser
 uv run ui-operator eval          # live eval matrix, report under evals/reports/
 ```
 
-Unit tests cover task-spec validation, snapshot normalization (including identical prompts
-across runs), the action guardrail and budgets, the verifier, the step plan, the fallback
-prompt with `ScriptedModelClient`, and the read-back repair. Integration tests read the live
-`idempiere` database and skip when it is down. Browser tests (marker `browser`) run a clean
-task with a model that must not be called and a drifted task from cassettes only, delete
-their own drafts, and skip when the UI is unreachable.
+Unit tests include task-spec validation and snapshot normalization (with a check that runs
+give the same prompts). They also include the action guardrail and limits, the verifier, the
+step plan, the fallback prompt with `ScriptedModelClient`, and the read-back repair.
 
-The eval runs 3 task variants (1, 2 and 3 lines, three vendors) with clean and drifted
-selector maps, live against the browser, then a guardrail probe in which a hostile test
-double always proposes a destructive control. Fallback decisions replay from cassettes when
-the normalized snapshot matches and are recorded live otherwise.
+Integration tests read the live `idempiere` database. If the database is not available,
+pytest does not run these tests. Browser tests (marker `browser`) run a clean task with a model
+that the test must not call. They also run a drift task that uses only cassettes. The browser
+tests delete the drafts that they made. If the UI is not available, pytest does not run these tests.
+
+The eval runs 3 task variants (1, 2 and 3 lines, three vendors) with clean selector maps and
+with drift selector maps. These runs use the live browser. Then the eval runs a guardrail
+probe. In this probe, a hostile test double always recommends a destructive control. If the
+normalized snapshot agrees with a cassette, the fallback decision comes from that cassette. If
+not, the eval calls the live model and records the decision.
 
 ### Measured results
 
-Measured on 2026-11-19 with `claude-opus-5-5` at medium effort, against the local stack.
-Two runs of the same matrix: a recording run (`ERP_LLM_MODE=record`: cassette hits replay,
-misses call the model and are saved), then a strict replay (`--llm-mode replay`, no model
-access). Full reports: [`eval-2026-11-19-record.md`](evals/reports/eval-2026-11-19-record.md)
-and [`eval-2026-11-19-replay.md`](evals/reports/eval-2026-11-19-replay.md), with JSON beside each.
+These results are from 2026-11-19, with `claude-opus-5-5` at effort "medium" and the local
+stack. The eval ran the same matrix two times. The first run was a record-mode run
+(`ERP_LLM_MODE=record`). In this run, if a cassette agrees with the snapshot, the run replays
+that cassette. If no cassette agrees, the run calls the model and saves the result as a
+cassette. The second run was a strict replay
+(`--llm-mode replay`), with no access to the model.
 
-| | Recording run | Replay run |
+The full reports are [`eval-2026-11-19-record.md`](evals/reports/eval-2026-11-19-record.md) and
+[`eval-2026-11-19-replay.md`](evals/reports/eval-2026-11-19-replay.md). Each report has a JSON
+file adjacent to it.
+
+| | Record-mode run | Replay run |
 |---|---|---|
-| Database-verified success | 6/6 | 6/6 |
-| Clean / drifted | 3/3, 3/3 | 3/3, 3/3 |
-| LLM fallback calls (all on drifted runs) | 9 | 9 |
+| Satisfactory runs (database check) | 6/6 | 6/6 |
+| Clean / drift | 3/3, 3/3 | 3/3, 3/3 |
+| LLM fallback calls (all on drift runs) | 9 | 9 |
 | Model calls live / from cassette | 6 / 3 | 0 / 9 |
-| Guardrail blocks in the matrix | 0 | 0 |
-| Guardrail probe (hostile double proposes "Delete Record") | aborted, no order created | aborted, no order created |
+| Actions that the guardrail stopped in the matrix | 0 | 0 |
+| Guardrail probe (hostile double recommends "Delete Record") | aborted, no order made | aborted, no order made |
 | Steps run, total | 140 | 140 |
-| Run duration, min / median / max | 20.2 / 31.5 / 59.0 s | 20.3 / 31.3 / 42.8 s |
+| Run time, min / median / max | 20.2 / 31.5 / 59.0 s | 20.3 / 31.3 / 42.8 s |
 | Database read-back repairs | 0 | 0 |
 
-The recording run's 6 live calls were the drifted 2- and 3-line cases, recorded at $0.0775
-and $0.0771 (about $0.15; per-case `usage` in the recording report). Its drifted 1-line case
-replayed cassettes recorded during development, which is why that report's total shows the
-recorded cost of all 9 cassettes ($0.2322). The replay run cost nothing. Drifted runs take
-longer than clean ones because each broken locator waits 4 s before the fallback; live calls
-added about 5 to 6 s each (recording minus replay duration).
+The 6 live calls of the record-mode run were in the drift 2- and 3-line cases. The recorded
+cost of these cases was $0.0775 and $0.0771 (approximately $0.15 in total). The record-mode
+report shows the `usage` for each case. The drift 1-line case of the record-mode run replayed
+cassettes that development runs recorded. Because of this, the total in that report shows the
+recorded cost of all 9 cassettes ($0.2322).
 
-Every drifted run made exactly three fallback calls (vendor field, save button, first
-line's quantity) and healed those three selector-map entries, so the remaining line steps
-ran deterministically. Clean runs made no model calls. Every run's drafts were deleted
-afterwards.
+The replay run had no cost. Drift runs use more time than clean runs, because each defective
+locator waits 4 s before the fallback. Each live call added approximately 5 to 6 s (record-mode
+run time minus replay run time).
+
+Each drift run made three fallback calls, no more and no less (vendor field, save button,
+quantity of the first line). Each drift run also updated those three selector-map entries.
+Thus, the remaining line steps ran through the deterministic layer. Clean runs made no model
+calls. After each run, the eval deleted the drafts of that run.
 
 ## Guardrails
 
-- Task specs: Fernhollow SKU pattern, positive whole quantities, at most 10 lines, ISO date,
-  no unknown fields; validated before a browser starts.
-- Actions: allowlist, key allowlist, region scope per step, values from the task only,
-  destructive-control block on label, text, dialog title, dialog body and value; abort on
-  anything destructive or out of scope; retry only on harmless slips.
-- Plan: no selector-map entry, clean or drifted, names a destructive control (tested);
-  only idempotent actions (fill, select, type) are ever repeated.
-- Budgets: 150 actions, 10 fallback calls per run, 3 per step.
-- Database: the tool only writes through the UI and only creates drafts; cleanup deletes
-  only unprocessed drafts carrying both run tags, after listing and confirming, in one
-  transaction that re-checks the set.
+- Task specs: Fernhollow SKU pattern, quantities that are positive integers, a maximum of 10
+  lines, ISO date, no unknown fields. The agent validates the task spec before a browser starts.
+- Actions: allowlist, key allowlist, area scope for each step, and values only from the task.
+  The guardrail also has a stop for destructive controls on label, text, dialog title, dialog
+  body and value. The guardrail aborts the run if an action uses a destructive control or is
+  out of scope. The guardrail lets the model try again only after small errors that cause no damage.
+- Plan: no selector-map entry, clean or drift, identifies a destructive control (a test
+  examines this). Only idempotent actions (fill, select, type) occur more than one time.
+- Limits: 150 actions, 10 fallback calls for each run, 3 for each step.
+- Database: the tool writes only through the UI, and it makes only drafts. The cleanup
+  command deletes only unprocessed drafts that have the two run tags. Before it deletes them,
+  it shows a list and gets your approval. It deletes them in one transaction that does a check
+  of the set again.
 
 ## Limitations
 
-- One workflow (draft purchase orders) in one ERP; the selector map is specific to
-  iDempiere 12's ZK UI in English.
-- Drift is simulated by perturbing the selector map, not by changing the UI itself.
-- `derive` does not net out open purchase orders or reservations.
-- The model is reached through the local Claude Code CLI with client-side cost estimates;
-  cassettes make demos and evals reproducible only while snapshots and prompts are
-  unchanged, and a changed prompt is re-recorded live.
-- iDempiere runs under amd64 emulation here; in the eval a run took 20 to 59 seconds.
-- The browser tests and the eval write to the shared `idempiere` database (drafts only,
-  removed afterwards).
-- Browser tests depend on a live, emulated server. iDempiere's Business Partner search
-  field sometimes ignores a programmatic fill; the runner then waits up to 15 s and
-  re-types the value key by key, so such a run passes but takes about 20 s longer. A
-  browser-test failure from this cause was captured and fixed after the eval; the
-  committed eval reports predate that fix; their action counts show no re-application.
+- One workflow (draft purchase orders) in one ERP. The selector map is only for the ZK UI of
+  iDempiere 12 in English.
+- This tool simulates drift with changes to the selector map. It does not change the UI.
+- `derive` does not subtract open purchase orders or reservations.
+- The agent gets access to the model through the local Claude Code CLI, and the cost estimates
+  come from the client. With cassettes, demos and evals give the same results again only while
+  snapshots and prompts do not change. For a changed prompt, the eval calls the live model and
+  records the result again.
+- Here, iDempiere runs in amd64 emulation. In the eval, the time for a run was 20 to 59 seconds.
+- The browser tests and the eval write to the shared `idempiere` database (only drafts, which
+  they remove after the run).
+- Browser tests operate correctly only with a live server in emulation. The Business Partner
+  search field of iDempiere can ignore a fill from code. If this occurs, the runner waits a
+  maximum of 15 s and types the value again, one key at a time. Thus, the browser test passes,
+  but the run uses approximately 20 s more time.
+
+  A browser test failed because of this problem. After the eval, the failure was recorded and repaired. The committed eval
+  reports are from a time before that repair. Their action counts do not show that the runner
+  typed a value again.

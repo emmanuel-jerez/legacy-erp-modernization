@@ -1,40 +1,48 @@
 # erp-sandbox
 
-A local legacy ERP for the agent demos in this portfolio: iDempiere 12 on PostgreSQL 16 in
-Docker, loaded with a **fictional** direct-to-consumer skincare brand, Fernhollow Skincare,
-and a year of **synthetic** order history. The three demo projects build on it:
+This repository is a local legacy ERP for the agent demos in this portfolio.
+It is iDempiere 12 on PostgreSQL 16 in Docker.
+Its data is for a **fictional** direct-to-consumer skincare brand, Fernhollow Skincare.
+The data also includes **synthetic** order history for one year.
+The three demo projects use this ERP:
 
 | Project | Shows |
 |---|---|
-| `../erp-schema-agent` | A LangGraph agent that answers business questions over the ERP schema, with guardrails, an MCP server and evals |
-| `../erp-migration-agent` | An agent that ports legacy business rules out of the ERP and proves parity with characterization tests |
-| `../erp-ui-operator` | A Playwright and LLM hybrid that completes ERP tasks through the legacy web UI, checked against the database |
+| `../erp-schema-agent` | A LangGraph agent that uses the ERP schema to answer business questions. It has guardrails, an MCP server and evals. |
+| `../erp-migration-agent` | An agent that makes ports of legacy business rules from the ERP. The agent uses characterization tests to show parity. |
+| `../erp-ui-operator` | A tool that uses Playwright and an LLM together to do ERP tasks through the legacy web UI. It compares the results with the database. |
 
-## Why iDempiere
+## Decision: iDempiere
 
-iDempiere descends from Compiere (2000) through ADempiere. Its 900-table schema
-(`C_BPartner`, `M_Product`, `C_OrderLine`), its application dictionary (`AD_Table`,
-`AD_Column`) and its PL/pgSQL business functions are a real 20-year-old ERP design.
+iDempiere comes from Compiere (2000) through ADempiere.
+It has a 900-table schema (`C_BPartner`, `M_Product`, `C_OrderLine`), an application dictionary (`AD_Table`, `AD_Column`) and PL/pgSQL business functions.
+These parts show the design of an ERP that has 20 years of history.
 
 ## Data
 
-Nothing here is real.
+All data in this repository is fictional.
 
-- **Catalog:** 28 Fernhollow products, 56 SKUs (`FH-…`), defined in
-  [`catalog.py`](src/erp_sandbox/catalog.py). Two SKUs are retired.
-- **History:** 320 `Demo Customer` partners, three `Placeholder` vendors, about 9,000 sales orders
-  (Dec 2025 to Nov 15, 2026, including voided and in-progress orders), 36 purchase orders, on-hand stock and
-  reorder points. Every order description starts with "Synthetic placeholder".
-- **Determinism:** the generator in [`seed.py`](src/erp_sandbox/seed.py) uses a fixed random
-  seed, so a fresh stack on any machine gets the same business data and record IDs, and the eval answer keys stay valid. Only the `*_uu` UUID columns differ.
-- **How it's loaded:** rows are inserted with SQL, not through iDempiere's document engine, so
-  seeded orders have no accounting entries. IDs come from `AD_Sequence`, so records created later in the web UI never collide.
-- **GardenWorld:** iDempiere's own demo tenant data stays in place as realistic noise.
+- **Catalog:** 28 Fernhollow products and 56 SKUs (`FH-…`).
+  [`catalog.py`](src/erp_sandbox/catalog.py) contains them.
+  Two SKUs are retired.
+- **History:** 320 `Demo Customer` partners, three `Placeholder` vendors, approximately 9,000 sales orders (Dec 2025 to Nov 15, 2026), 36 purchase orders, on-hand quantities and reorder points.
+  The sales orders include orders with the status "Voided" and orders with the status "In Progress".
+  All order descriptions start with "Synthetic placeholder".
+- **Determinism:** The generator in [`seed.py`](src/erp_sandbox/seed.py) uses a random seed that does not change.
+  Thus, a new stack on each computer gets the same business data and the same record IDs.
+  Also, the eval answer keys stay correct.
+  Only the `*_uu` UUID columns are different.
+- **How the seed loads the data:** The seed uses SQL to write the rows.
+  It does not use the iDempiere document engine.
+  Thus, the seeded orders have no accounting entries.
+  The IDs come from `AD_Sequence`.
+  Thus, a record that the web UI makes after the seed does not get the ID of a different record at any time.
+- **GardenWorld:** The demo tenant data that comes with iDempiere stays in the database.
+  This data is noise, as in an ERP in production.
 
 ## Run it
 
-Requires Docker (amd64 emulation for the iDempiere image), [uv](https://docs.astral.sh/uv/)
-and Python 3.12.
+You must have Docker (with amd64 emulation for the iDempiere image), [uv](https://docs.astral.sh/uv/) and Python 3.12.
 
 ```sh
 uv sync
@@ -42,28 +50,33 @@ uv run erp-sandbox bootstrap   # start containers, seed once, freeze the seed te
 uv run erp-sandbox status
 ```
 
-The first start imports iDempiere's seed database, which takes about 10 minutes.
+When the stack starts for the first time, it imports the iDempiere seed database.
+Approximately 10 minutes are necessary for this import.
 
 | Service | Address | Login |
 |---|---|---|
 | iDempiere web UI | https://127.0.0.1:58443/webui/ (self-signed certificate) | `GardenAdmin` / `GardenAdmin` |
-| PostgreSQL | `127.0.0.1:56432` | `adempiere` / `adempiere` (ERP owner), `postgres` / `postgres` (admin) |
+| PostgreSQL | `127.0.0.1:56432` | `adempiere` / `adempiere` (ERP owner), `postgres` / `postgres` (administrator) |
 
-All credentials are the image defaults, bound to `127.0.0.1`, for local demos only.
+All credentials are the default credentials of the image.
+The services are available only on `127.0.0.1`.
+These credentials are only for local demos.
 
 ### Databases
 
 | Database | Used by |
 |---|---|
-| `idempiere` | The running iDempiere server. `erp-ui-operator` writes here through the web UI. |
-| `idempiere_seed` | Frozen copy taken right after seeding (a PostgreSQL template). |
-| `erp_schema_agent`, `erp_migration_agent` | Per-project copies of the seed |
+| `idempiere` | The iDempiere server in operation. `erp-ui-operator` writes to this database through the web UI. |
+| `idempiere_seed` | A frozen copy of the database immediately after the seed (a PostgreSQL template). |
+| `erp_schema_agent`, `erp_migration_agent` | Copies of the seed, one for each project |
 
-`uv run erp-sandbox snapshot` freezes the template once. It refuses to replace an existing
-template unless you pass `--force`. Replacing it changes the other repos' eval answer keys and every clone must then be
-recreated, so only do it after a deliberate seed change.
+`uv run erp-sandbox snapshot` freezes the template one time.
+If there is a template, the command does not replace it, unless you add `--force`.
+When you replace the template, the eval answer keys of the other repositories change.
+Then you must make all clones again.
+Thus, replace the template only after you make a decision to change the seed.
 
-A project database can be recreated at any time:
+You can make a project database again when you want:
 
 ```sh
 uv run erp-sandbox clone-db erp_schema_agent --force
@@ -71,24 +84,32 @@ uv run erp-sandbox clone-db erp_schema_agent --force
 
 ## Model adapter
 
-[`erp_sandbox.llm`](src/erp_sandbox/llm.py) is the single path from the demos to Claude.
-`complete_json(system, prompt, schema)` returns schema-valid JSON; the model proposes and the
-calling code validates and executes.
+The demos call Claude only through [`erp_sandbox.llm`](src/erp_sandbox/llm.py).
+`complete_json(system, prompt, schema)` gives JSON that agrees with the schema.
+The model gives a proposal.
+Then the code that calls the function validates the proposal and runs it.
 
-For this local demo, `ClaudeCodeClient` calls the logged-in Claude Code CLI (`claude -p`)
-instead of the Claude API. Defaults: `claude-opus-5-5` at **medium** effort (`ERP_LLM_EFFORT`
-overrides). Each call strips Claude Code's own context: a replacement system prompt, no built-in tools, no user or project settings,
-hooks, MCP servers or skills, and an empty working directory. To prove it on a machine:
+For this local demo, `ClaudeCodeClient` calls the Claude Code CLI (`claude -p`) with the login of that CLI.
+It does not call the Claude API.
+By default, the client uses `claude-opus-5-5` at **medium** effort.
+`ERP_LLM_EFFORT` changes the effort.
+
+Each call removes the context that Claude Code adds.
+It replaces the system prompt and uses an empty working directory.
+It uses no built-in tools, no user or project settings, no hooks, no MCP servers and no skills.
+To show this on a computer, run this command:
 
 ```sh
 uv run erp-sandbox llm-smoke
 ```
 
-A production build would put an Anthropic SDK client behind the same interface.
+In a production build, an Anthropic SDK client is behind the same interface.
 
-Responses are recorded as cassettes keyed by a hash of model, effort, prompts and schema, so evals and demos replay offline and
-identically. `ERP_LLM_MODE` is `replay`, `record` (default) or `live`. Cost figures in
-cassettes are Claude Code's client-side estimates.
+The adapter records each response as a cassette.
+The key of each cassette is a hash of the model, effort, prompts and schema.
+Thus, evals and demos replay without a network connection, with the same results each time.
+The value of `ERP_LLM_MODE` is `replay`, `record` (default) or `live`.
+The cost values in the cassettes are client-side estimates from Claude Code.
 
 ## Tests
 
@@ -98,5 +119,6 @@ uv run pytest
 
 ## Reset
 
-`docker compose down -v` deletes everything, including the seed template. Run
-`uv run erp-sandbox bootstrap` to rebuild.
+`docker compose down -v` deletes all of the stack.
+This includes the seed template.
+To make the stack again, run `uv run erp-sandbox bootstrap`.

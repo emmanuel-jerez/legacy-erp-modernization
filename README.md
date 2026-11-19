@@ -1,144 +1,158 @@
 # Legacy ERP Modernization with Verified Agents
 
-Three AI agents working against a real 20-year-old ERP, each built so its output can be
-trusted the way production software has to be:
+This repository has three AI agents that operate on an iDempiere ERP that has 20 years of
+history. I made each agent to give output that you can be sure of, as you must be sure of
+production software:
 
-| Agent | What it does | How its output is verified |
+| Agent | Function | How the agent makes sure that its output is correct |
 |---|---|---|
-| [`erp-schema-agent`](erp-schema-agent) | Answers business questions in plain English over a 1,000-table ERP schema | Every query is re-rendered by a SQL validator and runs under a read-only role; every number in the answer is checked against the returned rows |
-| [`erp-migration-agent`](erp-migration-agent) | Ports legacy PL/pgSQL business rules to modern Python | The legacy function is the oracle: 100% parity on held-out cases the model never saw, then a human approval gate |
-| [`erp-ui-operator`](erp-ui-operator) | Completes ERP tasks through the legacy web UI, like a person would | Success is defined by the database, not the screen; the model may only propose allowlisted actions |
+| [`erp-schema-agent`](erp-schema-agent) | Gives answers to business questions in plain English. It uses an ERP schema of 1,000 tables | A SQL validator renders each query again, and the query runs with a read-only role. A check compares each number in the answer with the rows from the query |
+| [`erp-migration-agent`](erp-migration-agent) | Changes legacy PL/pgSQL business rules into new Python code | The legacy function is the oracle. The port must have 100% parity on held-out cases that the model did not see at any time. Then, a person must accept the port at an approval gate |
+| [`erp-ui-operator`](erp-ui-operator) | Completes ERP tasks through the legacy web UI, as a person does | The database, not the screen, shows if the task is correct. The model can only recommend allowlisted actions |
 
-All three run on [`erp-sandbox`](erp-sandbox): iDempiere 12, a direct descendant of
-Compiere (2000), on PostgreSQL 16, with a fictional brand and synthetic history.
+All three agents run on [`erp-sandbox`](erp-sandbox). This sandbox is iDempiere 12 on
+PostgreSQL 16. iDempiere comes directly from Compiere (2000). The sandbox uses a fictional
+brand and synthetic history data.
 
-## The idea: the model proposes, deterministic code decides
+## The rule: the model recommends, deterministic code makes the decision
 
-Getting an LLM to produce a SQL query, a Python port or a click is easy. Shipping it is not,
-because a model's output is a guess. Everything in this repository is organized around one
-rule: **the model never acts directly**. It returns schema-validated JSON, and deterministic
-code decides whether that proposal is safe, correct and done.
+It is easy to get a SQL query, a Python port or a click from an LLM. But it is not easy to use
+that output in production, because the output of a model is an estimate. All parts of this
+repository follow one rule: **the model does not do operations directly at any time**.
 
-Production readiness comes from the parameters set around an agent and the verification
-that gates its output. These are the parameters used here.
+The model gives schema-validated JSON. Then deterministic code makes the decision: is that
+output safe, is it correct, and did the agent complete the task?
+
+The parameters around an agent and the checks that its output must pass make the agent
+satisfactory for production. This repository uses the parameters that follow.
 
 ### 1. Contracts before code
 
-- **Model contract.** One interface for every model call:
-  `complete_json(system, prompt, schema)`. The answer is validated against a JSON Schema
-  before any code sees it ([`erp-sandbox/src/erp_sandbox/llm.py`](erp-sandbox/src/erp_sandbox/llm.py)).
-- **Metric contract.** The migration agent's definition of "equivalent" was written down
-  before the agent: exact decimal scale, NULL rules, how errors compare, the held-out split
-  and the pass bar ([`erp-migration-agent/docs/metric-contract.md`](erp-migration-agent/docs/metric-contract.md)).
-- **Data contract.** The seed is deterministic, so eval answer keys stay valid on any
-  machine and any change to them is deliberate.
+- **Model contract.** All model calls use one interface:
+  `complete_json(system, prompt, schema)`. The interface validates the answer against a JSON
+  Schema before other code sees it ([`erp-sandbox/src/erp_sandbox/llm.py`](erp-sandbox/src/erp_sandbox/llm.py)).
+- **Metric contract.** I wrote the definition of "equivalent" for the migration agent before I
+  made the agent. It gives these conditions: the same decimal scale, the NULL rules, the
+  procedure to compare errors, the held-out split and the pass limit
+  ([`erp-migration-agent/docs/metric-contract.md`](erp-migration-agent/docs/metric-contract.md)).
+- **Data contract.** The seed is deterministic. Thus, the eval answer keys stay correct on all
+  computers, and each change to them comes from a decision, not from an accident.
 
-### 2. Ground truth lives outside the model
+### 2. Ground truth is external to the model
 
 | Agent | Ground truth |
 |---|---|
-| Schema agent | Hand-written reference SQL; result sets compared, not query text |
-| Migration agent | The legacy function itself, called in PostgreSQL |
+| Schema agent | SQL that a person wrote as the standard. The check compares result sets, not query text |
+| Migration agent | The legacy function, which the check calls in PostgreSQL |
 | UI operator | The ERP database after the run |
 
-No agent grades its own work.
+No agent makes the decision if its work is correct.
 
-### 3. Defense in depth, with each layer able to stand alone
+### 3. Defense in depth: each layer can operate independently
 
-- **SQL:** a least-privilege PostgreSQL role (SELECT on one schema, no credential columns, read-only transactions,
-  statement timeout) **and** a sqlglot validator (one SELECT, allowlisted tables and
-  functions, catalog and credential access blocked, LIMIT capped). The validator's
-  re-rendered SQL is what runs, never the model's text. Attack queries are tested against
-  each layer separately.
-- **Generated code:** a static import allowlist, the same allowlist enforced at runtime, and
-  execution in a separate process with a timeout. The README says plainly this is defense in
-  depth, not a sandbox.
-- **UI actions:** a deterministic, selector-first plan. The model is used only when a step
-  fails, and its proposed action must pass an allowlist that forbids completing, posting,
-  voiding or deleting documents.
+- **SQL:** a least-privilege PostgreSQL role (SELECT on one schema, no credential columns,
+  read-only transactions, statement timeout) **and** a sqlglot validator (one SELECT,
+  allowlisted tables and functions, no access to the catalog or to credentials, a maximum
+  value for LIMIT). The SQL that runs is the SQL that the validator renders again. The text
+  from the model does not run at any time. Tests send attack queries to each layer
+  independently.
+- **Generated code:** a static import allowlist, the same allowlist at runtime, and a different
+  process with a timeout to run the code. The README tells you clearly that this is defense
+  in depth, not a sandbox.
+- **UI actions:** a deterministic sequence of steps that uses selectors first. The operator
+  uses the model only when the code cannot do a step. The action that the model recommends
+  must pass an allowlist. This allowlist does not let the model complete, post, void or delete
+  documents.
 
 ### 4. Bounded autonomy
 
-Every loop has a ceiling, and every irreversible step has a gate:
-- SQL repair is capped at 2 retries and code repair at 3;
-- UI runs have a step cap and a cap on model fallbacks;
-- live model calls are capped at 3 in flight;
-- a durable approval gate pauses the migration workflow until someone approves or
-  rejects it from a separate process.
+Each loop has a limit, and each step that has a permanent effect has a gate:
+- SQL repair stops at 2 retries, and code repair stops at 3.
+- UI runs have a maximum number of steps and a maximum number of model fallbacks.
+- A maximum of 3 live model calls can run at the same time.
+- An approval gate, which stores its condition, stops the migration workflow until a person
+  accepts or rejects it from a different process.
 
 ### 5. Evals are release gates, not demos
 
 | Agent | Eval sets |
 |---|---|
-| Schema agent | A golden set, an adversarial prompt set, and attack queries that bypass the model entirely |
-| Migration agent | Visible cases for repair, held-out cases for acceptance |
-| UI operator | A task matrix run on the clean UI and on a deliberately "drifted" UI |
+| Schema agent | A golden set, an adversarial prompt set, and attack queries that do not go through the model at any point |
+| Migration agent | Visible cases for repair, and held-out cases to accept the port |
+| UI operator | A task matrix that runs on the clean UI and on a "drifted" UI that I changed for this eval |
 
-Every report records the model, effort, call counts and cost estimate. Drift tests fail the
-build when a limit quoted in a prompt, tool description or README stops matching the code.
+Each report records the model, the effort, the number of calls and the cost estimate. A limit
+can be in a prompt, a tool description or a README. When that limit becomes different from the
+code, the drift tests fail, and the build fails.
 
 ### 6. Reproducibility
 
-- **Recorded model responses.** Each response is stored as a cassette keyed by a hash of
-  model, effort, prompts and schema. Evals and demos replay offline with identical results,
-  and a test fails when a prompt drifts from its recording.
-- **Isolated model context.** Each model call sees only what the code sends: no editor
-  instructions, tools, plugins or memory. A one-command smoke test proves this.
+- **Recorded model responses.** The code stores each response as a cassette. The key of each
+  cassette is a hash of the model, the effort, the prompts and the schema. Evals and demos
+  replay offline and give the same results. A test fails when a prompt becomes different from
+  the prompt in its cassette.
+- **Isolated model context.** Each model call gets only the data that the code sends. It gets
+  no editor instructions, tools, plugins or memory. A smoke test with one command shows this.
 
 ## Results
 
-Measured 2026-11-19 with `claude-opus-5-5` at medium effort, replayed offline from the
-committed cassettes.
+I measured these results on 2026-11-19 with `claude-opus-5-5` at the "medium" effort level. The
+evals replayed offline from the committed cassettes.
 
 | | Result |
 |---|---|
-| Schema agent: golden questions, result-set accuracy | **36 / 38 (94.7%)** |
-| Schema agent: adversarial prompts handled safely | 10 / 10 |
+| Schema agent: golden questions, correct result sets | **36 / 38 (94.7%)** |
+| Schema agent: adversarial prompts with a safe result | 10 / 10 |
 | Schema agent: attack queries blocked without the model | 18 / 18 |
-| Schema agent: answers with every figure grounded | 37 / 38 (1 false flag) |
+| Schema agent: answers in which all numbers agree with the data | 37 / 38 (1 incorrect flag) |
 | Migration agent: `currencyround`, held-out parity | 14 / 14, no repairs |
 | Migration agent: `paymenttermduedate`, held-out parity | 13 / 13, no repairs |
 | Migration agent: `paymenttermdiscount` (8 tables), held-out parity | 14 / 14, no repairs |
-| UI operator: draft purchase orders verified in the database | **6 / 6** (clean UI 3 / 3, drifted UI 3 / 3) |
-| UI operator: drifted selectors repaired by the model | 9 model calls across the 3 drifted runs, 0 guardrail blocks |
-| UI operator: guardrail probe (a "Delete Record" action) | Blocked; no order created |
+| UI operator: draft purchase orders, with a check in the database | **6 / 6** (clean UI 3 / 3, drifted UI 3 / 3) |
+| UI operator: drifted selectors that the model repaired | 9 model calls in the 3 drifted runs, 0 guardrail blocks |
+| UI operator: guardrail test (a "Delete Record" action) | Blocked, and the operator made no order |
 
-The two schema-agent misses are reported in the eval report, not hidden: both returned
-extra rows. One example of what the parity harness caught: the legacy due-date function adds
-86,400 seconds per day in Los Angeles time, so due dates shift an hour across daylight
-saving. The port reproduces that behavior, because the oracle, not intuition, defines
-correct.
+The eval report shows the two incorrect schema-agent results, and does not remove them. The
+two results each had more rows than necessary.
 
-## How it was built: agentic engineering applied to the build itself
+This is one example of a problem that the parity harness found. The legacy due-date function
+adds 86,400 seconds for each day in Los Angeles time. Thus, due dates move by an hour when daylight
+saving time starts or stops. The port gives the same results, because the oracle, not an
+assumption, gives the correct result.
 
-The code was written by AI coding agents working in parallel, one per project, under an
-architecture, constraints and review process I designed. The approach that governs the
-agents in the product also governed the agents that built it.
+## How I made it: agentic engineering applied to the build
 
-- **A written brief as the contract** ([`BUILD-BRIEF.md`](BUILD-BRIEF.md)): scope, shared
-  interfaces, model budget, data rules, git workflow and a definition of done.
-- **Small slices.** Each change was built in its own worktree and squash-merged to `main`, giving a linear history.
-- **Independent review on every slice** before merge, with a fresh reviewer after
-  non-trivial fixes. Reviews caught real defects, for example:
-  - a CTE name that let a query reach the PostgreSQL catalog;
-  - two escapes from the generated-code import guard;
-  - NaN results that could never pass parity;
-  - seeded ERP records missing the accounting rows the ERP creates on save.
-- **Lessons become rules.** Every review fix adds a general rule, with its reason, to that
-  project's `AGENTS.md`, so the next agent doesn't repeat the mistake.
+AI coding agents wrote the code. They ran in parallel, one agent for each project. They
+followed an architecture, constraints and a review procedure that I designed. The method that
+controls the agents in this repository also controlled the agents that made this repository.
+
+- **A written brief as the contract** ([`BUILD-BRIEF.md`](BUILD-BRIEF.md)). The brief gives the scope,
+  the shared interfaces, the model budget, the data rules, the git workflow and a definition of
+  done.
+- **Small slices.** Each change had a new worktree, and a squash merge put it into `main`.
+  Thus, the history is linear.
+- **A review of each slice, done independently,** before merge. After a fix that was not
+  small, a new reviewer did the review again. The reviews found defects that were in the
+  code, for example:
+  - a CTE name that let a query get to the PostgreSQL catalog.
+  - two escapes from the import guard for generated code.
+  - NaN results that could not pass parity at any time.
+  - seeded ERP records without the accounting rows that the ERP makes when it saves a record.
+- **Lessons become rules.** Each review fix adds a general rule to the `AGENTS.md` file
+  of that project. The rule includes the cause for it. This prevents the same error by the
+  next agent.
 
 ## Technologies
 
-Python 3.12, LangGraph, the official MCP Python SDK, sqlglot, Playwright, PostgreSQL 16,
-iDempiere 12, Docker, uv and pytest, with Claude as the model.
+This repository uses Python 3.12, LangGraph, the official MCP Python SDK, sqlglot, Playwright,
+PostgreSQL 16, iDempiere 12, Docker, uv and pytest. It uses Claude as the model.
 
-Several of these (LangGraph, iDempiere, sqlglot, the MCP SDK) were new to me for this
-project. The working rule was to read current documentation before writing code against
-any library, and each project's README lists what it relied on.
+Some of these (LangGraph, iDempiere, sqlglot, the MCP SDK) were new to me in this project. My
+rule was to read the newest documentation for a library before I wrote code for it. The README of each project gives a list of the sources that it used.
 
 ## Run it
 
-Requires Docker (the iDempiere image runs under amd64 emulation on ARM), [uv](https://docs.astral.sh/uv/) and Python 3.12.
+You must have Docker (on ARM, the iDempiere image runs in amd64 emulation), [uv](https://docs.astral.sh/uv/) and Python 3.12.
 
 ```sh
 cd erp-sandbox && uv sync && uv run erp-sandbox bootstrap   # first start takes ~10 minutes
@@ -146,17 +160,17 @@ cd ../erp-schema-agent    && uv sync && uv run schema-agent demo
 cd ../erp-migration-agent && uv sync && uv run migration-agent demo
 ```
 
-Demos replay offline from cassettes. Each folder's README covers its tests, evals and live
-runs.
+The demos replay offline from cassettes. The README in each folder gives the data about its
+tests, evals and live runs.
 
 ## Scope and honesty notes
 
-- **Local demo.** For this demo the model is reached through the locally installed Claude
-  Code CLI; a production build would put the Anthropic SDK behind the same interface.
-- **No real data.** "Fernhollow Skincare" is fictional, and every partner and order is
-  synthetic and labelled as such in the data.
-- **Built and published separately.** The projects were built as separate local
-  repositories and combined here with their full commit history.
+- **Local demo.** In this demo, the code calls the model through the Claude Code CLI that is
+  installed locally. In a production build, the Anthropic SDK is behind the same interface.
+- **Synthetic data only.** "Fernhollow Skincare" is a fictional brand. All
+  partners and orders are synthetic data, and the data identifies them as synthetic.
+- **Made and published independently.** The projects started as different local repositories.
+  This repository puts them together with their full commit history.
 
-The patterns here mirror production work I've done; that code is proprietary and not
-included.
+The patterns here come from production work that I did. That code is proprietary, and this
+repository does not include it.
