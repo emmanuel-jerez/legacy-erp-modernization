@@ -18,8 +18,9 @@ medium-effort results.
   it was recorded. Model time is the sum of the recorded call durations, not wall-clock
   time (live calls ran up to 3 at a time).
 - **The schema and migration reports are offline replays** of the recorded high-effort
-  runs, the same way the medium reports were made. Each replay gave the same scores as its
-  record run. The UI operator has both a record report and a replay report at each effort,
+  runs, the same way the medium reports were made. During this re-run, each replay gave
+  the same scores as its record run; only the live-call counts differed. The record-mode
+  reports were not committed. The UI operator has both a record report and a replay report at each effort,
   because that eval always drives the live web UI.
 
 ## Summary
@@ -32,7 +33,7 @@ medium-effort results.
 | Migration agent: held-out parity, all 3 functions | 41 / 41, no repairs | 41 / 41, no repairs |
 | UI operator: draft orders verified in the database | 6 / 6 | 6 / 6 |
 | Model calls, all three evals | 102 | 102 |
-| Recorded model time, all three evals | 1,088 s | 1,315 s (+21%) |
+| Recorded model time, all three evals | 1,087 s | 1,315 s (+21%) |
 | Recorded cost estimate, all three evals | $6.01 | $6.64 (+10%) |
 
 At high effort, the accuracy, parity and success results were the same, and model time and
@@ -66,13 +67,13 @@ Reports: [medium](erp-schema-agent/evals/reports/eval-report.md),
   ties, as the question asked.
 - `vendor_lead_time` **passed at medium, failed at high.** At high, the model rounded the
   average lead time to 1 decimal place (33.1) instead of 2 (33.05). The rows and vendors
-  were correct, but the scorer compares values at the reference precision, so the column
-  did not match.
+  were correct, but the scorer allows numbers to differ by at most 0.0051 (cent rounding),
+  and 33.1 is 0.05 away from 33.05, so the column did not match.
 - `vitamin_c_prices` **failed at both efforts** in the same way. Both queries left out the
   2-pack, but they also returned the 2 oz single (`FH-004-2`), so the answer had an extra
   row.
 
-**Grounding:** the ungrounded figure changed. At medium, a "6 states" count in
+**Grounding:** the ungrounded figures changed. At medium, a "6 states" count in
 `revenue_by_state_month_q3` was not found in the rows. At high, that answer was grounded,
 but `revenue_by_month` gave approximate bounds ("about 70,000 to 82,000 a month from May")
 that the grounding check correctly did not match to any cell.
@@ -146,6 +147,10 @@ ERP_LLM_EFFORT=high uv run migration-agent eval         # offline replay
 ERP_LLM_EFFORT=high uv run ui-operator eval --llm-mode replay   # drives the live web UI
 ```
 
-Each command writes to the project's default report name. To keep the committed
-medium-effort reports, rename the new output, then restore the medium files with
-`git checkout`.
+The schema and migration commands write over the committed medium files
+(`evals/reports/eval-report.{json,md}`, and the migration agent's `evals/reports/audit/`
+too). The UI operator never overwrites a report: it names each report by date and cassette
+mode and adds the time when that name exists. The committed `-high` files and the
+migration agent's `audit-high/` folder were renamed by hand from that output, and the
+medium files were restored with `git checkout`. Do the same to keep the committed
+reports.
