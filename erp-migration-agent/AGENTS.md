@@ -47,3 +47,19 @@ portfolio rules live in `../BUILD-BRIEF.md`; the sandbox contract in `../erp-san
   not on the proposal text, and log every rejected case, sampled or proposed, instead of aborting.
 - **Order snapshot rows by every selected column**, not just the first key column, so composite
   keys cannot reorder rows and change a prompt.
+- **PostgreSQL numeric has NaN, Infinity and -Infinity.** Parity compares special values by text
+  instead of rejecting every non-finite Decimal; a live run showed a correct port failing on a NaN
+  golden output. Python's `-NaN` and `sNaN` have no PostgreSQL counterpart and never match.
+- **Make every durable step retryable on its own.** The approval node writes `decision.json` as
+  soon as a human decides; `publish` builds the output in a staging directory and swaps it in
+  through a backup (no window without a publication, no leftovers on failure), refuses to replace a
+  folder that holds anything it did not generate, and the CLI prints the retry command; and
+  `resume` re-runs a failed publish instead of refusing because the gate is already answered. A
+  decision that only lived in the checkpoint left a run stuck after a disk error.
+- **Fail cleanly when the oracle is down.** CLI commands check `oracle.is_available()` first and
+  map database errors to exit code 2 with a message, not a traceback.
+- **A human approval names a human.** `approve` requires `--by`; only the labelled auto-approve
+  flag may approve without one.
+- **Replay can diverge only through timing.** Prompts are byte-stable, but a port that hits the
+  runner timeout on a loaded machine changes the branch taken. Keep the timeout generous (30 s).
+

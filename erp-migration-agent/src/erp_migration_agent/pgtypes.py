@@ -135,9 +135,8 @@ def _matches(kind: str, expected: Any, py_type: str, actual: Any) -> tuple[bool,
             number = Decimal(actual)
         except (InvalidOperation, TypeError):
             return False, f"port returned non-numeric Decimal {actual!r}"
-        if not number.is_finite():
-            return False, f"port returned non-finite Decimal {actual}"
-        if number.is_signed() and number == 0:
+        # Non-finite values compare by text below: PostgreSQL has NaN, Infinity and -Infinity only.
+        if number.is_finite() and number.is_signed() and number == 0:
             return False, f"negative zero {actual} (PostgreSQL numeric has none; expected {expected})"
         if actual != expected:
             return False, f"expected {expected}, got {actual}"

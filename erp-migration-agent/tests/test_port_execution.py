@@ -75,6 +75,14 @@ def roundit(amount, currency_id, *, data):
     assert "negative zero" in failed["tiny-negative"]
 
 
+def test_postgresql_nan_matches_only_an_unsigned_quiet_nan():
+    port = "from decimal import Decimal\n\ndef roundit(amount, currency_id, *, data):\n    return Decimal(amount)\n"
+    cases = [case("nan", ["NaN", "100"], {"value": "NaN"}), case("inf", ["-Infinity", "100"], {"value": "-Infinity"})]
+    assert run(port, cases).passed
+    negated = port.replace("Decimal(amount)", "Decimal(amount).copy_negate()")
+    assert run(negated, cases).matched == 0
+
+
 def test_wrong_python_type_never_matches():
     report = run("def roundit(amount, currency_id, *, data):\n    return None if amount is None else float(amount)\n")
     assert [m.case_id for m in report.mismatches if "float" in m.reason]

@@ -56,7 +56,8 @@ and the stage output and audit log flag it.
 **held out**. Roughly two thirds are **visible**. The split is a pure function of the case ids, so
 it is reproducible. The model sees visible cases (inputs and golden outputs) when it writes and
 repairs the port. It never sees a held-out golden output, and held-out cases are never in a
-port or repair prompt. Held-out edge cases were proposed by the model as inputs during
+port or repair prompt. A repair prompt lists up to 12 visible mismatches (inputs, expected,
+actual, reason) and states the total count. Held-out edge cases were proposed by the model as inputs during
 characterization; their outputs are recorded afterwards and never sent back.
 
 ## Parity
@@ -65,7 +66,7 @@ A case **matches** when the port's result equals the golden result under these r
 
 | Legacy type | Port must return | Equal when |
 |---|---|---|
-| `numeric` | `decimal.Decimal` | The PostgreSQL text form matches exactly: same value **and** same scale (`2.20` ≠ `2.2`). A negative zero (`-0.00`) never matches, because PostgreSQL numeric has none. |
+| `numeric` | `decimal.Decimal` | The PostgreSQL text form matches exactly: same value **and** same scale (`2.20` ≠ `2.2`). A negative zero (`-0.00`) never matches, because PostgreSQL numeric has none. Special values match by text: `NaN`, `Infinity`, `-Infinity` (Python's `-NaN` and `sNaN` never match). |
 | `timestamp with time zone` | timezone-aware `datetime` | Same instant (compared in UTC). A naive datetime never matches. |
 | `timestamp without time zone` | naive `datetime` | Same wall-clock value. |
 | `date` | `datetime.date` (not a `datetime`) | Same date. |
