@@ -26,7 +26,7 @@ Nothing here is real.
   (Dec 2025 to Nov 15, 2026, including voided and in-progress orders), 36 purchase orders, on-hand stock and
   reorder points. Every order description starts with "Synthetic placeholder".
 - **Determinism:** the generator in [`seed.py`](src/erp_sandbox/seed.py) uses a fixed random
-  seed, so every machine produces the same database and the eval answer keys stay valid.
+  seed, so a fresh stack on any machine gets the same business data and record IDs, and the eval answer keys stay valid. Only the `*_uu` UUID columns differ.
 - **How it's loaded:** rows are inserted with SQL, not through iDempiere's document engine, so
   seeded orders have no accounting entries. IDs come from `AD_Sequence`, so records created later in the web UI never collide.
 - **GardenWorld:** iDempiere's own demo tenant data stays in place as realistic noise.
@@ -56,8 +56,12 @@ All credentials are the image defaults, bound to `127.0.0.1`, for local demos on
 | Database | Used by |
 |---|---|
 | `idempiere` | The running iDempiere server. `erp-ui-operator` writes here through the web UI. |
-| `idempiere_seed` | Frozen copy taken right after seeding. Never modified. |
+| `idempiere_seed` | Frozen copy taken right after seeding (a PostgreSQL template). |
 | `erp_schema_agent`, `erp_migration_agent` | Per-project copies of the seed |
+
+`uv run erp-sandbox snapshot` freezes the template once. It refuses to replace an existing
+template unless you pass `--force`. Replacing it changes the other repos' eval answer keys and every clone must then be
+recreated, so only do it after a deliberate seed change.
 
 A project database can be recreated at any time:
 
