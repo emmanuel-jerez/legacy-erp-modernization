@@ -19,10 +19,13 @@ from erp_schema_agent.agent import prompts
 from erp_schema_agent.retrieval.search import MAX_TABLES
 
 WORDS = {w: i for i, w in enumerate("one two three four five six seven eight nine ten".split(), start=1)}
-NUM = r"(\d[\d,_]*|" + "|".join(WORDS) + ")"
+NUM = r"\b(\d[\d,_]*|" + "|".join(WORDS) + ")"
 PATTERNS = [
     (re.compile(NUM + r"[- ]rows?\b", re.I), "rows", {limits.MAX_ROWS, limits.ANSWER_ROWS}),
-    (re.compile(NUM + r"\s*(?:s|secs?|seconds?)\b", re.I), "seconds", {limits.STATEMENT_TIMEOUT_S}),
+    # "5s" is a quote but "ones" is not: the bare "s" unit only follows digits.
+    (re.compile(r"\b(\d[\d,_]*)\s*(?:s|secs?|seconds?)\b", re.I), "seconds", {limits.STATEMENT_TIMEOUT_S}),
+    (re.compile(r"\b(" + "|".join(WORDS) + r")\s+(?:secs?|seconds?)\b", re.I), "seconds",
+     {limits.STATEMENT_TIMEOUT_S}),
     (re.compile(NUM + r"\s*ms\b", re.I), "ms",
      {limits.STATEMENT_TIMEOUT_MS, limits.LOCK_TIMEOUT_MS, limits.IDLE_IN_TRANSACTION_TIMEOUT_MS}),
     (re.compile(NUM + r"\s+(?:retries|retry|repairs?|repair attempts?)\b", re.I), "retries",
@@ -81,6 +84,7 @@ def test_the_scanner_catches_each_form_of_drift():
                                           "4 retries", "9000 characters", "7 connections", "250 ms",
                                           "25 tables"])
     assert drift("capped at 200 rows after 5 seconds and 2 retries") == []
+    assert drift("the ones it imports, someones") == []
 
 
 def test_prompts_and_tools_state_the_limits():

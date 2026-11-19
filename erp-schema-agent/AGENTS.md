@@ -77,6 +77,8 @@ uv run pytest                     # integration tests skip when the database is 
 - **Screen patterns must cover the syntax they claim.** `update \w+ set` missed
   `update adempiere.c_order set`; identifiers in screen and validator patterns allow
   schema qualification and quoting (`[\w."]+`).
+- **Run the full check suite and read its exit status before every merge.** A piped
+  `pytest | tail` hides a failure from `&&`; check `pytest`'s own exit code.
 - **Name every number a user or model can see, and scan for it.** The MCP `ask` tool
   sliced rows with a hand-typed 20 and the timeout was derived in three places. Limits
   are constants in `limits.py` (derived ones too, such as `STATEMENT_TIMEOUT_S`), and
