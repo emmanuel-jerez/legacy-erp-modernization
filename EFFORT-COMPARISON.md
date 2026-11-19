@@ -68,7 +68,7 @@ Reports: [medium](erp-schema-agent/evals/reports/eval-report.md),
 - `vendor_lead_time` **passed at medium, failed at high.** At high, the model rounded the
   average lead time to 1 decimal place (33.1) instead of 2 (33.05). The rows and vendors
   were correct, but the scorer allows numbers to differ by at most 0.0051 (cent rounding),
-  and 33.1 is 0.05 away from 33.05, so the column did not match.
+  and 33.1 is 0.05 away from 33.05, so the column did not match. The other two vendors missed the same way (28.2 against 28.19, 14.8 against 14.83).
 - `vitamin_c_prices` **failed at both efforts** in the same way. Both queries left out the
   2-pack, but they also returned the 2 oz single (`FH-004-2`), so the answer had an extra
   row.

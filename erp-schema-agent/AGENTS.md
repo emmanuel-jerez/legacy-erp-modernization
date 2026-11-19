@@ -124,7 +124,7 @@ uv run schema-agent demo            # offline; --mode record or live for a live 
   never on any error such as a typo.
 - **Compare money with an absolute tolerance.** A relative tolerance let a 145-dollar
   error pass on a 1.6-million total; scoring allows cent rounding and nothing more.
-  Explain a scoring miss by that rule (`ABS_TOLERANCE` in `evals/scoring.py`), not by
+  Explain a scoring miss by that rule (`ABS_TOLERANCE` in `src/erp_schema_agent/evals/scoring.py`), not by
   precision matching: a value fails when it is more than `ABS_TOLERANCE` from the
   expected value, so 33.1 fails against 33.05 but 14.80 passes against 14.8.
 - **Disclose tuning that saw the test set.** The glossary's product-type rule and the
