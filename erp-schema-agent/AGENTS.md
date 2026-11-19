@@ -45,6 +45,7 @@ uv run schema-agent demo            # offline; --mode record or live for a live 
   machine-specific paths in anything sent to the model.
 - Never modify `../erp-sandbox` or other repos. Never add real company or person data.
 - The SQL validator executes its own re-rendered SQL, not the model's text.
+- READMEs are written in ASD-STE100 Simplified Technical English (Issue 9); keep new text compliant. Reason: short sentences and a controlled vocabulary keep the claims unambiguous for readers who are not native English speakers and for machine translation.
 
 ## Lessons from review
 

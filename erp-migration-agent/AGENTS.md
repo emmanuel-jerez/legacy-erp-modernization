@@ -28,6 +28,7 @@ portfolio rules live in `../BUILD-BRIEF.md`; the sandbox contract in `../erp-san
   `--approve` flag), never by hand; `demo` writes to `runs/demo/` instead.
 - **Committed evidence carries no machine paths.** Audit entries and reports record paths relative
   to the repo; scan `cassettes/`, `migrated/` and `evals/` for `/home/` before committing.
+- READMEs are written in ASD-STE100 Simplified Technical English (Issue 9); keep new text compliant. Reason: short sentences and a controlled vocabulary keep the claims unambiguous for readers who are not native English speakers and for machine translation.
 - Tests: `uv run pytest`. `integration` tests need the sandbox database and skip without it.
 
 ## Lessons from review

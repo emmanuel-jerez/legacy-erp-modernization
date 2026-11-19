@@ -41,6 +41,7 @@ GardenWorld's own demo data sits alongside as realistic noise. The seed is deter
   - which parts are deterministic;
   - measured results only.
 - Include one short line: "The patterns here mirror production work I've done; that code is proprietary and not included."
+- READMEs, including the root README, are written in ASD-STE100 Simplified Technical English (Issue 9); keep new text compliant. Reason: short sentences and a controlled vocabulary keep the claims unambiguous for readers who are not native English speakers and for machine translation. The provenance line above appears in its STE form: "The patterns here come from production work that I did. That code is proprietary, and this repository does not include it."
 
 **Tooling.**
 - Python 3.12, managed with `uv`. Add dependencies with `uv add`; keep the repo's `.venv`.

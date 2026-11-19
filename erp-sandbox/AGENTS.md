@@ -21,6 +21,7 @@ The shared foundation for the portfolio's agent demos. Read [README.md](README.m
   elsewhere, so the isolation flags and cassettes apply everywhere.
 - Do not change the Claude Code isolation flags without rerunning `uv run erp-sandbox llm-smoke`.
 - Treat `idempiere_seed` as read-only. Write tests against per-project clones.
+- READMEs are written in ASD-STE100 Simplified Technical English (Issue 9); keep new text compliant. Reason: short sentences and a controlled vocabulary keep the claims unambiguous for readers who are not native English speakers and for machine translation.
 - Tests: `uv run pytest`. Tests marked `integration` need the running stack and skip without it.
 
 ## Lessons from review

@@ -16,6 +16,7 @@ shared rules in `../BUILD-BRIEF.md` and `../erp-sandbox/AGENTS.md`.
 - Integration tests read the live `idempiere` database (read-only), because the UI writes
   there; they skip when it is down. Browser tests are marked `browser` and skip when the
   UI is unreachable.
+- READMEs are written in ASD-STE100 Simplified Technical English (Issue 9); keep new text compliant. Reason: short sentences and a controlled vocabulary keep the claims unambiguous for readers who are not native English speakers and for machine translation.
 - Tests: `uv run pytest`. Evals: `uv run ui-operator eval` (live UI; records cassette
   misses), `--llm-mode replay` to prove offline reproducibility. Commit the report and new
   cassettes; refresh `docs/evidence/` from a drifted eval run if the run log format changes.
