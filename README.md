@@ -99,7 +99,9 @@ committed cassettes.
 | Migration agent: `currencyround`, held-out parity | 14 / 14, no repairs |
 | Migration agent: `paymenttermduedate`, held-out parity | 13 / 13, no repairs |
 | Migration agent: `paymenttermdiscount` (8 tables), held-out parity | 14 / 14, no repairs |
-| UI operator | Build in progress; results will appear in [`erp-ui-operator`](erp-ui-operator) |
+| UI operator: draft purchase orders verified in the database | **6 / 6** (clean UI 3 / 3, drifted UI 3 / 3) |
+| UI operator: drifted selectors repaired by the model | 9 model calls across the 3 drifted runs, 0 guardrail blocks |
+| UI operator: guardrail probe (a "Delete Record" action) | Blocked; no order created |
 
 The two schema-agent misses are reported in the eval report, not hidden: both returned
 extra rows. One example of what the parity harness caught: the legacy due-date function adds
