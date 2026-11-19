@@ -1,0 +1,247 @@
+{
+  "label": "currencyround:analyze",
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "recorded_at": "2026-11-19T11:51:51-0800",
+  "duration_ms": 46089,
+  "cost_usd_estimate": 0.1265166,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 3323,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 4975,
+    "output_tokens_details": {
+      "thinking_tokens": 1269
+    }
+  },
+  "request": {
+    "system": "You modernize legacy ERP business rules. You are given a PL/pgSQL function from iDempiere (a 20-year-old open-source ERP) and you help port it to Python that behaves identically, bug for bug. The legacy function is the oracle: when the source and your intuition disagree, the source wins, including its quirks. Reply only with JSON matching the schema; a harness validates and executes what you propose.",
+    "prompt": "## Legacy function adempiere.currencyround(p_amount numeric, p_curto_id numeric, p_costing character varying) RETURNS numeric [STABLE]\n```sql\nCREATE OR REPLACE FUNCTION adempiere.currencyround(p_amount numeric, p_curto_id numeric, p_costing character varying)\n RETURNS numeric\n LANGUAGE plpgsql\n STABLE\nAS $function$\n\n/*************************************************************************\n * The contents of this file are subject to the Compiere License.  You may\n * obtain a copy of the License at    http://www.compiere.org/license.html\n * Software is on an  \"AS IS\" basis,  WITHOUT WARRANTY OF ANY KIND, either\n * express or implied. See the License for details. Code: Compiere ERP+CRM\n * Copyright (C) 1999-2001 Jorg Janke, ComPiere, Inc. All Rights Reserved.\n *\n * converted to postgreSQL by Karsten Thiemann (Schaeffer AG), \n * kthiemann@adempiere.org\n *************************************************************************\n ***\n * Title:\tRound amount for Traget Currency\n * Description:\n *\t\tRound Amount using Costing or Standard Precision\n *\t\tReturns unmodified amount if currency not found\n * Test:\n *\t\tSELECT currencyRound(currencyConvert(100,116,100,null,null),100,null) FROM AD_System => 64.72 \n ************************************************************************/\n\t\n\t\nDECLARE\n\tv_StdPrecision\t\tint;\n\tv_CostPrecision\t\tint;\n\nBEGIN\n\t--\tNothing to convert\n\tIF (p_Amount IS NULL OR p_CurTo_ID IS NULL) THEN\n\t\tRETURN p_Amount;\n\tEND IF;\n\n\t--\tGer Precision\n\tSELECT\tMAX(StdPrecision), MAX(CostingPrecision)\n\t  INTO\tv_StdPrecision, v_CostPrecision\n\tFROM\tC_Currency\n\t  WHERE\tC_Currency_ID = p_CurTo_ID;\n\t--\tCurrency Not Found\n\tIF (v_StdPrecision IS NULL) THEN\n\t\tRETURN p_Amount;\n\tEND IF;\n\n\tIF (p_Costing = 'Y') THEN\n\t\tRETURN ROUND (p_Amount, v_CostPrecision);\n\tEND IF;\n\n\tRETURN ROUND (p_Amount, v_StdPrecision);\n\t\nEND;\n\n$function$\n```\n## Schema functions it calls (directly, transitively, or through operators)\n```sql\nCREATE OR REPLACE FUNCTION adempiere.round(numeric, numeric)\n RETURNS numeric\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\n BEGIN\n\tRETURN ROUND($1, cast($2 as integer));\n END;\n$function$\n```\n## Tables it reads (columns the source names; primary key first)\n- c_currency (175 rows): c_currency_id numeric, stdprecision numeric, costingprecision numeric\n## Session\nThe oracle runs with TimeZone = 'America/Los_Angeles' and search_path = adempiere, pg_catalog. Unqualified function calls resolve against adempiere first.\n\n## Task\nAnalyze adempiere.currencyround and return a structured spec for a faithful Python port:\nits inputs and output, every branch, which tables and columns it reads, and its NULL, rounding and\ndate/time semantics. List concrete edge cases worth testing and the risks a porter is likely to miss\n(PostgreSQL versus Python semantics, quirks a modern rewrite would \"fix\" by accident).",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary",
+        "inputs",
+        "output",
+        "branches",
+        "table_dependencies",
+        "null_semantics",
+        "rounding_semantics",
+        "date_time_semantics",
+        "edge_cases",
+        "porting_risks"
+      ],
+      "properties": {
+        "summary": {
+          "type": "string"
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "pg_type",
+              "meaning",
+              "null_behavior"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "pg_type": {
+                "type": "string"
+              },
+              "meaning": {
+                "type": "string"
+              },
+              "null_behavior": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "output": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "pg_type",
+            "meaning",
+            "null_behavior"
+          ],
+          "properties": {
+            "pg_type": {
+              "type": "string"
+            },
+            "meaning": {
+              "type": "string"
+            },
+            "null_behavior": {
+              "type": "string"
+            }
+          }
+        },
+        "branches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "condition",
+              "behavior"
+            ],
+            "properties": {
+              "condition": {
+                "type": "string"
+              },
+              "behavior": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "table_dependencies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "table",
+              "columns",
+              "purpose"
+            ],
+            "properties": {
+              "table": {
+                "type": "string"
+              },
+              "columns": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "purpose": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "null_semantics": {
+          "type": "string"
+        },
+        "rounding_semantics": {
+          "type": "string"
+        },
+        "date_time_semantics": {
+          "type": "string"
+        },
+        "edge_cases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "porting_risks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "summary": "Rounds an amount to the precision of a target currency. It looks up C_Currency by ID and rounds to CostingPrecision when p_costing is exactly 'Y'. In every other case it rounds to StdPrecision. If the amount or currency ID is NULL, or the currency is not found (StdPrecision NULL), it returns the amount unchanged. Rounding uses PostgreSQL numeric ROUND, which rounds half away from zero and pads the result to the requested scale. The function has no date/time logic and makes no other calls with side effects.",
+    "inputs": [
+      {
+        "name": "p_amount",
+        "pg_type": "numeric",
+        "meaning": "Amount to round. Can be any numeric value, including negative, NaN, and (PG14+) +/-Infinity.",
+        "null_behavior": "NULL returns NULL straight away, with no table read."
+      },
+      {
+        "name": "p_curto_id",
+        "pg_type": "numeric",
+        "meaning": "C_Currency_ID of the target currency. It is matched by numeric equality, so 100 and 100.0 are the same currency. A fractional value such as 100.5 matches no row.",
+        "null_behavior": "NULL returns p_amount unchanged: no rounding, and its original scale is kept."
+      },
+      {
+        "name": "p_costing",
+        "pg_type": "character varying",
+        "meaning": "Flag. Costing precision is used only when the value equals exactly 'Y': case-sensitive, and varchar trailing spaces count. Any other value uses standard precision.",
+        "null_behavior": "NULL makes (NULL = 'Y') evaluate to NULL, which is not true, so standard precision is used."
+      }
+    ],
+    "output": {
+      "pg_type": "numeric",
+      "meaning": "p_amount rounded half away from zero to the currency's CostingPrecision (when p_costing='Y') or StdPrecision. If precision n >= 0, the result has exactly n decimal places (for example round(1.5,2) = 1.50). If n < 0, it rounds to 10^-n and the result has scale 0. When the function returns early, the amount comes back unchanged.",
+      "null_behavior": "Returns NULL when p_amount is NULL. It also returns NULL when p_costing='Y', the currency exists with non-NULL StdPrecision, and CostingPrecision is NULL, because ROUND(x, NULL) is strict. In every other case the result is non-NULL whenever p_amount is non-NULL."
+    },
+    "branches": [
+      {
+        "condition": "p_amount IS NULL OR p_curto_id IS NULL",
+        "behavior": "Return p_amount as-is (NULL, or the unrounded amount with its original scale). No table read."
+      },
+      {
+        "condition": "No C_Currency row with c_currency_id = p_curto_id, or the row exists but stdprecision IS NULL. In both cases MAX gives NULL.",
+        "behavior": "Return p_amount unchanged, even when p_costing='Y' and costingprecision is set. Only StdPrecision is checked here."
+      },
+      {
+        "condition": "stdprecision is not NULL and p_costing = 'Y' (exact, case-sensitive)",
+        "behavior": "Return ROUND(p_amount, v_CostPrecision), rounding half away from zero. If costingprecision is NULL the result is NULL."
+      },
+      {
+        "condition": "stdprecision is not NULL and p_costing is not 'Y' (including NULL, 'y', 'N', 'Y ', '')",
+        "behavior": "Return ROUND(p_amount, v_StdPrecision), rounding half away from zero."
+      }
+    ],
+    "table_dependencies": [
+      {
+        "table": "c_currency",
+        "columns": [
+          "c_currency_id",
+          "stdprecision",
+          "costingprecision"
+        ],
+        "purpose": "Looks up the standard and costing rounding precision for the target currency. The query is wrapped in MAX(), so it always returns exactly one row (NULLs if no row matches). c_currency_id is the PK, so at most one row is aggregated. The function does not filter on IsActive or AD_Client, so inactive currencies are still used."
+      }
+    ],
+    "null_semantics": "p_amount NULL returns NULL. p_curto_id NULL returns p_amount unrounded. A missing currency or NULL stdprecision returns p_amount unrounded. p_costing NULL is treated as not 'Y', so standard precision is used. One case returns NULL even though the amount is non-NULL: p_costing='Y' with costingprecision NULL and stdprecision non-NULL, because ROUND is strict. A port must not fall back to stdprecision or return the amount in that case. A NULL costingprecision is irrelevant when p_costing is not 'Y'.",
+    "rounding_semantics": "Precision values are numeric columns, aggregated with MAX and assigned to PL/pgSQL int variables. That numeric-to-int assignment rounds half away from zero (2.5→3, -0.5→-1), not truncation, and it errors on int overflow. The call ROUND(numeric, int) resolves to pg_catalog.round(numeric, integer), an exact type match that wins over the implicit-cast candidate adempiere.round(numeric, numeric). Both behave the same here. Numeric ROUND rounds ties away from zero: 2.345→2.35, -2.345→-2.35, 0.5→1 at n=0, -0.5→-1. With n >= 0 the result scale is exactly n, padded with zeros: ROUND(7, 2) = 7.00. With n < 0 it rounds to tens, hundreds and so on with scale 0: ROUND(1250, -2) = 1300, ROUND(-1250, -2) = -1300. In Python, use decimal.Decimal.quantize(Decimal(1).scaleb(-n), rounding=ROUND_HALF_UP), since ROUND_HALF_UP in the decimal module means away from zero. For n < 0, normalize the result to an integer exponent-0 Decimal if the text form matters. Do not use float or Python's round() (banker's rounding, binary float).",
+    "date_time_semantics": "None. The function has no date, time or timestamp logic, so the session TimeZone (America/Los_Angeles) has no effect. It is STABLE only because it reads C_Currency.",
+    "edge_cases": [
+      "Example from the source comment: currencyround(64.7249..., 100, NULL) with StdPrecision=2 gives 64.72.",
+      "Tie rounding away from zero: amount 2.345, std precision 2 gives 2.35. Amount -2.345 gives -2.35, not -2.34. Amount 2.5 at precision 0 gives 3. Amount 0.125 at precision 2 gives 0.13.",
+      "Result scale padding: amount 7 with precision 2 must give 7.00 (scale 2). Amount 1.1 at precision 4 gives 1.1000.",
+      "p_costing='Y' with costingprecision 4 vs std 2: amount 1.23456 gives 1.2346. Same amount with p_costing NULL or 'N' gives 1.23.",
+      "Case and whitespace: p_costing 'y', ' Y', 'Y ', 'YES' and '' must all use standard precision.",
+      "p_costing='Y', stdprecision non-NULL, costingprecision NULL: result is NULL.",
+      "Currency row exists but stdprecision NULL, while costingprecision is set and p_costing='Y': returns the amount unchanged.",
+      "p_curto_id not present (e.g. 999999): returns the amount unchanged, keeping its original scale (1.23456 stays 1.23456).",
+      "p_curto_id = 100.0 matches currency 100. p_curto_id = 100.5 matches nothing, so the amount is returned unchanged.",
+      "p_amount NULL with any currency gives NULL. p_curto_id NULL with amount 1.23456 gives 1.23456.",
+      "Precision 0 (e.g. JPY): 1234.5 gives 1235, and -1234.5 gives -1235.",
+      "Negative precision, if stored (e.g. -2): 1250 gives 1300 with scale 0.",
+      "Non-integer precision stored in the column (e.g. 2.5) is rounded to int 3 before use. 1.4999 is rounded to 1.",
+      "Amount NaN gives NaN. Amount 'Infinity' (PG14+) gives Infinity. Python's quantize raises InvalidOperation on Infinity.",
+      "Very large amounts with many digits (e.g. 40+ significant digits): PostgreSQL handles them, but Python's default decimal context (prec=28) raises InvalidOperation in quantize.",
+      "Zero amount: 0 at precision 2 gives 0.00. Negative zero results such as -0.001 at precision 2 give 0.00 in PG. In Python, check for Decimal('-0.00') and how it formats."
+    ],
+    "porting_risks": [
+      "Python round() and Decimal's default context use ROUND_HALF_EVEN, but PG numeric ROUND is half away from zero. Use ROUND_HALF_UP in the decimal module explicitly.",
+      "Using float instead of Decimal brings binary representation errors (2.675 becomes 2.67).",
+      "Early-return paths (NULL currency ID, currency not found, NULL stdprecision) must return the amount unchanged, not rounded to a default like 2.",
+      "The not-found check tests only StdPrecision. A modern rewrite might fall back to std when costing is NULL, or return the amount. The oracle returns NULL for costing='Y' with NULL costingprecision.",
+      "Converting precision with Python int() truncates. The PL/pgSQL numeric-to-int assignment rounds half away from zero.",
+      "p_costing comparison is exact, case-sensitive varchar equality. Do not .strip(), .upper() or treat truthy values as 'Y'. NULL means standard precision.",
+      "Look up the currency by numeric value equality (Decimal), not by string or int truncation. int(100.5) == 100 would wrongly match currency 100.",
+      "Do not filter by IsActive or client. The oracle uses any row with that ID.",
+      "Result scale: PG returns exactly n decimal places, so Decimal quantize matches for n >= 0. For negative n, quantize gives exponent form ('1.3E+3'). Normalize to scale 0 if the textual or scale comparison matters.",
+      "Python's decimal context precision (default 28) can raise InvalidOperation on large values. Use a local context with a high prec, or compute the needed precision from the operand.",
+      "Decimal quantize raises InvalidOperation on Infinity, but PG14+ returns Infinity. NaN passes through in both, but handle it explicitly.",
+      "Caching currency precision across calls is fine within one statement (the function is STABLE), but the oracle reads the table live on each call."
+    ]
+  }
+}

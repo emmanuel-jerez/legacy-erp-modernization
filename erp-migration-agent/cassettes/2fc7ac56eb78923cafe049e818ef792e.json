@@ -1,0 +1,361 @@
+{
+  "label": "paymenttermdiscount:analyze",
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "recorded_at": "2026-11-19T11:52:59-0800",
+  "duration_ms": 113864,
+  "cost_usd_estimate": 0.3145717,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 7879,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 12541,
+    "output_tokens_details": {
+      "thinking_tokens": 5229
+    }
+  },
+  "request": {
+    "system": "You modernize legacy ERP business rules. You are given a PL/pgSQL function from iDempiere (a 20-year-old open-source ERP) and you help port it to Python that behaves identically, bug for bug. The legacy function is the oracle: when the source and your intuition disagree, the source wins, including its quirks. Reply only with JSON matching the schema; a harness validates and executes what you propose.",
+    "prompt": "## Legacy function adempiere.paymenttermdiscount(amount numeric, currency_id numeric, paymentterm_id numeric, docdate timestamp with time zone, paydate timestamp with time zone) RETURNS numeric [VOLATILE]\n```sql\nCREATE OR REPLACE FUNCTION adempiere.paymenttermdiscount(amount numeric, currency_id numeric, paymentterm_id numeric, docdate timestamp with time zone, paydate timestamp with time zone)\n RETURNS numeric\n LANGUAGE plpgsql\nAS $function$\n/*************************************************************************\n * The contents of this file are subject to the Compiere License.  You may\n * obtain a copy of the License at    http://www.compiere.org/license.html\n * Software is on an  \"AS IS\" basis,  WITHOUT WARRANTY OF ANY KIND, either\n * express or implied. See the License for details. Code: Compiere ERP+CRM\n * Copyright (C) 1999-2001 Jorg Janke, ComPiere, Inc. All Rights Reserved.\n *\n * converted to postgreSQL by Karsten Thiemann (Schaeffer AG), \n * kthiemann@adempiere.org\n *************************************************************************\n * Title:\tCalculate Discount\n * Description:\n *\tCalculate the allowable Discount Amount of the Payment Term\n *\n *\tTest:\tSELECT paymenttermDiscount(110, 103, 106, now(), now()) FROM TEST; => 2.20\n ************************************************************************/\n\nDECLARE\n\tv_Precision\t\tNUMERIC := 0;\n\tv_Currency\t\tNUMERIC := 0;\n    v_Min\t\t\tNUMERIC := 0;\n\tDiscount\t\tNUMERIC := 0;\n\tDiscount1Date\t\ttimestamp with time zone;\n\tDiscount2Date\t\ttimestamp with time zone;\n\tAdd1Date\t\tNUMERIC := 0;\n\tAdd2Date\t\tNUMERIC := 0;\n\tp   \t\t\tRECORD;\nBEGIN\n\tv_Currency := Currency_ID;\n\tIF (v_Currency = 0) THEN \n\t\tSELECT COALESCE(MAX(C_Currency_ID),0) \n\t\tINTO v_Currency \n\t\tFROM AD_ClientInfo ci, C_AcctSchema s, C_PaymentTerm pt \n\t\tWHERE ci.AD_Client_ID = s.AD_Client_ID \n\t\tAND ci.AD_Client_ID = pt.AD_Client_ID \n\t\tAND pt.C_PaymentTerm_ID = PaymentTerm_ID; \n\tEND IF;\n\t\n\tSELECT StdPrecision\n\t    INTO v_Precision\n\t    FROM C_Currency\n\t    WHERE C_Currency_ID = v_Currency;\n\n\tSELECT 1/10^v_Precision INTO v_Min;\n\t\n\t--\tNo Data - No Discount\n\tIF (Amount IS NULL OR PaymentTerm_ID IS NULL OR DocDate IS NULL) THEN\n\t\tRETURN 0;\n\tEND IF;\n\n\tFOR p IN \n\t\tSELECT\t*\n\t\tFROM\tC_PaymentTerm\n\t\tWHERE\tC_PaymentTerm_ID = PaymentTerm_ID\n\tLOOP\t--\tfor convineance only\n\t\tDiscount1Date := TRUNC(DocDate + p.DiscountDays + p.GraceDays);\n\t\tDiscount2Date := TRUNC(DocDate + p.DiscountDays2 + p.GraceDays);\n\n\t\t--\tNext Business Day\n\t\tIF (p.IsNextBusinessDay='Y') THEN\n\t\t\tDiscount1Date := nextBusinessDay(Discount1Date, p.AD_Client_ID);\n\t\t\tDiscount2Date := nextBusinessDay(Discount2Date, p.AD_Client_ID);\n\t\tEND IF;\n\n\t\t--\tDiscount 1\n\t\tIF (Discount1Date >= TRUNC(PayDate)) THEN\n\t\t\tDiscount := Amount * p.Discount / 100;\n\t\t--\tDiscount 2\n\t\tELSIF (Discount2Date >= TRUNC(PayDate)) THEN\n\t\t\tDiscount := Amount * p.Discount2 / 100;\n\t\tEND IF;\t\n\tEND LOOP;\n\t\n\t--\tIgnore Rounding\n\tIF (Discount > -v_Min AND Discount < v_Min) THEN\n\t\tDiscount := 0;\n\tEND IF;\n\n\t--\tRound to currency precision\n\tDiscount := ROUND(COALESCE(Discount,0), v_Precision);\n\t\n\tRETURN\tDiscount;\nEND;\n\n$function$\n```\n## Schema functions it calls (directly, transitively, or through operators)\n```sql\nCREATE OR REPLACE FUNCTION adempiere.nextbusinessday(p_date timestamp with time zone, p_ad_client_id numeric)\n RETURNS timestamp with time zone\n LANGUAGE plpgsql\n STABLE\nAS $function$\n/**\n*This file is part of Adempiere ERP Bazaar\n*http://www.adempiere.org\n*\n*Copyright (C) 2007 Teo Sarca\n*\n*This program is free software; you can redistribute it and/or\n*modify it under the terms of the GNU General Public License\n*as published by the Free Software Foundation; either version 2\n*of the License, or (at your option) any later version.\n*\n*This program is distributed in the hope that it will be useful,\n*but WITHOUT ANY WARRANTY; without even the implied warranty of\n*MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the\n*GNU General Public License for more details.\n*\n*You should have received a copy of the GNU General Public License\n*along with this program; if not, write to the Free Software\n*Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.of\n*\n* Converted to PostgreSQL by Tony Snook, \n* tspc@dodo.com.au \n*/\nDECLARE\n\tv_nextDate\tdate := trunc(p_Date);\n\tv_offset\tnumeric\t:= 0;\n\tv_Saturday\tnumeric\t:= TO_CHAR(TO_DATE('2000-01-01', 'YYYY-MM-DD'), 'D');\n\tv_Sunday\tnumeric\t:= (case when v_Saturday = 7 then 1 else v_Saturday + 1 end);\n\tv_isHoliday\tboolean\t:= true;\n\tv_country       c_country.c_country_id%type;\n\tnbd C_NonBusinessDay%ROWTYPE;\nbegin\n\tv_isHoliday := true;\n\tloop\n\t\tSELECT\tCASE TO_CHAR(v_nextDate,'D')::numeric \n\t\t\t\t\tWHEN v_Saturday THEN 2\n\t\t\t\t\tWHEN v_Sunday THEN 1\n\t\t\t\t\tELSE 0\n\t\t\t\tEND INTO v_offset;\n\t\tv_nextDate := v_nextDate + v_offset::integer;\n\t\tv_isHoliday := false;\n\t\tSELECT COALESCE(MAX(co.c_country_id), 100) \n\t\tINTO   v_country\n\t\tFROM   ad_client cl \n\t\t       JOIN ad_language l ON cl.ad_language = l.ad_language \n\t\t       JOIN c_country co ON l.countrycode = co.countrycode \n\t\tWHERE  cl.ad_client_id = p_ad_client_id;\n\t\tFOR nbd IN\tSELECT * \n\t\t\t\t\tFROM C_NonBusinessDay \n\t\t\t\t\tWHERE AD_Client_ID=p_AD_Client_ID and IsActive ='Y' and Date1 >= v_nextDate\n\t\t\t\t\t    AND COALESCE(C_Country_ID,0) IN (0, v_country)\n\t\t\t\t\tORDER BY Date1\n\t\tLOOP\n\t\t\texit when v_nextDate <> trunc(nbd.Date1);\n\t\t\tv_nextDate := v_nextDate + 1;\n\t\t\tv_isHoliday := true;\n\t\tend loop;\n\t\texit when v_isHoliday=false;\n\tend loop;\n\t--\n\treturn v_nextDate::timestamp with time zone;\nend;\n$function$\n```\n```sql\nCREATE OR REPLACE FUNCTION adempiere.round(numeric, numeric)\n RETURNS numeric\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\n BEGIN\n\tRETURN ROUND($1, cast($2 as integer));\n END;\n$function$\n```\n```sql\nCREATE OR REPLACE FUNCTION adempiere.trunc(datetime timestamp without time zone)\n RETURNS timestamp without time zone\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\nBEGIN\n        RETURN CAST(datetime AS DATE);\nEND;\n$function$\n```\n```sql\nCREATE OR REPLACE FUNCTION adempiere.trunc(datetime timestamp without time zone, format character varying)\n RETURNS date\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\nBEGIN\n\tIF format = 'Q' THEN\n\t\tRETURN CAST(DATE_Trunc('quarter',datetime) as DATE);\n\tELSIF format = 'Y' or format = 'YEAR' THEN\n\t\tRETURN CAST(DATE_Trunc('year',datetime) as DATE);\n\tELSIF format = 'MM' or format = 'MONTH' THEN\n\t\tRETURN CAST(DATE_Trunc('month',datetime) as DATE);\n\tELSIF format = 'DD' THEN\n\t\tRETURN CAST(DATE_Trunc('day',datetime) as DATE);\n\tELSIF format = 'DY' THEN\n\t\tRETURN CAST(DATE_Trunc('day',datetime) as DATE);\n\tELSE\n\t\tRETURN CAST(datetime AS DATE);\n\tEND IF;\nEND;\n$function$\n```\n```sql\nCREATE OR REPLACE FUNCTION adempiere.trunc(datetime timestamp with time zone)\n RETURNS timestamp with time zone\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\nBEGIN\n\tRETURN CAST(datetime AS DATE);\nEND;\n$function$\n```\n```sql\nCREATE OR REPLACE FUNCTION adempiere.trunc(datetime timestamp with time zone, format character varying)\n RETURNS date\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\nBEGIN\n\t\tRETURN trunc(cast(datetime as timestamp without time zone), format);\nEND;\n$function$\n```\n```sql\nCREATE OR REPLACE FUNCTION adempiere.trunc(i interval)\n RETURNS integer\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\nBEGIN\n\tRETURN EXTRACT(DAY FROM i);\nEND;\n$function$\n```\n```sql\nCREATE OR REPLACE FUNCTION adempiere.adddays(datetime timestamp with time zone, days numeric)\n RETURNS timestamp with time zone\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\nBEGIN\n\tif datetime is null or days is null then\n\t\treturn null;\n\tend if;\n\treturn datetime + (interval '1' second * (86400 * days));\nEND;\n$function$\n```\n```sql\nCREATE OR REPLACE FUNCTION adempiere.adddays(inter interval, days numeric)\n RETURNS integer\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\nBEGIN   \nRETURN ( EXTRACT( EPOCH FROM ( inter ) ) / 86400 ) + days;\nEND;    \n$function$\n```\n```sql\nCREATE OR REPLACE FUNCTION adempiere.subtractdays(day timestamp with time zone, days numeric)\n RETURNS timestamp with time zone\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\nBEGIN\n    RETURN addDays(day,(days * -1));\nEND;\n$function$\n```\n```sql\nCREATE OR REPLACE FUNCTION adempiere.subtractdays(inter interval, days numeric)\n RETURNS integer\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\nBEGIN\nRETURN ( EXTRACT( EPOCH FROM ( inter ) ) / 86400 ) - days;\nEND;\n$function$\n```\n## Operators defined in the adempiere schema\n- interval + numeric -> adempiere.adddays()\n- timestamp with time zone + numeric -> adempiere.adddays()\n- interval - numeric -> adempiere.subtractdays()\n- timestamp with time zone - numeric -> adempiere.subtractdays()\n## Tables it reads (columns the source names; primary key first)\n- ad_client (2 rows): ad_client_id numeric, isactive character, ad_language character varying\n    {\"ad_client_id\": \"0\", \"ad_language\": \"en_US\", \"isactive\": \"Y\"}\n    {\"ad_client_id\": \"11\", \"ad_language\": \"en_US\", \"isactive\": \"Y\"}\n- ad_clientinfo (2 rows): ad_client_id numeric, isactive character\n    {\"ad_client_id\": \"0\", \"isactive\": \"Y\"}\n    {\"ad_client_id\": \"11\", \"isactive\": \"Y\"}\n- ad_language (109 rows): ad_language character varying, ad_client_id numeric, isactive character, countrycode character\n- c_acctschema (2 rows): c_acctschema_id numeric, ad_client_id numeric, isactive character, c_currency_id numeric\n    {\"ad_client_id\": \"11\", \"c_acctschema_id\": \"101\", \"c_currency_id\": \"100\", \"isactive\": \"Y\"}\n    {\"ad_client_id\": \"11\", \"c_acctschema_id\": \"200000\", \"c_currency_id\": \"102\", \"isactive\": \"Y\"}\n- c_country (251 rows): c_country_id numeric, ad_client_id numeric, isactive character, countrycode character, ad_language character varying, c_currency_id numeric\n- c_currency (175 rows): c_currency_id numeric, ad_client_id numeric, isactive character, stdprecision numeric\n- c_nonbusinessday (1 rows): c_nonbusinessday_id numeric, ad_client_id numeric, isactive character, date1 timestamp without time zone, c_country_id numeric\n    {\"ad_client_id\": \"11\", \"c_country_id\": null, \"c_nonbusinessday_id\": \"100\", \"date1\": \"2002-07-04T00:00:00\", \"isactive\": \"Y\"}\n- c_paymentterm (5 rows): c_paymentterm_id numeric, ad_client_id numeric, isactive character, gracedays numeric, discountdays numeric, discount numeric, discountdays2 numeric, discount2 numeric, isnextbusinessday character\n    {\"ad_client_id\": \"11\", \"c_paymentterm_id\": \"100\", \"discount\": \"0\", \"discount2\": \"0\", \"discountdays\": \"0\", \"discountdays2\": \"0\", \"gracedays\": \"0\", \"isactive\": \"N\", \"isnextbusinessday\": \"Y\"}\n    {\"ad_client_id\": \"11\", \"c_paymentterm_id\": \"105\", \"discount\": \"0\", \"discount2\": \"0\", \"discountdays\": \"0\", \"discountdays2\": \"0\", \"gracedays\": \"0\", \"isactive\": \"Y\", \"isnextbusinessday\": \"Y\"}\n    {\"ad_client_id\": \"11\", \"c_paymentterm_id\": \"106\", \"discount\": \"2\", \"discount2\": \"0\", \"discountdays\": \"10\", \"discountdays2\": \"0\", \"gracedays\": \"0\", \"isactive\": \"Y\", \"isnextbusinessday\": \"N\"}\n    {\"ad_client_id\": \"11\", \"c_paymentterm_id\": \"107\", \"discount\": \"0\", \"discount2\": \"0\", \"discountdays\": \"0\", \"discountdays2\": \"0\", \"gracedays\": \"0\", \"isactive\": \"Y\", \"isnextbusinessday\": \"N\"}\n    {\"ad_client_id\": \"11\", \"c_paymentterm_id\": \"108\", \"discount\": \"0\", \"discount2\": \"0\", \"discountdays\": \"0\", \"discountdays2\": \"0\", \"gracedays\": \"0\", \"isactive\": \"Y\", \"isnextbusinessday\": \"N\"}\n## Session\nThe oracle runs with TimeZone = 'America/Los_Angeles' and search_path = adempiere, pg_catalog. Unqualified function calls resolve against adempiere first.\n\n## Task\nAnalyze adempiere.paymenttermdiscount and return a structured spec for a faithful Python port:\nits inputs and output, every branch, which tables and columns it reads, and its NULL, rounding and\ndate/time semantics. List concrete edge cases worth testing and the risks a porter is likely to miss\n(PostgreSQL versus Python semantics, quirks a modern rewrite would \"fix\" by accident).",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary",
+        "inputs",
+        "output",
+        "branches",
+        "table_dependencies",
+        "null_semantics",
+        "rounding_semantics",
+        "date_time_semantics",
+        "edge_cases",
+        "porting_risks"
+      ],
+      "properties": {
+        "summary": {
+          "type": "string"
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "pg_type",
+              "meaning",
+              "null_behavior"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "pg_type": {
+                "type": "string"
+              },
+              "meaning": {
+                "type": "string"
+              },
+              "null_behavior": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "output": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "pg_type",
+            "meaning",
+            "null_behavior"
+          ],
+          "properties": {
+            "pg_type": {
+              "type": "string"
+            },
+            "meaning": {
+              "type": "string"
+            },
+            "null_behavior": {
+              "type": "string"
+            }
+          }
+        },
+        "branches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "condition",
+              "behavior"
+            ],
+            "properties": {
+              "condition": {
+                "type": "string"
+              },
+              "behavior": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "table_dependencies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "table",
+              "columns",
+              "purpose"
+            ],
+            "properties": {
+              "table": {
+                "type": "string"
+              },
+              "columns": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "purpose": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "null_semantics": {
+          "type": "string"
+        },
+        "rounding_semantics": {
+          "type": "string"
+        },
+        "date_time_semantics": {
+          "type": "string"
+        },
+        "edge_cases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "porting_risks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "summary": "Works out the early-payment discount a payment term allows for an amount, given a document date and a payment date. Steps, in order:\n(1) Find the currency. If currency_id = 0, use the highest C_AcctSchema.C_Currency_ID for the payment term's client. This lookup joins AD_ClientInfo, C_AcctSchema and C_PaymentTerm and has no isactive filter. For client 11 it returns 102.\n(2) Look up C_Currency.StdPrecision for that currency and set v_Min = 1/10^precision. This happens BEFORE the NULL guard.\n(3) If amount, paymentterm_id or docdate is NULL, return the integer 0 (no scale).\n(4) Load the C_PaymentTerm row by ID, with no isactive filter.\n  - Discount1Date = TRUNC(docdate + DiscountDays + GraceDays).\n  - Discount2Date = TRUNC(docdate + DiscountDays2 + GraceDays).\n  - '+' here is the custom adempiere.adddays operator: it adds 86400*N seconds of elapsed time, not calendar days.\n  - TRUNC takes the date in America/Los_Angeles and returns local midnight as a timestamptz.\n  - If IsNextBusinessDay = 'Y', both dates are moved forward by nextbusinessday(date, term.AD_Client_ID), which skips weekends and the client's C_NonBusinessDay holidays.\n  - If Discount1Date >= TRUNC(paydate), discount = amount*Discount/100.\n  - Otherwise, if Discount2Date >= TRUNC(paydate), discount = amount*Discount2/100.\n  - Otherwise the discount stays 0.\n(5) If -v_Min < discount < v_Min, set it to 0.\n(6) Return ROUND(COALESCE(discount, 0), precision), rounding half away from zero to exactly `precision` decimal places. The result is NULL whenever the precision is NULL.\nDocumented example: (110, 103, 106, now(), now()) returns 2.20.",
+    "inputs": [
+      {
+        "name": "amount",
+        "pg_type": "numeric",
+        "meaning": "Amount (invoice/open amount) the discount percentage is applied to. Can be negative; the sign carries through to the discount.",
+        "null_behavior": "Returns integer 0 right away, but only after the currency/precision lookups have run (they have no side effects)."
+      },
+      {
+        "name": "currency_id",
+        "pg_type": "numeric",
+        "meaning": "C_Currency_ID that sets the rounding precision. 0 means: use MAX(C_AcctSchema.C_Currency_ID) of the payment term's client, or 0 if none is found.",
+        "null_behavior": "NULL = 0 evaluates to NULL, so the fallback lookup is skipped. The C_Currency lookup on NULL finds no row, so v_Precision becomes NULL (not its default 0) and v_Min is NULL. Unless amount, paymentterm_id or docdate is NULL (which returns 0), the function returns SQL NULL."
+      },
+      {
+        "name": "paymentterm_id",
+        "pg_type": "numeric",
+        "meaning": "C_PaymentTerm_ID. Inactive terms are still used.",
+        "null_behavior": "Returns integer 0. If currency_id is 0, the fallback lookup runs first and returns MAX=NULL, which COALESCE turns into 0; this doesn't change the result."
+      },
+      {
+        "name": "docdate",
+        "pg_type": "timestamp with time zone",
+        "meaning": "Document date. The discount deadlines are counted from it.",
+        "null_behavior": "Returns integer 0."
+      },
+      {
+        "name": "paydate",
+        "pg_type": "timestamp with time zone",
+        "meaning": "Payment date. Its local (America/Los_Angeles) calendar date is compared with the discount deadlines.",
+        "null_behavior": "Not covered by the guard. TRUNC(NULL) is NULL, so both comparisons are NULL (false) and the discount stays 0. Returns ROUND(0, precision), e.g. 0.00, or NULL if the precision is NULL."
+      }
+    ],
+    "output": {
+      "pg_type": "numeric",
+      "meaning": "Allowed discount amount, rounded to the currency's StdPrecision with exactly that many decimal places (e.g. 2.20, 0.00).",
+      "null_behavior": "Returns NULL when the precision can't be found and the NULL guard didn't fire. Causes: currency_id is NULL; currency_id doesn't exist in C_Currency; currency_id is 0 and the term's client has no acctschema (or the term doesn't exist), so v_Currency is 0 and no C_Currency row has ID 0; or StdPrecision is NULL. adempiere.round(numeric, numeric) passes NULL to round(numeric, int), which returns NULL. Returns integer 0 (scale 0, text '0') when amount, paymentterm_id or docdate is NULL."
+    },
+    "branches": [
+      {
+        "condition": "currency_id = 0",
+        "behavior": "v_Currency = COALESCE(MAX(s.C_Currency_ID), 0) over AD_ClientInfo ci JOIN C_AcctSchema s ON client JOIN C_PaymentTerm pt ON client WHERE pt.C_PaymentTerm_ID = paymentterm_id. No isactive filters. For term 106 (client 11) this is MAX(100, 102) = 102."
+      },
+      {
+        "condition": "currency_id IS NULL or currency_id <> 0",
+        "behavior": "v_Currency = currency_id; no fallback lookup. NULL = 0 is NULL, which counts as false."
+      },
+      {
+        "condition": "Precision lookup: SELECT StdPrecision FROM C_Currency WHERE C_Currency_ID = v_Currency",
+        "behavior": "If a row exists, v_Precision = StdPrecision. If no row exists, v_Precision = NULL (SELECT INTO with no rows assigns NULL and overwrites the default 0). v_Min = 1/10^v_Precision, which is NULL when the precision is NULL."
+      },
+      {
+        "condition": "amount IS NULL OR paymentterm_id IS NULL OR docdate IS NULL",
+        "behavior": "RETURN 0 (unrounded integer 0, even when the precision is NULL)."
+      },
+      {
+        "condition": "No C_PaymentTerm row with the given ID",
+        "behavior": "The loop body never runs. Discount stays 0 and the function returns ROUND(0, precision), e.g. 0.00, or NULL if the precision is NULL."
+      },
+      {
+        "condition": "Term found",
+        "behavior": "Discount1Date = trunc(adddays(adddays(docdate, DiscountDays), GraceDays)). Discount2Date = trunc(adddays(adddays(docdate, DiscountDays2), GraceDays)). adddays(t, d) = t + interval '1 second' * (86400*d), i.e. elapsed time. If either day count is NULL, the date is NULL. trunc returns local midnight of the date in America/Los_Angeles."
+      },
+      {
+        "condition": "term.IsNextBusinessDay = 'Y'",
+        "behavior": "Both dates are replaced by nextbusinessday(date, term.AD_Client_ID), which loops:\n- Saturday: add 2 days. Sunday: add 1 day.\n- Then walk the active C_NonBusinessDay rows of that client with Date1 >= the current date and COALESCE(C_Country_ID, 0) IN (0, client_country), ordered by Date1.\n- client_country = MAX(c_country_id) via ad_client.ad_language -> ad_language.countrycode -> c_country.countrycode, default 100.\n- While the current date equals trunc(Date1), add 1 day and mark it as a holiday; stop at the first row whose date doesn't match.\n- If any holiday was hit, repeat the weekend check.\n- Returns local midnight. A NULL input returns NULL.\nIf IsNextBusinessDay is NULL or not 'Y', the dates are not adjusted."
+      },
+      {
+        "condition": "Discount1Date >= trunc(paydate)",
+        "behavior": "Discount = amount * Discount / 100. This applies even when Discount is 0, so tier 2 is never considered. If Discount is NULL, Discount is NULL and the function later returns ROUND(0, precision)."
+      },
+      {
+        "condition": "ELSE Discount2Date >= trunc(paydate)",
+        "behavior": "Discount = amount * Discount2 / 100."
+      },
+      {
+        "condition": "Neither comparison is true (including NULL paydate or NULL dates)",
+        "behavior": "Discount keeps its initial value 0."
+      },
+      {
+        "condition": "Discount > -v_Min AND Discount < v_Min",
+        "behavior": "Discount = 0. For precision 2, any |discount| < 0.01 becomes 0, including 0.005 to 0.0099 that ROUND would otherwise turn into 0.01. If v_Min or Discount is NULL, the test is NULL and the branch is skipped."
+      },
+      {
+        "condition": "Final",
+        "behavior": "RETURN round(COALESCE(Discount, 0), v_Precision::int): half away from zero, result scale = precision. NULL if the precision is NULL."
+      }
+    ],
+    "table_dependencies": [
+      {
+        "table": "ad_clientinfo",
+        "columns": [
+          "ad_client_id"
+        ],
+        "purpose": "Join used in the currency_id = 0 fallback. No isactive filter."
+      },
+      {
+        "table": "c_acctschema",
+        "columns": [
+          "ad_client_id",
+          "c_currency_id"
+        ],
+        "purpose": "currency_id = 0 fallback: MAX(c_currency_id) over the client's schemas. No isactive filter."
+      },
+      {
+        "table": "c_paymentterm",
+        "columns": [
+          "c_paymentterm_id",
+          "ad_client_id",
+          "discountdays",
+          "discountdays2",
+          "gracedays",
+          "discount",
+          "discount2",
+          "isnextbusinessday"
+        ],
+        "purpose": "Client for the currency fallback, and the discount term definition. Inactive terms are still used."
+      },
+      {
+        "table": "c_currency",
+        "columns": [
+          "c_currency_id",
+          "stdprecision"
+        ],
+        "purpose": "Rounding precision and the v_Min threshold. No isactive filter."
+      },
+      {
+        "table": "ad_client",
+        "columns": [
+          "ad_client_id",
+          "ad_language"
+        ],
+        "purpose": "nextbusinessday: client language, used to find the client's country."
+      },
+      {
+        "table": "ad_language",
+        "columns": [
+          "ad_language",
+          "countrycode"
+        ],
+        "purpose": "nextbusinessday: language to country code."
+      },
+      {
+        "table": "c_country",
+        "columns": [
+          "c_country_id",
+          "countrycode"
+        ],
+        "purpose": "nextbusinessday: country ID = MAX(c_country_id) matching the country code, default 100."
+      },
+      {
+        "table": "c_nonbusinessday",
+        "columns": [
+          "ad_client_id",
+          "isactive",
+          "date1",
+          "c_country_id"
+        ],
+        "purpose": "nextbusinessday: holidays for the term's client (isactive = 'Y', country NULL/0 or the client's country). The only row is client 11, 2002-07-04."
+      }
+    ],
+    "null_semantics": "- The NULL guard only covers amount, paymentterm_id and docdate, and it returns integer 0. It runs AFTER the precision lookup, which doesn't affect results.\n- paydate NULL: the comparisons become NULL/false, so the result is ROUND(0, p).\n- A NULL precision (currency_id NULL, unknown currency, or the 0-fallback finding no valid currency) makes the final result SQL NULL, even when a real discount was computed. ROUND(x, NULL) is NULL.\n- In SELECT INTO with no matching row, the variable becomes NULL; it does not keep its declared default of 0.\n- NULL DiscountDays, DiscountDays2 or GraceDays makes that deadline NULL, so the comparison is false. A NULL GraceDays nulls both deadlines.\n- A NULL Discount or Discount2 percentage on the matching tier gives a NULL Discount; COALESCE turns it into 0, giving ROUND(0, p).\n- IsNextBusinessDay NULL counts as not 'Y'.\n- v_Currency = 0 with currency_id NULL is NULL, so the fallback is skipped.",
+    "rounding_semantics": "- Use exact decimal arithmetic. amount*pct/100 is exact in PostgreSQL numeric (dividing by 100 always terminates), so Python Decimal with enough precision (raise the context precision above 28 for very large values) matches. Never use float.\n- v_Min = 1/10^precision (e.g. 0.01).\n- Dead zone: if -v_Min < discount < v_Min (strict on both sides), the result is 0. A discount of exactly ±v_Min is kept.\n- The final ROUND goes through adempiere.round(numeric, numeric), then round(numeric, int). It rounds half away from zero, matching Decimal ROUND_HALF_UP, NOT Python's round() / banker's rounding. Example: 2.345 at precision 2 gives 2.35, and -2.345 gives -2.35.\n- The result has exactly `precision` decimal places (quantize to Decimal(1).scaleb(-precision)): 0 becomes 0.00, 2.2 becomes 2.20, and precision 0 gives an integer-scale value.\n- The early-return 0 is unscaled (renders as '0', not '0.00').\n- Precision is cast to integer, which rounds numeric half away from zero; StdPrecision is normally an integer anyway.",
+    "date_time_semantics": "- Session TimeZone is America/Los_Angeles. Convert all timestamptz inputs to that zone before taking dates; treat naive inputs as Los Angeles local time.\n- docdate + N (numeric) is NOT a built-in operator. It calls adempiere.adddays: t + interval '1 second' * (86400*N), i.e. N*24 hours of absolute elapsed time (the interval*float8 multiply goes through double precision). Across a DST change the local wall-clock time shifts by an hour, which can move the truncated date by one day. Example: 2024-03-01 23:30 PST + 10 days gives 2024-03-12 00:30 PDT, so the date is 03-12; plain calendar addition would give 03-11. In autumn, 2024-11-01 00:30 PDT + 10 gives 2024-11-10 23:30 PST, so 11-10, not 11-11.\n- The two additions (DiscountDays, then GraceDays) are applied one after the other; fractional days are allowed (e.g. 1.5 = 129600 s).\n- TRUNC(timestamptz) = adempiere.trunc: cast to date in Los Angeles time, then back to timestamptz at local midnight. Comparing deadlines with TRUNC(paydate) is therefore a comparison of local calendar dates (>=, so paying on the deadline day still qualifies).\n- nextbusinessday works on dates:\n  - TO_CHAR(..., 'D') gives 1 = Sunday … 7 = Saturday. v_Saturday = 7 (2000-01-01 was a Saturday) and v_Sunday = 1.\n  - Saturday adds 2 days and Sunday adds 1.\n  - A holiday matches when the date equals trunc(Date1); Date1 is a timestamp without time zone, so only its date part counts.\n  - Consecutive holidays chain together. After any holiday the weekend check runs again.\n  - The result is returned as local midnight.",
+    "edge_cases": [
+      "(110, 103, 106, now(), now()): 2.20, assuming currency 103 has precision 2.",
+      "Term 106, paydate exactly 10 days after docdate (same local date as the deadline): discount 2% (>= is inclusive). 11 days: Discount2Date = trunc(docdate) < paydate, so 0.00.",
+      "Term 106 across spring DST: docdate 2024-03-01 23:30 America/Los_Angeles, paydate 2024-03-12. The 240-hour addition lands on 03-12 00:30, so the discount APPLIES (a calendar-day port would give 0.00).",
+      "Term 106 across autumn DST: docdate 2024-11-01 00:30 PDT, paydate 2024-11-11. The deadline is 11-10 23:30 PST, truncated to 11-10, so 0.00 (a calendar-day port would give 2.20 for amount 110).",
+      "Inputs given in UTC whose Los Angeles date differs, e.g. docdate 2024-05-01T03:00Z (= 04-30 20:00 PDT): the deadline is counted from 04-30.",
+      "currency_id NULL with valid other args: returns NULL, not a number.",
+      "currency_id 0 with term 106: precision comes from currency 102 (MAX of 100 and 102).",
+      "currency_id 0 with a non-existent term: v_Currency 0, no currency row, returns NULL. With amount NULL as well: returns 0.",
+      "amount NULL, paymentterm_id NULL or docdate NULL: returns 0 (unscaled), even when currency_id is NULL.",
+      "paydate NULL: returns 0.00 (ROUND(0, precision)).",
+      "Non-existent paymentterm_id with a valid currency: 0.00.",
+      "Inactive term 100 is still evaluated (no isactive filter); its discount is 0, so 0.00.",
+      "Tiny amount: amount 0.40 at 2% gives 0.008, which is inside the dead zone, so 0.00 (plain rounding would give 0.01). Amount 0.50 gives exactly 0.01 and is kept. Negative amount -0.40 also gives 0.00.",
+      "Half-away rounding: amount 117.25 at 2% gives 2.345, rounded to 2.35; -117.25 gives -2.35.",
+      "Precision 0 currency: dead zone |d| < 1, result an integer value; precision 3 or 4 currencies: v_Min 0.001 or 0.0001.",
+      "Tier 1 applies with Discount = 0 while tier 2 has Discount2 > 0 and a longer deadline: the result is 0 because the ELSIF is never reached.",
+      "DiscountDays2 < DiscountDays: tier 2 can only match when tier 1 already matched, so it is effectively dead.",
+      "IsNextBusinessDay = 'Y' with the deadline on a Saturday: moves to Monday. Deadline on 2002-07-04 (Thursday holiday for client 11): moves to 2002-07-05.",
+      "Holiday on a Friday followed by the weekend: Friday becomes Saturday, which becomes Monday, via the re-loop.",
+      "NULL GraceDays or DiscountDays on the term: that deadline is NULL and never matches.",
+      "Fractional DiscountDays, e.g. 0.5 with docdate at 13:00: adds 12 h, crosses midnight, so the deadline is the next day.",
+      "Paydate earlier than docdate: still qualifies for tier 1."
+    ],
+    "porting_risks": [
+      "Using timedelta(days=N) on a Los Angeles-aware datetime with zoneinfo performs wall-clock (calendar) addition. To match PG you must add N*86400 seconds of absolute time: convert to UTC, add, convert back to Los Angeles, then take .date().",
+      "Taking .date() of a UTC datetime, or of a naive one, instead of the America/Los_Angeles date.",
+      "Returning 0 instead of None when the precision is NULL (currency_id NULL or unknown). The oracle returns NULL.",
+      "Treating the declared default v_Precision := 0 as surviving a failed lookup; in PL/pgSQL SELECT INTO with no row assigns NULL.",
+      "Adding a NULL guard for paydate or currency_id, or moving the guard so it returns NULL; the oracle returns 0 for the three guarded args only.",
+      "Dropping the 'ignore rounding' dead zone, or making it inclusive. Values with |d| < 10^-p become 0 even when ROUND would give ±10^-p.",
+      "Using Python round() (banker's rounding) or float arithmetic; you need Decimal with ROUND_HALF_UP and quantize to fixed scale so 0 renders as 0.00. The early-return path, however, is an unscaled 0.",
+      "Evaluating tier 2 when tier 1's percentage is 0, or choosing the better discount; the oracle strictly uses if/elif on dates.",
+      "Adding isactive filters (C_PaymentTerm, C_AcctSchema, C_Currency); the oracle has none, except isactive = 'Y' on C_NonBusinessDay.",
+      "currency_id = 0 fallback uses MAX(C_Currency_ID) across ALL acctschemas of the client (102 for client 11), not the primary schema from AD_ClientInfo.",
+      "nextbusinessday uses the term's AD_Client_ID, the country derived via language with default 100, and includes holidays whose C_Country_ID is NULL or 0. Its holiday scan stops at the first non-matching row (sorted by Date1), so only consecutive holidays chain. Weekday numbering must be Sunday = 1 … Saturday = 7, not Python's weekday().",
+      "Holiday matching compares the date part of Date1 (timestamp without time zone, no TZ conversion).",
+      "Precision of 86400*N for fractional N goes through interval * float8; matters only for odd fractional day values (microsecond rounding).",
+      "PG numeric multiplication and division are exact here; Python's default Decimal context (28 digits) can round very large amounts, so raise the context precision."
+    ]
+  }
+}

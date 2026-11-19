@@ -1,0 +1,251 @@
+{
+  "label": "paymenttermduedate:analyze",
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "recorded_at": "2026-11-19T11:52:33-0800",
+  "duration_ms": 87493,
+  "cost_usd_estimate": 0.2304746,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 5383,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 9347,
+    "output_tokens_details": {
+      "thinking_tokens": 4346
+    }
+  },
+  "request": {
+    "system": "You modernize legacy ERP business rules. You are given a PL/pgSQL function from iDempiere (a 20-year-old open-source ERP) and you help port it to Python that behaves identically, bug for bug. The legacy function is the oracle: when the source and your intuition disagree, the source wins, including its quirks. Reply only with JSON matching the schema; a harness validates and executes what you propose.",
+    "prompt": "## Legacy function adempiere.paymenttermduedate(paymentterm_id numeric, docdate timestamp with time zone) RETURNS timestamp with time zone [STABLE]\n```sql\nCREATE OR REPLACE FUNCTION adempiere.paymenttermduedate(paymentterm_id numeric, docdate timestamp with time zone)\n RETURNS timestamp with time zone\n LANGUAGE plpgsql\n STABLE\nAS $function$\n/*************************************************************************\n * The contents of this file are subject to the Compiere License.  You may\n * obtain a copy of the License at    http://www.compiere.org/license.html\n * Software is on an  \"AS IS\" basis,  WITHOUT WARRANTY OF ANY KIND, either\n * express or implied. See the License for details. Code: Compiere ERP+CRM\n * Copyright (C) 1999-2001 Jorg Janke, ComPiere, Inc. All Rights Reserved.\n *\n * converted to postgreSQL by Karsten Thiemann (Schaeffer AG), \n * kthiemann@adempiere.org\n *************************************************************************\n * Title:\tGet Due timestamp with time zone\n * Description:\n *\tReturns the due timestamp with time zone\n * Test:\n *\tselect paymenttermDueDate(106, now()) from Test; => now()+30 days\n ************************************************************************/\nDECLARE\n \tDays\t\t\t\tNUMERIC := 0;\n\tDueDate\t\t\t\ttimestamp with time zone := TRUNC(DocDate);\n\t--\n\tFirstDay\t\t\ttimestamp with time zone;\n\tNoDays\t\t\t\tNUMERIC;\n\tp   \t\t\tRECORD;\nBEGIN\n\tFOR p IN \n\t\tSELECT\t*\n\t\tFROM\tC_PaymentTerm\n\t\tWHERE\tC_PaymentTerm_ID = PaymentTerm_ID\n\tLOOP\t--\tfor convineance only\n\t\t--\tDue 15th of following month\n\t\tIF (p.IsDueFixed = 'Y') THEN\t\t\n\t\t\tFirstDay := TRUNC(DocDate, 'MM');\n\t\t\tNoDays := EXTRACT(day FROM TRUNC(DocDate) - FirstDay);\n\t\t\tDueDate := FirstDay + (p.FixMonthDay-1);\t--\tstarting on 1st\n\t\t\tDueDate := ADD_MONTHS(DueDate, p.FixMonthOffset);\n\t\t\tIF (NoDays > p.FixMonthCutoff) THEN\n\t\t\t\tDueDate := ADD_MONTHS(DueDate, 1);\n\t\t\tEND IF;\n\t\tELSE\n\t\t\tDueDate := TRUNC(DocDate) + p.NetDays;\n\t\tEND IF;\n\tEND LOOP;\n\tRETURN DueDate;\nEND;\n$function$\n```\n## Schema functions it calls (directly, transitively, or through operators)\n```sql\nCREATE OR REPLACE FUNCTION adempiere.add_months(datetime timestamp with time zone, months numeric)\n RETURNS timestamp with time zone\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\nBEGIN\n\tif datetime is null or months is null then\n\t\treturn null;\n\tend if;\n\treturn datetime + (interval '1' month * TRUNC(months));\nEND;\n$function$\n```\n```sql\nCREATE OR REPLACE FUNCTION adempiere.trunc(datetime timestamp without time zone)\n RETURNS timestamp without time zone\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\nBEGIN\n        RETURN CAST(datetime AS DATE);\nEND;\n$function$\n```\n```sql\nCREATE OR REPLACE FUNCTION adempiere.trunc(datetime timestamp without time zone, format character varying)\n RETURNS date\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\nBEGIN\n\tIF format = 'Q' THEN\n\t\tRETURN CAST(DATE_Trunc('quarter',datetime) as DATE);\n\tELSIF format = 'Y' or format = 'YEAR' THEN\n\t\tRETURN CAST(DATE_Trunc('year',datetime) as DATE);\n\tELSIF format = 'MM' or format = 'MONTH' THEN\n\t\tRETURN CAST(DATE_Trunc('month',datetime) as DATE);\n\tELSIF format = 'DD' THEN\n\t\tRETURN CAST(DATE_Trunc('day',datetime) as DATE);\n\tELSIF format = 'DY' THEN\n\t\tRETURN CAST(DATE_Trunc('day',datetime) as DATE);\n\tELSE\n\t\tRETURN CAST(datetime AS DATE);\n\tEND IF;\nEND;\n$function$\n```\n```sql\nCREATE OR REPLACE FUNCTION adempiere.trunc(datetime timestamp with time zone)\n RETURNS timestamp with time zone\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\nBEGIN\n\tRETURN CAST(datetime AS DATE);\nEND;\n$function$\n```\n```sql\nCREATE OR REPLACE FUNCTION adempiere.trunc(datetime timestamp with time zone, format character varying)\n RETURNS date\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\nBEGIN\n\t\tRETURN trunc(cast(datetime as timestamp without time zone), format);\nEND;\n$function$\n```\n```sql\nCREATE OR REPLACE FUNCTION adempiere.trunc(i interval)\n RETURNS integer\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\nBEGIN\n\tRETURN EXTRACT(DAY FROM i);\nEND;\n$function$\n```\n```sql\nCREATE OR REPLACE FUNCTION adempiere.adddays(datetime timestamp with time zone, days numeric)\n RETURNS timestamp with time zone\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\nBEGIN\n\tif datetime is null or days is null then\n\t\treturn null;\n\tend if;\n\treturn datetime + (interval '1' second * (86400 * days));\nEND;\n$function$\n```\n```sql\nCREATE OR REPLACE FUNCTION adempiere.adddays(inter interval, days numeric)\n RETURNS integer\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\nBEGIN   \nRETURN ( EXTRACT( EPOCH FROM ( inter ) ) / 86400 ) + days;\nEND;    \n$function$\n```\n```sql\nCREATE OR REPLACE FUNCTION adempiere.subtractdays(day timestamp with time zone, days numeric)\n RETURNS timestamp with time zone\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\nBEGIN\n    RETURN addDays(day,(days * -1));\nEND;\n$function$\n```\n```sql\nCREATE OR REPLACE FUNCTION adempiere.subtractdays(inter interval, days numeric)\n RETURNS integer\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\nBEGIN\nRETURN ( EXTRACT( EPOCH FROM ( inter ) ) / 86400 ) - days;\nEND;\n$function$\n```\n## Operators defined in the adempiere schema\n- interval + numeric -> adempiere.adddays()\n- timestamp with time zone + numeric -> adempiere.adddays()\n- interval - numeric -> adempiere.subtractdays()\n- timestamp with time zone - numeric -> adempiere.subtractdays()\n## Tables it reads (columns the source names; primary key first)\n- c_paymentterm (5 rows): c_paymentterm_id numeric, isduefixed character, netdays numeric, fixmonthcutoff numeric, fixmonthday numeric, fixmonthoffset numeric\n    {\"c_paymentterm_id\": \"100\", \"fixmonthcutoff\": \"0\", \"fixmonthday\": \"0\", \"fixmonthoffset\": \"0\", \"isduefixed\": \"N\", \"netdays\": \"30\"}\n    {\"c_paymentterm_id\": \"105\", \"fixmonthcutoff\": null, \"fixmonthday\": null, \"fixmonthoffset\": null, \"isduefixed\": \"N\", \"netdays\": \"0\"}\n    {\"c_paymentterm_id\": \"106\", \"fixmonthcutoff\": \"0\", \"fixmonthday\": \"0\", \"fixmonthoffset\": \"0\", \"isduefixed\": \"N\", \"netdays\": \"30\"}\n    {\"c_paymentterm_id\": \"107\", \"fixmonthcutoff\": \"0\", \"fixmonthday\": \"0\", \"fixmonthoffset\": \"0\", \"isduefixed\": \"N\", \"netdays\": \"30\"}\n    {\"c_paymentterm_id\": \"108\", \"fixmonthcutoff\": \"0\", \"fixmonthday\": \"0\", \"fixmonthoffset\": \"0\", \"isduefixed\": \"N\", \"netdays\": \"0\"}\n## Session\nThe oracle runs with TimeZone = 'America/Los_Angeles' and search_path = adempiere, pg_catalog. Unqualified function calls resolve against adempiere first.\n\n## Task\nAnalyze adempiere.paymenttermduedate and return a structured spec for a faithful Python port:\nits inputs and output, every branch, which tables and columns it reads, and its NULL, rounding and\ndate/time semantics. List concrete edge cases worth testing and the risks a porter is likely to miss\n(PostgreSQL versus Python semantics, quirks a modern rewrite would \"fix\" by accident).",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary",
+        "inputs",
+        "output",
+        "branches",
+        "table_dependencies",
+        "null_semantics",
+        "rounding_semantics",
+        "date_time_semantics",
+        "edge_cases",
+        "porting_risks"
+      ],
+      "properties": {
+        "summary": {
+          "type": "string"
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "pg_type",
+              "meaning",
+              "null_behavior"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "pg_type": {
+                "type": "string"
+              },
+              "meaning": {
+                "type": "string"
+              },
+              "null_behavior": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "output": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "pg_type",
+            "meaning",
+            "null_behavior"
+          ],
+          "properties": {
+            "pg_type": {
+              "type": "string"
+            },
+            "meaning": {
+              "type": "string"
+            },
+            "null_behavior": {
+              "type": "string"
+            }
+          }
+        },
+        "branches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "condition",
+              "behavior"
+            ],
+            "properties": {
+              "condition": {
+                "type": "string"
+              },
+              "behavior": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "table_dependencies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "table",
+              "columns",
+              "purpose"
+            ],
+            "properties": {
+              "table": {
+                "type": "string"
+              },
+              "columns": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "purpose": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "null_semantics": {
+          "type": "string"
+        },
+        "rounding_semantics": {
+          "type": "string"
+        },
+        "date_time_semantics": {
+          "type": "string"
+        },
+        "edge_cases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "porting_risks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "summary": "Returns the due date for a document under a payment term. The starting value is TRUNC(DocDate): local midnight of DocDate in the session time zone (America/Los_Angeles), returned as a timestamptz. The function then loops over the C_PaymentTerm rows where c_paymentterm_id = paymentterm_id. There is at most one row because the column is the primary key. If no row matches, it returns TRUNC(DocDate). If isduefixed = 'Y': FirstDay is local midnight on the 1st of DocDate's month. NoDays is the day count of the interval (TRUNC(DocDate) - FirstDay), which is roughly the day of the month minus 1. DueDate = FirstDay + (fixmonthday - 1) days, then ADD_MONTHS(fixmonthoffset), then one more ADD_MONTHS(1) if NoDays > fixmonthcutoff. Otherwise DueDate = TRUNC(DocDate) + netdays. Every 'timestamptz + numeric' here uses the custom adempiere operator adddays(), which adds 86400*n absolute seconds, not calendar days. So any addition that crosses a DST change moves the result an hour off local midnight (23:00 on the previous day, or 01:00). ADD_MONTHS adds calendar months in local wall-clock time and clamps to the end of the month.",
+    "inputs": [
+      {
+        "name": "paymentterm_id",
+        "pg_type": "numeric",
+        "meaning": "C_PaymentTerm_ID of the payment term to apply.",
+        "null_behavior": "The WHERE c_paymentterm_id = NULL matches no rows and the loop body never runs, so the function returns TRUNC(docdate): local midnight, or NULL if docdate is NULL. It does not raise an error."
+      },
+      {
+        "name": "docdate",
+        "pg_type": "timestamp with time zone",
+        "meaning": "Document date. Only its local calendar date in America/Los_Angeles matters, because it is always truncated to local midnight first.",
+        "null_behavior": "TRUNC(NULL) is NULL and every later arithmetic step propagates NULL, so the result is NULL in every branch, including when no term is found. In the fixed branch NoDays is NULL, so the cutoff test is not true; the result is NULL anyway."
+      }
+    ],
+    "output": {
+      "pg_type": "timestamp with time zone",
+      "meaning": "Due date as an absolute instant. Usually local midnight (America/Los_Angeles) of the due day. If the day arithmetic crossed a DST change, it is 23:00 on the previous local day or 01:00 on the due day, because adddays adds absolute seconds.",
+      "null_behavior": "NULL if docdate is NULL. Also NULL if the matched row has the column used by its branch set to NULL: netdays in the non-fixed branch, or fixmonthday or fixmonthoffset in the fixed branch. A NULL fixmonthcutoff does not make the result NULL; it only skips the extra month. A missing term row is not NULL; the function returns TRUNC(docdate)."
+    },
+    "branches": [
+      {
+        "condition": "No C_PaymentTerm row has c_paymentterm_id = paymentterm_id (including paymentterm_id NULL)",
+        "behavior": "The loop does not run. Returns TRUNC(docdate) = local LA midnight of docdate's local date as a timestamptz, or NULL if docdate is NULL."
+      },
+      {
+        "condition": "Row found and isduefixed = 'Y' (bpchar compare; only an exact 'Y', case-sensitive)",
+        "behavior": "FirstDay = 1st of docdate's local month at 00:00 LA, computed as trunc(timestamptz,'MM') -> cast to local timestamp -> date_trunc('month') -> date -> back to timestamptz at local midnight. NoDays = EXTRACT(day FROM trunc(docdate) - FirstDay), where timestamptz - timestamptz is an absolute difference that justify_hours splits into days and hours. NoDays is day_of_month - 1, except after spring-forward in March, where the difference is N days minus 1 hour and NoDays becomes day_of_month - 2. DueDate = FirstDay + 86400*(fixmonthday-1) seconds; fixmonthday 0 gives the last day of the previous month, and values above the month length run into the next month. DueDate = DueDate + trunc(fixmonthoffset) months, in local wall time with end-of-month clamping. If NoDays > fixmonthcutoff (strict; a NULL cutoff skips it), DueDate = DueDate + 1 month in a second, separate add_months call, so clamping can happen twice."
+      },
+      {
+        "condition": "Row found and isduefixed is not 'Y' ('N', NULL, lowercase 'y', anything else)",
+        "behavior": "DueDate = trunc(docdate) + 86400*netdays seconds (absolute). Returns NULL if netdays is NULL. Negative and fractional netdays are allowed."
+      },
+      {
+        "condition": "More than one row matched (impossible with a PK, but this is how the loop behaves)",
+        "behavior": "Each iteration overwrites DueDate, so the last row in arbitrary scan order wins."
+      }
+    ],
+    "table_dependencies": [
+      {
+        "table": "c_paymentterm",
+        "columns": [
+          "c_paymentterm_id",
+          "isduefixed",
+          "netdays",
+          "fixmonthday",
+          "fixmonthoffset",
+          "fixmonthcutoff"
+        ],
+        "purpose": "Looks up the payment term by primary key. isduefixed picks between the net-days rule and the fixed-day-of-month rule. The source uses SELECT *, but only these columns are referenced."
+      }
+    ],
+    "null_semantics": "docdate NULL gives NULL. A missing row (including paymentterm_id NULL) gives TRUNC(docdate), not NULL. isduefixed NULL goes to the net-days branch (NULL = 'Y' is not true). In the net-days branch, netdays NULL gives NULL (adddays returns NULL). In the fixed branch, fixmonthday NULL gives NULL (adddays returns NULL, then add_months(NULL) returns NULL). fixmonthoffset NULL gives NULL (add_months returns NULL). fixmonthcutoff NULL makes 'NoDays > NULL' NULL, which IF treats as false, so the extra month is skipped and the result is not NULL. Columns not used by the chosen branch can be NULL with no effect; for example, term 105 has NULL fix* columns and isduefixed 'N' and works fine.",
+    "rounding_semantics": "adddays computes interval '1 second' * (86400*days). The numeric is implicitly cast to float8, so fractional days become fractional seconds rounded to microseconds; there is no rounding to whole days. add_months uses pg_catalog.trunc(numeric) on the month count, which truncates toward zero (1.9 -> 1, -1.5 -> -1). NoDays comes from EXTRACT(day FROM interval): only the integer days field of the justified interval, with the hours dropped. It is numeric in PG14+. The cutoff comparison is numeric, so a fractional fixmonthcutoff works (NoDays 15 > 14.5).",
+    "date_time_semantics": "Session TimeZone is America/Los_Angeles, and every result depends on it. (1) trunc(timestamptz) = CAST(x AS date) in LA local time, then date->timestamptz at 00:00 LA. So 2026-01-01 03:00Z is 2025-12-31 19:00 PST, which truncates to 2025-12-31 00:00 PST. (2) timestamptz + numeric is NOT built in; it resolves to the adempiere operator adddays(), which adds exactly 86400*n seconds of absolute time. Example: 2026-10-20 00:00 PDT + 30 = 2026-11-18 23:00 PST, not 2026-11-19 00:00. Crossing spring-forward gives 01:00 local. (3) add_months adds interval 'N months' to a timestamptz, which PostgreSQL does in local wall-clock fields: the time of day is kept, the day is clamped to the end of the month (Jan 31 + 1 month = Feb 28/29), and the instant is recomputed with the target date's UTC offset. If the resulting wall time falls in a spring-forward gap, PG uses the pre-transition (standard) offset, so 02:30 becomes 03:30 PDT. If it is ambiguous at fall-back, PG uses the later, standard-time (PST) reading. (4) timestamptz - timestamptz is an absolute microsecond difference passed through justify_hours, so a 23-hour shortfall moves NoDays down by one after the March DST start. (5) The two add_months calls (offset, then +1 for the cutoff) are applied one after the other, so Jan 31 +1 +1 = Mar 28, not Mar 31.",
+    "edge_cases": [
+      "paymentterm_id = 999 (missing): returns docdate's local midnight.",
+      "paymentterm_id NULL: returns trunc(docdate), not NULL.",
+      "docdate NULL with a valid term: NULL.",
+      "Term 105 (netdays 0, fix* NULL, isduefixed N): returns trunc(docdate) exactly.",
+      "Term 100, docdate 2026-10-20 12:00 PDT: 30*86400 s crosses fall-back on 2026-11-01, so the result is 2026-11-18 23:00:00-08 (07:00Z on Nov 19).",
+      "Term 100, docdate 2026-02-20: crosses spring-forward on 2026-03-08, so the result is 2026-03-22 01:00:00-07.",
+      "Term 100, docdate 2026-06-01: no DST crossing, so the result is 2026-07-01 00:00:00-07.",
+      "docdate 2026-01-01T03:00:00Z (Dec 31 19:00 PST): local date is 2025-12-31, so term 100 gives 2026-01-30 00:00-08.",
+      "docdate exactly at local midnight versus 23:59:59 local: same result.",
+      "Fixed term (synthetic row, isduefixed 'Y'): fixmonthday 15, offset 1, cutoff 15. Docdate on the 16th (NoDays 15, not > 15) gives the 15th of the next month; docdate on the 17th gives the 15th two months out.",
+      "Fixed term with docdate 2026-03-20 (after DST start on Mar 8): NoDays = 18, not 19, because the 23-hour day is lost. Test cutoff = 18 at the boundary.",
+      "Fixed term with fixmonthday 15 in November: FirstDay Nov 1 00:00 PDT + 14*86400 s = Nov 14 23:00 PST, then add_months keeps 23:00 on the 14th.",
+      "Fixed term with fixmonthday 31, offset 1, docdate in January: Jan 31 + 1 month = Feb 28 (Feb 29 in leap years). With the cutoff roll as well: Mar 28.",
+      "Fixed term with fixmonthday 0: the last day of the previous month (FirstDay - 1 day), then the offset is applied.",
+      "Fixed term with fixmonthday 40: runs past the month end into the next month before the offset is added.",
+      "Fixed term with fixmonthoffset 1.9 adds 1 month; -1.5 adds -1 month.",
+      "Fixed term with fixmonthcutoff NULL: never rolls the extra month; the result is not NULL.",
+      "Fixed term with fixmonthday or fixmonthoffset NULL: result NULL.",
+      "isduefixed 'y' (lowercase) or NULL: treated as non-fixed and uses netdays.",
+      "Negative netdays (-5): goes back in absolute seconds and can also produce the DST hour shift.",
+      "Fractional netdays (0.5): result is 12:00 local (or 11:00/13:00 across DST).",
+      "docdate 'infinity': non-fixed returns infinity. The fixed branch errors on infinity - infinity in some PG versions (an edge case to confirm with the oracle)."
+    ],
+    "porting_risks": [
+      "Python aware-datetime + timedelta does WALL-CLOCK arithmetic within the same tzinfo, but adempiere's adddays adds ABSOLUTE seconds. Convert to UTC, add timedelta(seconds=86400*days), then convert back; otherwise the 23:00/01:00 DST shifts disappear.",
+      "A modern rewrite would use date + N days and return midnight, which 'fixes' the DST hour drift. The oracle returns 23:00 on the previous local day after fall-back crossings.",
+      "NoDays must come from the absolute difference between the two local midnights, with integer days taken by floor (days = total_seconds // 86400, as justify_hours does). Using local_date.day - 1 misses the March off-by-one.",
+      "trunc() must use America/Los_Angeles, not UTC or naive dates. Do the date extraction after astimezone(LA).",
+      "add_months must operate on LA wall-clock fields, keep the time of day, clamp the day to the month length, then re-localize. For a gap, use the pre-transition offset (zoneinfo fold=0 does this). For an ambiguous time, PG picks standard time, which is fold=1 in zoneinfo, not the default fold=0.",
+      "Apply the offset add_months and the cutoff +1 month as two separate clamped steps; do not combine them into offset+1.",
+      "Month count truncation: use Decimal truncation toward zero (int() on a Decimal), not floor or round.",
+      "The cutoff compare is strict '>' against a 0-based day index; do not 'fix' it to day_of_month >= cutoff.",
+      "NULL rules differ by column: a NULL cutoff means no extra month, while NULL fixmonthday/offset/netdays mean NULL. A missing term means trunc(docdate), not None.",
+      "isduefixed is compared exactly to 'Y'; NULL and lowercase go to the netdays branch. Do not use .upper() or a truthiness check.",
+      "Fractional days: 86400*days goes through float8 and microsecond rounding. Use Decimal -> float -> round to microseconds to match.",
+      "fixmonthday 0 or values past the month end must be allowed to overflow or underflow through the absolute-seconds addition. Do not build date(year, month, fixmonthday) directly, which would raise an error or clamp.",
+      "Return a timezone-aware instant. The comparison should be on the instant, since the oracle renders timestamptz in LA."
+    ]
+  }
+}

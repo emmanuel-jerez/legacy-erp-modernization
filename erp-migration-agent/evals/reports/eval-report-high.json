@@ -1,0 +1,224 @@
+{
+  "generated_at": "2026-11-19T19:56:45+00:00",
+  "mode": "replay",
+  "metric_contract": "docs/metric-contract.md",
+  "pass_bar": "100% held-out parity",
+  "totals": {
+    "calls": 9,
+    "live_calls": 0,
+    "cassette_hits": 9,
+    "model_duration_ms": 603164,
+    "cost_usd_estimate_as_recorded": 2.0507,
+    "models": [
+      "claude-opus-5-5"
+    ],
+    "efforts": [
+      "high"
+    ],
+    "tokens_as_recorded": {
+      "cache_creation_input_tokens": 88850,
+      "cache_read_input_tokens": 2976,
+      "input_tokens": 18,
+      "output_tokens": 66502
+    }
+  },
+  "functions": [
+    {
+      "function": "currencyround",
+      "difficulty": "warm-up",
+      "why": "One table read, NULL pass-through, a costing flag, and PostgreSQL rounding (half away from zero, fixed scale).",
+      "status": "converged",
+      "held_out_parity": {
+        "matched": 14,
+        "total": 14,
+        "rate": 1.0,
+        "passed": true,
+        "runner_failure": null
+      },
+      "visible_parity": {
+        "matched": 30,
+        "total": 30,
+        "rate": 1.0,
+        "passed": true,
+        "runner_failure": null
+      },
+      "repair_iterations": 0,
+      "history": [
+        {
+          "iteration": 0,
+          "visible_matched": 30,
+          "visible_total": 30,
+          "runner_failure": null
+        }
+      ],
+      "cases": {
+        "total": 44,
+        "sampled": 24,
+        "edge": 20,
+        "visible": 30,
+        "held_out": 14,
+        "rejected": 0
+      },
+      "rejected_cases": [],
+      "held_out_mismatches": [],
+      "visible_mismatches": [],
+      "repair_diagnoses": [],
+      "usage": {
+        "calls": 3,
+        "live_calls": 0,
+        "cassette_hits": 3,
+        "model_duration_ms": 102503,
+        "cost_usd_estimate_as_recorded": 0.395,
+        "models": [
+          "claude-opus-5-5"
+        ],
+        "efforts": [
+          "high"
+        ],
+        "tokens_as_recorded": {
+          "cache_creation_input_tokens": 20127,
+          "cache_read_input_tokens": 0,
+          "input_tokens": 6,
+          "output_tokens": 11596
+        }
+      }
+    },
+    {
+      "function": "paymenttermduedate",
+      "difficulty": "branching",
+      "why": "Fixed-day versus net-days branches, a month cutoff, month arithmetic and day truncation in the session time zone.",
+      "status": "converged",
+      "held_out_parity": {
+        "matched": 14,
+        "total": 14,
+        "rate": 1.0,
+        "passed": true,
+        "runner_failure": null
+      },
+      "visible_parity": {
+        "matched": 29,
+        "total": 29,
+        "rate": 1.0,
+        "passed": true,
+        "runner_failure": null
+      },
+      "repair_iterations": 0,
+      "history": [
+        {
+          "iteration": 0,
+          "visible_matched": 29,
+          "visible_total": 29,
+          "runner_failure": null
+        }
+      ],
+      "cases": {
+        "total": 43,
+        "sampled": 24,
+        "edge": 19,
+        "visible": 29,
+        "held_out": 14,
+        "rejected": 1
+      },
+      "rejected_cases": [
+        {
+          "source": "edge",
+          "name": "lowercase_y_uses_netdays",
+          "reason": "fixture insert into c_paymentterm failed: new row for relation \"c_paymentterm\" violates check constraint \"c_paymentterm_isduefixed_check\""
+        }
+      ],
+      "held_out_mismatches": [],
+      "visible_mismatches": [],
+      "repair_diagnoses": [],
+      "usage": {
+        "calls": 3,
+        "live_calls": 0,
+        "cassette_hits": 3,
+        "model_duration_ms": 198180,
+        "cost_usd_estimate_as_recorded": 0.6533,
+        "models": [
+          "claude-opus-5-5"
+        ],
+        "efforts": [
+          "high"
+        ],
+        "tokens_as_recorded": {
+          "cache_creation_input_tokens": 27659,
+          "cache_read_input_tokens": 1488,
+          "input_tokens": 6,
+          "output_tokens": 21435
+        }
+      }
+    },
+    {
+      "function": "paymenttermdiscount",
+      "difficulty": "multi-table",
+      "why": "Reads payment terms, currencies, client accounting schemas and holidays (through nextbusinessday); discount windows, grace days and rounding.",
+      "status": "converged",
+      "held_out_parity": {
+        "matched": 13,
+        "total": 13,
+        "rate": 1.0,
+        "passed": true,
+        "runner_failure": null
+      },
+      "visible_parity": {
+        "matched": 28,
+        "total": 28,
+        "rate": 1.0,
+        "passed": true,
+        "runner_failure": null
+      },
+      "repair_iterations": 0,
+      "history": [
+        {
+          "iteration": 0,
+          "visible_matched": 28,
+          "visible_total": 28,
+          "runner_failure": null
+        }
+      ],
+      "cases": {
+        "total": 41,
+        "sampled": 24,
+        "edge": 17,
+        "visible": 28,
+        "held_out": 13,
+        "rejected": 2
+      },
+      "rejected_cases": [
+        {
+          "source": "edge",
+          "name": "null_stdprecision_currency",
+          "reason": "fixture insert into c_currency failed: null value in column \"stdprecision\" of relation \"c_currency\" violates not-null constraint"
+        },
+        {
+          "source": "edge",
+          "name": "null_gracedays_no_discount",
+          "reason": "fixture insert into c_paymentterm failed: null value in column \"gracedays\" of relation \"c_paymentterm\" violates not-null constraint"
+        }
+      ],
+      "held_out_mismatches": [],
+      "visible_mismatches": [],
+      "repair_diagnoses": [],
+      "usage": {
+        "calls": 3,
+        "live_calls": 0,
+        "cassette_hits": 3,
+        "model_duration_ms": 302481,
+        "cost_usd_estimate_as_recorded": 1.0024,
+        "models": [
+          "claude-opus-5-5"
+        ],
+        "efforts": [
+          "high"
+        ],
+        "tokens_as_recorded": {
+          "cache_creation_input_tokens": 41064,
+          "cache_read_input_tokens": 1488,
+          "input_tokens": 6,
+          "output_tokens": 33471
+        }
+      }
+    }
+  ]
+}
