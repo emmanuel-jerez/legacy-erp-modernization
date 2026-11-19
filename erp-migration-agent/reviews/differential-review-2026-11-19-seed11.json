@@ -1,0 +1,20 @@
+{
+  "currencyround": {
+    "compared": 400,
+    "matched": 400,
+    "rejected": 0,
+    "mismatches": []
+  },
+  "paymenttermduedate": {
+    "compared": 400,
+    "matched": 400,
+    "rejected": 0,
+    "mismatches": []
+  },
+  "paymenttermdiscount": {
+    "compared": 400,
+    "matched": 400,
+    "rejected": 0,
+    "mismatches": []
+  }
+}
