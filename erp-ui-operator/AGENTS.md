@@ -16,7 +16,9 @@ shared rules in `../BUILD-BRIEF.md` and `../erp-sandbox/AGENTS.md`.
 - Integration tests read the live `idempiere` database (read-only), because the UI writes
   there; they skip when it is down. Browser tests are marked `browser` and skip when the
   UI is unreachable.
-- Tests: `uv run pytest`.
+- Tests: `uv run pytest`. Evals: `uv run ui-operator eval` (live UI; records cassette
+  misses), `--llm-mode replay` to prove offline reproducibility. Commit the report and new
+  cassettes; refresh `docs/evidence/` from a drifted eval run if the run log format changes.
 
 ## Driving iDempiere's ZK UI
 
@@ -36,7 +38,8 @@ shared rules in `../BUILD-BRIEF.md` and `../erp-sandbox/AGENTS.md`.
 - **Settle means "quiet for a window", not "idle once".** iDempiere posts follow-up
   events after a response, so `settle()` waits for ZK to stay idle for 600 ms.
 - **Repeat only idempotent actions.** A fill, select or type may be re-applied once (a
-  fill clears the field first so ZK sends a real change). Clicks are never repeated: a
+  re-applied fill clears the field and types key by key, because ZK sends no change for an
+  unchanged value and iDempiere's search fields sometimes ignore a programmatic fill). Clicks are never repeated: a
   second click can undo a row selection.
 - **Prompt text is part of the cassette key.** Changing a step goal, a postcondition's
   description, the snapshot format or the system prompt invalidates cassettes. Re-record
@@ -82,6 +85,14 @@ shared rules in `../BUILD-BRIEF.md` and `../erp-sandbox/AGENTS.md`.
   reaches the model.
 - **Keep flickering values out of prompts.** Failure reasons that go into a prompt carry
   no counts or timings ("matches more than one element"), or cassette keys drift.
-- **Commands clean up only what they created.** `demo` deletes its own runs' drafts by
-  run tag (in a `finally`, so a failed second run still cleans the first) and replays
+- **Commands clean up only what they created.** `demo` and `eval` pre-assign run ids and
+  delete those runs' drafts by run tag in a `finally` (a failed or interrupted case still
+  cleans the earlier ones; one failing delete does not stop the rest). `demo` replays
   cassettes by default; only `cleanup` sweeps every tagged draft.
+- **A probe must assert the exact rule it demonstrates.** The guardrail probe passes only
+  if the `destructive_target` rule fired, the run aborted and no order exists; a failed
+  probe fails `eval`. Reason: accepting any block let it pass without proving the
+  destructive-control rule.
+- **Reports never overwrite each other and never blur cost.** Report files are named by
+  date and cassette mode, with the time appended if that name exists; the report separates the cost of calls made live in this eval
+  from the recorded cost of replayed cassettes. README figures come from those files only.

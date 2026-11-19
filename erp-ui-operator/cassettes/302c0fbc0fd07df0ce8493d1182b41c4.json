@@ -1,0 +1,67 @@
+{
+  "label": "fallback:line1.qty",
+  "model": "claude-opus-5-5",
+  "effort": "medium",
+  "recorded_at": "2026-11-19T10:53:37-0800",
+  "duration_ms": 3436,
+  "cost_usd_estimate": 0.0236026,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 2512,
+    "cache_read_input_tokens": 956,
+    "output_tokens": 151,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    }
+  },
+  "request": {
+    "system": "You are the fallback layer of a UI automation agent working in iDempiere, a legacy ERP web application.\nA deterministic step of a fixed plan failed: its locator found nothing, or its success check did not hold afterwards.\nPropose exactly ONE next UI action that achieves the step's goal on the current page.\n\nYou get a numbered list of the visible interactive elements: [index] role \"name\" value=... @region.\nRules:\n- element_index must be an index from the list (null only for \"wait\").\n- \"fill\": type the step's value into a textbox, combobox, date or number field; the executor commits it with Tab.\n- \"select\": choose an option in a dropdown field; value is the option's text.\n- \"click\": buttons, tabs, list rows, checkboxes.\n- \"press\": only the keys Enter, Escape, Tab, on the given element.\n- \"wait\": only if the page is visibly still loading.\n- Use the step's value exactly as given. Never invent or change values.\n- Controls that delete, void, complete, process, post, reverse or close documents are blocked and end the run.\n- The UI may have changed since the plan was written (renamed labels, new tooltips). Match by meaning.\nGive a one-sentence reason.",
+    "prompt": "Step: line1.qty\nGoal: Fill the line's Quantity with 300.\nValue to enter: '300'\nWhy the deterministic step failed: no visible element matches selector-map entry form_field 'Order Quantity'\nSuccess check: the quantity is 300 and the server has applied it\nPage elements:\n[0] combobox \"Alt+G\" value=\"Purchase Order\" @global-search\n[1] button \"Expand\" @global-search\n[2] button \"Menu\" @global-search\n[3] combobox \"Select Query\" value=\"\" @window-toolbar\n[4] button \"Expand\" @window-toolbar\n[5] button \"Lookup Record\" @window-toolbar\n[6] button \"New\" @window-toolbar\n[7] button \"Copy Record\" @window-toolbar\n[8] button \"Save Changes\" @window-toolbar\n[9] button \"Delete Record\" @window-toolbar\n[10] button \"Undo Changes\" @window-toolbar\n[11] button \"ReQuery\" @window-toolbar\n[12] button \"Grid Toggle\" @window-toolbar\n[13] button \"Attachment\" @window-toolbar\n[14] button \"Zoom Across (where used)\" @window-toolbar\n[15] button \"Report\" @window-toolbar\n[16] button \"Process\" @window-toolbar\n[17] button \"Print\" @window-toolbar\n[18] button \"Parent Record\" @window-toolbar\n[19] button \"Detail record\" @window-toolbar\n[20] button \"Label / Tag\" @window-toolbar\n[21] button \"More\" @window-toolbar\n[22] button \"First record\" @breadcrumb\n[23] button \"Previous record\" @breadcrumb\n[24] button \"Record Info\" text=\"+*1/1\" @breadcrumb\n[25] button \"Next record\" @breadcrumb\n[26] button \"Last record\" @breadcrumb\n[27] combobox \"Tenant\" value=\"GardenWorld\" disabled @form\n[28] combobox \"Organization\" value=\"HQ\" disabled @form\n[29] combobox \"Purchase Order\" value=\"<n>_<date>\" disabled @form\n[30] combobox \"Business Partner\" value=\"Placeholder Co-Packer C\" disabled @form\n[31] combobox \"Partner Location\" value=\"Demo City, CA\" @form\n[32] button \"Partner Location\" @form\n[33] date \"Date Promised\" value=\"<date>\" @form\n[34] button \"Date Promised\" @form\n[35] date \"Date Ordered\" value=\"<date>\" @form\n[36] button \"Date Ordered\" @form\n[37] number \"Line No\" value=\"10\" @form\n[38] button \"Line No\" @form\n[39] combobox \"Product\" value=\"FH-007-1P2_Peptide Firming Serum 1 oz / 2-Pack\" @form\n[40] button \"Product\" @form\n[41] combobox \"Charge\" value=\"\" disabled @form\n[42] textbox \"Attribute Set Instance\" value=\"\" disabled @form\n[43] button \"Attribute Set Instance\" @form\n[44] textbox \"Description\" value=\"\" @form\n[45] number \"Quantity\" value=\"1\" @form\n[46] button \"Quantity\" @form\n[47] combobox \"UOM\" value=\"Each\" @form\n[48] button \"UOM\" @form\n[49] number \"PO Quantity\" value=\"1\" disabled @form\n[50] number \"Delivered Quantity\" value=\"0\" disabled @form\n[51] number \"On Order Quantity\" value=\"0\" disabled @form\n[52] number \"Quantity Invoiced\" value=\"0\" disabled @form\n[53] number \"Price\" value=\"32.10\" @form\n[54] button \"Price\" @form\n[55] number \"Cost Price\" value=\"0.00\" @form\n[56] button \"Cost Price\" @form\n[57] number \"Unit Price\" value=\"32.10\" @form\n[58] button \"Unit Price\" @form\n[59] number \"List Price\" value=\"32.10\" @form\n[60] button \"List Price\" @form\n[61] combobox \"Tax\" value=\"Standard\" @form\n[62] button \"Tax\" @form\n[63] number \"Discount %\" value=\"0.0\" @form\n[64] button \"Discount %\" @form\n[65] combobox \"Project\" value=\"\" @form\n[66] button \"Project\" @form\n[67] combobox \"Campaign\" value=\"\" @form\n[68] button \"Campaign\" @form\n[69] number \"Line Amount\" value=\"32.10\" disabled @form\n[70] tab \"Matching\" selected @detail-pane\n[71] tab \"Requisition Lines\" @detail-pane\n[72] button \"Save and Create New\" @detail-pane\n[73] button \"Edit Record\" @detail-pane\n[74] button \"Delete Record\" @detail-pane\n[75] button \"Save Changes\" @detail-pane\n[76] button \"Process\" @detail-pane\n[77] button \"Quick Form\" @detail-pane\n[78] button \"Customize\" @detail-pane\n[79] button \"Grid Toggle\" @detail-pane\n[80] checkbox \"\" unchecked @detail-pane",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action",
+        "element_index",
+        "value",
+        "reason"
+      ],
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "click",
+            "fill",
+            "press",
+            "select",
+            "wait"
+          ]
+        },
+        "element_index": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "value": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 300
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 300
+        }
+      }
+    }
+  },
+  "response": {
+    "action": "fill",
+    "element_index": 45,
+    "value": "300",
+    "reason": "The \"Quantity\" field is the editable quantity field on the order line, which the plan called \"Order Quantity\"."
+  }
+}

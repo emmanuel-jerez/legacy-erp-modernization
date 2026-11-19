@@ -202,12 +202,18 @@ class Operator:
         tries = 2 if action in REAPPLY_ACTIONS else 1
         for attempt in range(tries):
             if (attempt or force_change) and action == "fill":
-                # ZK only sends a change when the value differs from what it last saw.
+                # ZK only sends a change when the value differs from what it last saw, and
+                # iDempiere's search fields sometimes ignore a programmatic fill. Clear the
+                # field, then type key by key as a person would, then commit with Tab.
                 self.budget.spend_action()
                 perform(self.page, locator, "fill", "")
                 settle(self.page)
-            self.budget.spend_action()
-            perform(self.page, locator, action, value)
+                self.budget.spend_action()
+                perform(self.page, locator, "type", value)
+                locator.press("Tab")
+            else:
+                self.budget.spend_action()
+                perform(self.page, locator, action, value)
             settle(self.page)
             if checks.wait_until(self.page, step.post, timeout_ms=step.wait_ms):
                 return True
@@ -333,6 +339,7 @@ class Operator:
                 "from_cassette": result.from_cassette,
                 "cassette_key": result.key[:32],
                 "model_ms": result.duration_ms,
+                "cost_usd_estimate": result.cost_usd_estimate,
             }
             rec["fallback"].append(entry)
             if verdict.severity != OK:

@@ -1,0 +1,729 @@
+{
+  "run_id": "5578fc11",
+  "tag": {
+    "description": "erp-ui-operator run 5578fc11: Restock 3 line(s) from vendor C",
+    "po_reference": "UIOP-5578fc11"
+  },
+  "task": {
+    "name": "Restock 3 line(s) from vendor C",
+    "vendor": "Placeholder Co-Packer C",
+    "promised_date": "2026-12-04",
+    "lines": [
+      {
+        "sku": "FH-007-1P2",
+        "qty": 300
+      },
+      {
+        "sku": "FH-016-1",
+        "qty": 300
+      },
+      {
+        "sku": "FH-020-1P2",
+        "qty": 300
+      }
+    ]
+  },
+  "drift": "drifted",
+  "started_at": "2026-11-19T11:09:53-08:00",
+  "budget": {
+    "max_actions": 150,
+    "max_fallback_calls": 10,
+    "max_fallback_per_step": 3
+  },
+  "duration_ms": 42849,
+  "success": true,
+  "flow_error": null,
+  "steps": [
+    {
+      "index": 0,
+      "key": "login.open",
+      "goal": "Open the iDempiere web UI at https://127.0.0.1:58443/webui/.",
+      "action": "goto",
+      "value": "https://127.0.0.1:58443/webui/",
+      "postcondition": "the login form's User field is visible",
+      "fallback": [],
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 1126,
+      "screenshot": "screens/00-login.open.png"
+    },
+    {
+      "index": 1,
+      "key": "login.user",
+      "goal": "Type the user name 'GardenAdmin' into the User field of the login form.",
+      "action": "fill",
+      "value": "GardenAdmin",
+      "postcondition": "the User field holds 'GardenAdmin'",
+      "fallback": [],
+      "target": "login_field 'User'",
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 764,
+      "screenshot": "screens/01-login.user.png"
+    },
+    {
+      "index": 2,
+      "key": "login.password",
+      "goal": "Type the password into the Password field of the login form.",
+      "action": "fill",
+      "value": "<password>",
+      "postcondition": "the Password field is filled in",
+      "fallback": [],
+      "target": "login_field 'Password'",
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 905,
+      "screenshot": "screens/02-login.password.png"
+    },
+    {
+      "index": 3,
+      "key": "login.select_role",
+      "goal": "Tick the 'Select Role' checkbox so the role screen appears after login.",
+      "action": "click",
+      "value": null,
+      "postcondition": "Select Role is ticked",
+      "fallback": [],
+      "target": "checkbox 'Select Role'",
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 756,
+      "screenshot": "screens/03-login.select_role.png"
+    },
+    {
+      "index": 4,
+      "key": "login.ok",
+      "goal": "Submit the login form with its OK button.",
+      "action": "click",
+      "value": null,
+      "postcondition": "the role selection screen is shown",
+      "fallback": [],
+      "target": "button 'OK'",
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 739,
+      "screenshot": "screens/04-login.ok.png"
+    },
+    {
+      "index": 5,
+      "key": "role.role",
+      "goal": "Choose the role 'GardenWorld Admin'.",
+      "action": "select",
+      "value": "GardenWorld Admin",
+      "postcondition": "Role is 'GardenWorld Admin'",
+      "fallback": [],
+      "status": "skipped",
+      "detail": "postcondition already held",
+      "duration_ms": 7,
+      "screenshot": "screens/05-role.role.png"
+    },
+    {
+      "index": 6,
+      "key": "role.org",
+      "goal": "Choose the organization 'HQ'.",
+      "action": "select",
+      "value": "HQ",
+      "postcondition": "Org is 'HQ'",
+      "fallback": [],
+      "status": "skipped",
+      "detail": "postcondition already held",
+      "duration_ms": 6,
+      "screenshot": "screens/06-role.org.png"
+    },
+    {
+      "index": 7,
+      "key": "role.warehouse",
+      "goal": "Choose the warehouse 'HQ Warehouse'.",
+      "action": "select",
+      "value": "HQ Warehouse",
+      "postcondition": "Warehouse is 'HQ Warehouse'",
+      "fallback": [],
+      "status": "skipped",
+      "detail": "postcondition already held",
+      "duration_ms": 4,
+      "screenshot": "screens/07-role.warehouse.png"
+    },
+    {
+      "index": 8,
+      "key": "role.ok",
+      "goal": "Confirm the role selection with OK to reach the main desktop.",
+      "action": "click",
+      "value": null,
+      "postcondition": "the desktop's global search box is visible",
+      "fallback": [],
+      "target": "button 'OK'",
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 1366,
+      "screenshot": "screens/08-role.ok.png"
+    },
+    {
+      "index": 9,
+      "key": "menu.search",
+      "goal": "Type 'Purchase Order' into the global menu search box.",
+      "action": "type",
+      "value": "Purchase Order",
+      "postcondition": "the 'Purchase Order' window is listed in the menu search results",
+      "fallback": [],
+      "target": "global_search 'Search'",
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 1282,
+      "screenshot": "screens/09-menu.search.png"
+    },
+    {
+      "index": 10,
+      "key": "menu.new_po",
+      "goal": "Open a new record in the 'Purchase Order' window from the search results.",
+      "action": "click",
+      "value": null,
+      "postcondition": "a new Purchase Order header is open",
+      "fallback": [],
+      "target": "menu_new 'Purchase Order'",
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 1389,
+      "screenshot": "screens/10-menu.new_po.png"
+    },
+    {
+      "index": 11,
+      "key": "po.vendor",
+      "goal": "Fill the vendor (business partner) field of the purchase order with 'Placeholder Co-Packer C'.",
+      "action": "fill",
+      "value": "Placeholder Co-Packer C",
+      "postcondition": "the business partner is 'Placeholder Co-Packer C' and the server filled in its location, invoice partner and price list",
+      "fallback": [
+        {
+          "prompt": "prompts/po.vendor-1.txt",
+          "proposal": {
+            "action": "fill",
+            "element_index": 39,
+            "value": "Placeholder Co-Packer C",
+            "reason": "On a purchase order the vendor goes in the \"Business Partner\" field, so the value is typed into that combobox."
+          },
+          "verdict": {
+            "severity": "ok",
+            "rule": "ok",
+            "reason": "allowed"
+          },
+          "snapshot_elements": 96,
+          "from_cassette": true,
+          "cassette_key": "4a1a726409c18aa12b4f1cf38f772349",
+          "model_ms": 3837,
+          "cost_usd_estimate": 0.0263792,
+          "executed": true,
+          "postcondition_after": true
+        }
+      ],
+      "target": "form_field 'Vendor'",
+      "deterministic_failure": "no visible element matches selector-map entry form_field 'Vendor'",
+      "healed": {
+        "from": "form_field 'Vendor'",
+        "to": "form_field 'Business Partner'",
+        "step": "po.vendor"
+      },
+      "status": "ok",
+      "layer": "llm-fallback",
+      "duration_ms": 5263,
+      "screenshot": "screens/11-po.vendor.png"
+    },
+    {
+      "index": 12,
+      "key": "po.description",
+      "goal": "Fill the order's Description with the run tag.",
+      "action": "fill",
+      "value": "erp-ui-operator run <run>: Restock 3 line(s) from vendor C",
+      "postcondition": "the description holds the run tag",
+      "fallback": [],
+      "target": "form_field 'Description'",
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 910,
+      "screenshot": "screens/12-po.description.png"
+    },
+    {
+      "index": 13,
+      "key": "po.reference",
+      "goal": "Fill the Order Reference with the run reference.",
+      "action": "fill",
+      "value": "UIOP-<run>",
+      "postcondition": "the order reference holds the run reference",
+      "fallback": [],
+      "target": "form_field 'Order Reference'",
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 915,
+      "screenshot": "screens/13-po.reference.png"
+    },
+    {
+      "index": 14,
+      "key": "po.date_promised",
+      "goal": "Set Date Promised to 12/04/2026.",
+      "action": "fill",
+      "value": "12/04/2026",
+      "postcondition": "Date Promised is 12/04/2026",
+      "fallback": [],
+      "target": "form_field 'Date Promised'",
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 964,
+      "screenshot": "screens/14-po.date_promised.png"
+    },
+    {
+      "index": 15,
+      "key": "po.save",
+      "goal": "Save the purchase order header with the toolbar's save button.",
+      "action": "click",
+      "value": null,
+      "postcondition": "the header is saved with a document number, no lines yet, and the entered values",
+      "fallback": [
+        {
+          "prompt": "prompts/po.save-1.txt",
+          "proposal": {
+            "action": "click",
+            "element_index": 8,
+            "value": null,
+            "reason": "The toolbar save button has been renamed from \"Save Record\" to \"Save Changes\", and element 8 is that button in the window toolbar, so clicking it saves the purchase order header."
+          },
+          "verdict": {
+            "severity": "ok",
+            "rule": "ok",
+            "reason": "allowed"
+          },
+          "snapshot_elements": 96,
+          "from_cassette": true,
+          "cassette_key": "dd95732efff96b0126ec9de33f9a058a",
+          "model_ms": 5883,
+          "cost_usd_estimate": 0.0271681,
+          "executed": true,
+          "postcondition_after": true
+        }
+      ],
+      "target": "toolbar 'Save Record'",
+      "deterministic_failure": "no visible element matches selector-map entry toolbar 'Save Record'",
+      "healed": {
+        "from": "toolbar 'Save Record'",
+        "to": "toolbar 'Save Changes'",
+        "step": "po.save"
+      },
+      "status": "ok",
+      "layer": "llm-fallback",
+      "duration_ms": 5128,
+      "screenshot": "screens/15-po.save.png"
+    },
+    {
+      "index": 16,
+      "key": "po.readback",
+      "goal": "Check the saved header in the database.",
+      "action": "check",
+      "value": null,
+      "postcondition": "the saved header row holds the vendor, run tag, reference and promised date",
+      "fallback": [],
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 7,
+      "screenshot": "screens/16-po.readback.png"
+    },
+    {
+      "index": 17,
+      "key": "po.lines_tab",
+      "goal": "Open the 'PO Line' tab to add order lines.",
+      "action": "click",
+      "value": null,
+      "postcondition": "the order line form is open",
+      "fallback": [],
+      "target": "tab 'PO Line'",
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 822,
+      "screenshot": "screens/17-po.lines_tab.png"
+    },
+    {
+      "index": 18,
+      "key": "line1.new",
+      "goal": "Start a new order line with the toolbar's New button.",
+      "action": "click",
+      "value": null,
+      "postcondition": "an empty new order line is open",
+      "fallback": [],
+      "status": "skipped",
+      "detail": "postcondition already held",
+      "duration_ms": 38,
+      "screenshot": "screens/18-line1.new.png"
+    },
+    {
+      "index": 19,
+      "key": "line1.product",
+      "goal": "Fill the line's Product field with the SKU 'FH-007-1P2'.",
+      "action": "fill",
+      "value": "FH-007-1P2",
+      "postcondition": "the product is FH-007-1P2 or the Product Info dialog lists matches",
+      "fallback": [],
+      "target": "form_field 'Product'",
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 984,
+      "screenshot": "screens/19-line1.product.png"
+    },
+    {
+      "index": 20,
+      "key": "line1.product_pick",
+      "goal": "In the Product Info dialog, select the row whose Search Key is exactly 'FH-007-1P2'.",
+      "action": "click",
+      "value": null,
+      "postcondition": "a product row is selected in the dialog",
+      "fallback": [],
+      "status": "skipped",
+      "detail": "condition not met: the Product Info dialog is open",
+      "duration_ms": 18,
+      "screenshot": "screens/20-line1.product_pick.png"
+    },
+    {
+      "index": 21,
+      "key": "line1.product_ok",
+      "goal": "Confirm the selected product with the dialog's OK button.",
+      "action": "click",
+      "value": null,
+      "postcondition": "the product is FH-007-1P2",
+      "fallback": [],
+      "status": "skipped",
+      "detail": "condition not met: the Product Info dialog is open",
+      "duration_ms": 17,
+      "screenshot": "screens/21-line1.product_ok.png"
+    },
+    {
+      "index": 22,
+      "key": "line1.qty",
+      "goal": "Fill the line's Quantity with 300.",
+      "action": "fill",
+      "value": "300",
+      "postcondition": "the quantity is 300 and the server has applied it",
+      "fallback": [
+        {
+          "prompt": "prompts/line1.qty-1.txt",
+          "proposal": {
+            "action": "fill",
+            "element_index": 45,
+            "value": "300",
+            "reason": "The \"Quantity\" field is the editable quantity field on the order line, which the plan called \"Order Quantity\"."
+          },
+          "verdict": {
+            "severity": "ok",
+            "rule": "ok",
+            "reason": "allowed"
+          },
+          "snapshot_elements": 81,
+          "from_cassette": true,
+          "cassette_key": "302c0fbc0fd07df0ce8493d1182b41c4",
+          "model_ms": 3436,
+          "cost_usd_estimate": 0.0236026,
+          "executed": true,
+          "postcondition_after": true
+        }
+      ],
+      "target": "form_field 'Order Quantity'",
+      "deterministic_failure": "no visible element matches selector-map entry form_field 'Order Quantity'",
+      "healed": {
+        "from": "form_field 'Order Quantity'",
+        "to": "form_field 'Quantity'",
+        "step": "line1.qty"
+      },
+      "status": "ok",
+      "layer": "llm-fallback",
+      "duration_ms": 5144,
+      "screenshot": "screens/22-line1.qty.png"
+    },
+    {
+      "index": 23,
+      "key": "line1.save",
+      "goal": "Save the order line with the toolbar's save button.",
+      "action": "click",
+      "value": null,
+      "postcondition": "the line is saved with FH-007-1P2 x 300 and the order has 1 line(s)",
+      "fallback": [],
+      "target": "toolbar 'Save Changes'",
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 1040,
+      "screenshot": "screens/23-line1.save.png"
+    },
+    {
+      "index": 24,
+      "key": "line2.new",
+      "goal": "Start a new order line with the toolbar's New button.",
+      "action": "click",
+      "value": null,
+      "postcondition": "an empty new order line is open",
+      "fallback": [],
+      "target": "toolbar 'New'",
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 875,
+      "screenshot": "screens/24-line2.new.png"
+    },
+    {
+      "index": 25,
+      "key": "line2.product",
+      "goal": "Fill the line's Product field with the SKU 'FH-016-1'.",
+      "action": "fill",
+      "value": "FH-016-1",
+      "postcondition": "the product is FH-016-1 or the Product Info dialog lists matches",
+      "fallback": [],
+      "target": "form_field 'Product'",
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 880,
+      "screenshot": "screens/25-line2.product.png"
+    },
+    {
+      "index": 26,
+      "key": "line2.product_pick",
+      "goal": "In the Product Info dialog, select the row whose Search Key is exactly 'FH-016-1'.",
+      "action": "click",
+      "value": null,
+      "postcondition": "a product row is selected in the dialog",
+      "fallback": [],
+      "target": "dialog_row 'FH-016-1'",
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 882,
+      "screenshot": "screens/26-line2.product_pick.png"
+    },
+    {
+      "index": 27,
+      "key": "line2.product_ok",
+      "goal": "Confirm the selected product with the dialog's OK button.",
+      "action": "click",
+      "value": null,
+      "postcondition": "the product is FH-016-1",
+      "fallback": [],
+      "target": "dialog_button 'OK'",
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 943,
+      "screenshot": "screens/27-line2.product_ok.png"
+    },
+    {
+      "index": 28,
+      "key": "line2.qty",
+      "goal": "Fill the line's Quantity with 300.",
+      "action": "fill",
+      "value": "300",
+      "postcondition": "the quantity is 300 and the server has applied it",
+      "fallback": [],
+      "target": "form_field 'Quantity'",
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 947,
+      "screenshot": "screens/28-line2.qty.png"
+    },
+    {
+      "index": 29,
+      "key": "line2.save",
+      "goal": "Save the order line with the toolbar's save button.",
+      "action": "click",
+      "value": null,
+      "postcondition": "the line is saved with FH-016-1 x 300 and the order has 2 line(s)",
+      "fallback": [],
+      "target": "toolbar 'Save Changes'",
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 1346,
+      "screenshot": "screens/29-line2.save.png"
+    },
+    {
+      "index": 30,
+      "key": "line3.new",
+      "goal": "Start a new order line with the toolbar's New button.",
+      "action": "click",
+      "value": null,
+      "postcondition": "an empty new order line is open",
+      "fallback": [],
+      "target": "toolbar 'New'",
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 915,
+      "screenshot": "screens/30-line3.new.png"
+    },
+    {
+      "index": 31,
+      "key": "line3.product",
+      "goal": "Fill the line's Product field with the SKU 'FH-020-1P2'.",
+      "action": "fill",
+      "value": "FH-020-1P2",
+      "postcondition": "the product is FH-020-1P2 or the Product Info dialog lists matches",
+      "fallback": [],
+      "target": "form_field 'Product'",
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 990,
+      "screenshot": "screens/31-line3.product.png"
+    },
+    {
+      "index": 32,
+      "key": "line3.product_pick",
+      "goal": "In the Product Info dialog, select the row whose Search Key is exactly 'FH-020-1P2'.",
+      "action": "click",
+      "value": null,
+      "postcondition": "a product row is selected in the dialog",
+      "fallback": [],
+      "status": "skipped",
+      "detail": "condition not met: the Product Info dialog is open",
+      "duration_ms": 17,
+      "screenshot": "screens/32-line3.product_pick.png"
+    },
+    {
+      "index": 33,
+      "key": "line3.product_ok",
+      "goal": "Confirm the selected product with the dialog's OK button.",
+      "action": "click",
+      "value": null,
+      "postcondition": "the product is FH-020-1P2",
+      "fallback": [],
+      "status": "skipped",
+      "detail": "condition not met: the Product Info dialog is open",
+      "duration_ms": 17,
+      "screenshot": "screens/33-line3.product_ok.png"
+    },
+    {
+      "index": 34,
+      "key": "line3.qty",
+      "goal": "Fill the line's Quantity with 300.",
+      "action": "fill",
+      "value": "300",
+      "postcondition": "the quantity is 300 and the server has applied it",
+      "fallback": [],
+      "target": "form_field 'Quantity'",
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 953,
+      "screenshot": "screens/34-line3.qty.png"
+    },
+    {
+      "index": 35,
+      "key": "line3.save",
+      "goal": "Save the order line with the toolbar's save button.",
+      "action": "click",
+      "value": null,
+      "postcondition": "the line is saved with FH-020-1P2 x 300 and the order has 3 line(s)",
+      "fallback": [],
+      "target": "toolbar 'Save Changes'",
+      "status": "ok",
+      "layer": "deterministic",
+      "duration_ms": 1350,
+      "screenshot": "screens/35-line3.save.png"
+    }
+  ],
+  "totals": {
+    "steps_planned": 36,
+    "repairs": 0,
+    "steps_run": 28,
+    "steps_skipped": 8,
+    "actions": 26,
+    "fallback_steps": 3,
+    "fallback_calls": 3,
+    "guardrail_blocks": 0
+  },
+  "guardrail_blocks": [],
+  "healed_selectors": {
+    "po.vendor": {
+      "from": "form_field 'Vendor'",
+      "to": "form_field 'Business Partner'",
+      "step": "po.vendor"
+    },
+    "po.save": {
+      "from": "toolbar 'Save Record'",
+      "to": "toolbar 'Save Changes'",
+      "step": "po.save"
+    },
+    "line.qty": {
+      "from": "form_field 'Order Quantity'",
+      "to": "form_field 'Quantity'",
+      "step": "line1.qty"
+    }
+  },
+  "usage": {
+    "calls": 3,
+    "live_calls": 0,
+    "cassette_hits": 3,
+    "model_duration_ms": 13156,
+    "cost_usd_estimate_as_recorded": 0.0771,
+    "models": [
+      "claude-opus-5-5"
+    ],
+    "efforts": [
+      "medium"
+    ]
+  },
+  "verification": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "exactly_one_tagged_order",
+        "passed": true,
+        "detail": "1 order(s) tagged 'erp-ui-operator run 5578fc11'"
+      },
+      {
+        "name": "purchase_order",
+        "passed": true,
+        "detail": "IsSOTrx=N"
+      },
+      {
+        "name": "still_draft",
+        "passed": true,
+        "detail": "DocStatus=DR, Processed=N"
+      },
+      {
+        "name": "vendor",
+        "passed": true,
+        "detail": "C_BPartner_ID=1000002 ('Placeholder Co-Packer C'); vendors named 'Placeholder Co-Packer C': [1000002]"
+      },
+      {
+        "name": "po_reference",
+        "passed": true,
+        "detail": "POReference='UIOP-5578fc11'"
+      },
+      {
+        "name": "promised_date",
+        "passed": true,
+        "detail": "DatePromised=2026-12-04, expected 2026-12-04"
+      },
+      {
+        "name": "lines_match",
+        "passed": true,
+        "detail": "3 line(s); missing=none; unexpected=none"
+      },
+      {
+        "name": "existing_records_untouched",
+        "passed": true,
+        "detail": "orders, lines, partners and products outside this run unchanged"
+      }
+    ],
+    "order": {
+      "c_order_id": 1009130,
+      "documentno": "800097",
+      "docstatus": "DR",
+      "vendor": "Placeholder Co-Packer C",
+      "description": "erp-ui-operator run 5578fc11: Restock 3 line(s) from vendor C",
+      "poreference": "UIOP-5578fc11",
+      "date_promised": "2026-12-04",
+      "lines": [
+        {
+          "line": 10,
+          "sku": "FH-007-1P2",
+          "qty": 300
+        },
+        {
+          "line": 20,
+          "sku": "FH-016-1",
+          "qty": 300
+        },
+        {
+          "line": 30,
+          "sku": "FH-020-1P2",
+          "qty": 300
+        }
+      ]
+    }
+  },
+  "diagnosis": null
+}

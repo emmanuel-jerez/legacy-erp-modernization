@@ -1,0 +1,17 @@
+{
+  "po.vendor": {
+    "from": "form_field 'Vendor'",
+    "to": "form_field 'Business Partner'",
+    "step": "po.vendor"
+  },
+  "po.save": {
+    "from": "toolbar 'Save Record'",
+    "to": "toolbar 'Save Changes'",
+    "step": "po.save"
+  },
+  "line.qty": {
+    "from": "form_field 'Order Quantity'",
+    "to": "form_field 'Quantity'",
+    "step": "line1.qty"
+  }
+}

@@ -113,6 +113,26 @@ def _cmd_demo(args: argparse.Namespace) -> int:
     return 0 if all(r.success for r in results) else 1
 
 
+def _cmd_eval(args: argparse.Namespace) -> int:
+    from .evals import DRIFTS, TASK_FILES, run_eval, write_report
+
+    drifts = ", ".join(d or "clean" for d in DRIFTS)
+    print(f"eval: {len(TASK_FILES)} tasks x {{{drifts}}} live against the web UI, then a guardrail probe")
+    report = run_eval(model_client(args.llm_mode), headed=args.headed, probe=not args.no_probe)
+    json_path, md_path = write_report(report)
+    s = report["summary"]
+    print(f"database-verified success {s['db_verified_success']['passed']}/{s['db_verified_success']['total']}, "
+          f"fallback calls {s['fallback_calls']}, guardrail blocks {s['guardrail_blocks']}, "
+          f"model calls {report['usage']['calls']} ({report['usage']['live_calls']} live)")
+    print(f"cleanup: deleted {report['cleanup']['deleted']} draft(s)")
+    print(f"report: {json_path}\n        {md_path}")
+    probe_ok = report["guardrail_probe"] is None or report["guardrail_probe"]["passed"]
+    if not probe_ok:
+        print("guardrail probe FAILED")
+    all_passed = s["db_verified_success"]["passed"] == s["db_verified_success"]["total"]
+    return 0 if all_passed and probe_ok and not report["cleanup"]["errors"] else 1
+
+
 def _cmd_verify(args: argparse.Namespace) -> int:
     spec = load_task(args.task)
     result = erpdb.verify_run(spec, erpdb.RunTag(args.run_id))
@@ -175,6 +195,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--keep", action="store_true", help="keep the demo's draft orders")
     ui_flags(p)
     p.set_defaults(func=_cmd_demo)
+
+    p = sub.add_parser("eval", help="run the eval matrix live against the web UI and write a report")
+    p.add_argument("--no-probe", action="store_true", help="skip the guardrail probe")
+    ui_flags(p)
+    p.set_defaults(func=_cmd_eval)
 
     p = sub.add_parser("verify", help="check a run's order in the database")
     p.add_argument("task", help="task spec JSON")

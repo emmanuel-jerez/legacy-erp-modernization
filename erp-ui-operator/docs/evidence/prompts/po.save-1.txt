@@ -1,0 +1,102 @@
+Step: po.save
+Goal: Save the purchase order header with the toolbar's save button.
+Value to enter: (none)
+Why the deterministic step failed: no visible element matches selector-map entry toolbar 'Save Record'
+Success check: the header is saved with a document number, no lines yet, and the entered values
+Page elements:
+[0] combobox "Alt+G" value="Purchase Order" @global-search
+[1] button "Expand" @global-search
+[2] button "Menu" @global-search
+[3] combobox "Select Query" value="" @window-toolbar
+[4] button "Expand" @window-toolbar
+[5] button "Lookup Record" @window-toolbar
+[6] button "New" @window-toolbar
+[7] button "Copy Record" @window-toolbar
+[8] button "Save Changes" @window-toolbar
+[9] button "Delete Record" @window-toolbar
+[10] button "Undo Changes" @window-toolbar
+[11] button "ReQuery" @window-toolbar
+[12] button "Grid Toggle" @window-toolbar
+[13] button "Attachment" @window-toolbar
+[14] button "Zoom Across (where used)" @window-toolbar
+[15] button "Report" @window-toolbar
+[16] button "Process" @window-toolbar
+[17] button "Print" @window-toolbar
+[18] button "Parent Record" @window-toolbar
+[19] button "Detail record" @window-toolbar
+[20] button "Label / Tag" @window-toolbar
+[21] button "More" @window-toolbar
+[22] button "First record" @breadcrumb
+[23] button "Previous record" @breadcrumb
+[24] button "Record Info" text="[ +*1/1 ]" @breadcrumb
+[25] button "Next record" @breadcrumb
+[26] button "Last record" @breadcrumb
+[27] combobox "Tenant" value="GardenWorld" disabled @form
+[28] combobox "Organization" value="HQ" @form
+[29] button "Organization" @form
+[30] textbox "Document No" value="<<n>>" @form
+[31] textbox "Order Reference" value="UIOP-<run>" @form
+[32] textbox "Description" value="erp-ui-operator run <run>: Restock 3 line(s) from vendor C" @form
+[33] combobox "Target Document Type" value="Purchase Order" @form
+[34] button "Target Document Type" @form
+[35] date "Date Ordered" value="<date>" @form
+[36] button "Date Ordered" @form
+[37] date "Date Promised" value="<date>" @form
+[38] button "Date Promised" @form
+[39] combobox "Business Partner" value="Placeholder Co-Packer C" @form
+[40] button "Business Partner" @form
+[41] combobox "Invoice Partner" value="Placeholder Co-Packer C" @form
+[42] button "Invoice Partner" @form
+[43] combobox "Partner Location" value="Demo City, CA" @form
+[44] button "Partner Location" @form
+[45] combobox "Invoice Location" value="Demo City, CA" @form
+[46] button "Invoice Location" @form
+[47] combobox "User/Contact" value="" @form
+[48] button "User/Contact" @form
+[49] combobox "Invoice Contact" value="" @form
+[50] button "Invoice Contact" @form
+[51] combobox "Warehouse" value="HQ Warehouse" @form
+[52] button "Warehouse" @form
+[53] checkbox "Drop Shipment" unchecked @form
+[54] combobox "Delivery Via" value="Pickup" @form
+[55] button "Delivery Via" @form
+[56] combobox "Priority" value="Medium" @form
+[57] button "Priority" @form
+[58] combobox "Price List" value="Purchase" @form
+[59] button "Price List" @form
+[60] combobox "Currency" value="USD" disabled @form
+[61] combobox "Company Agent" value="GardenAdmin" @form
+[62] button "Company Agent" @form
+[63] checkbox "Discount Printed" checked @form
+[64] combobox "Payment Rule" value="On Credit" @form
+[65] button "Payment Rule" @form
+[66] combobox "Payment Term" value="~30 Net~" @form
+[67] button "Payment Term" @form
+[68] combobox "Project" value="" @form
+[69] button "Project" @form
+[70] combobox "Campaign" value="" @form
+[71] button "Campaign" @form
+[72] combobox "Document Status" value="Drafted" disabled @form
+[73] combobox "Document Type" value="** New **" disabled @form
+[74] number "Total Lines" value="0.00" disabled @form
+[75] number "Grand Total" value="0.00" disabled @form
+[76] checkbox "Pay Schedule valid" unchecked disabled @form
+[77] button "Document Action" @form
+[78] combobox "Cash Plan Line" value="" @form
+[79] button "Cash Plan Line" @form
+[80] tab "PO Line" selected @detail-pane
+[81] tab "Matching" disabled @detail-pane
+[82] tab "Requisition Lines" disabled @detail-pane
+[83] tab "Order Tax" @detail-pane
+[84] tab "Payment Schedule" @detail-pane
+[85] tab "Estimated Landed Cost" @detail-pane
+[86] tab "Estimated Landed Cost Allocation" disabled @detail-pane
+[87] button "Save and Create New" @detail-pane
+[88] button "Edit Record" @detail-pane
+[89] button "Delete Record" @detail-pane
+[90] button "Save Changes" @detail-pane
+[91] button "Process" @detail-pane
+[92] button "Quick Form" @detail-pane
+[93] button "Customize" @detail-pane
+[94] button "Grid Toggle" @detail-pane
+[95] checkbox "" unchecked @detail-pane

@@ -1,0 +1,87 @@
+Step: line1.qty
+Goal: Fill the line's Quantity with 300.
+Value to enter: '300'
+Why the deterministic step failed: no visible element matches selector-map entry form_field 'Order Quantity'
+Success check: the quantity is 300 and the server has applied it
+Page elements:
+[0] combobox "Alt+G" value="Purchase Order" @global-search
+[1] button "Expand" @global-search
+[2] button "Menu" @global-search
+[3] combobox "Select Query" value="" @window-toolbar
+[4] button "Expand" @window-toolbar
+[5] button "Lookup Record" @window-toolbar
+[6] button "New" @window-toolbar
+[7] button "Copy Record" @window-toolbar
+[8] button "Save Changes" @window-toolbar
+[9] button "Delete Record" @window-toolbar
+[10] button "Undo Changes" @window-toolbar
+[11] button "ReQuery" @window-toolbar
+[12] button "Grid Toggle" @window-toolbar
+[13] button "Attachment" @window-toolbar
+[14] button "Zoom Across (where used)" @window-toolbar
+[15] button "Report" @window-toolbar
+[16] button "Process" @window-toolbar
+[17] button "Print" @window-toolbar
+[18] button "Parent Record" @window-toolbar
+[19] button "Detail record" @window-toolbar
+[20] button "Label / Tag" @window-toolbar
+[21] button "More" @window-toolbar
+[22] button "First record" @breadcrumb
+[23] button "Previous record" @breadcrumb
+[24] button "Record Info" text="+*1/1" @breadcrumb
+[25] button "Next record" @breadcrumb
+[26] button "Last record" @breadcrumb
+[27] combobox "Tenant" value="GardenWorld" disabled @form
+[28] combobox "Organization" value="HQ" disabled @form
+[29] combobox "Purchase Order" value="<n>_<date>" disabled @form
+[30] combobox "Business Partner" value="Placeholder Co-Packer C" disabled @form
+[31] combobox "Partner Location" value="Demo City, CA" @form
+[32] button "Partner Location" @form
+[33] date "Date Promised" value="<date>" @form
+[34] button "Date Promised" @form
+[35] date "Date Ordered" value="<date>" @form
+[36] button "Date Ordered" @form
+[37] number "Line No" value="10" @form
+[38] button "Line No" @form
+[39] combobox "Product" value="FH-007-1P2_Peptide Firming Serum 1 oz / 2-Pack" @form
+[40] button "Product" @form
+[41] combobox "Charge" value="" disabled @form
+[42] textbox "Attribute Set Instance" value="" disabled @form
+[43] button "Attribute Set Instance" @form
+[44] textbox "Description" value="" @form
+[45] number "Quantity" value="1" @form
+[46] button "Quantity" @form
+[47] combobox "UOM" value="Each" @form
+[48] button "UOM" @form
+[49] number "PO Quantity" value="1" disabled @form
+[50] number "Delivered Quantity" value="0" disabled @form
+[51] number "On Order Quantity" value="0" disabled @form
+[52] number "Quantity Invoiced" value="0" disabled @form
+[53] number "Price" value="32.10" @form
+[54] button "Price" @form
+[55] number "Cost Price" value="0.00" @form
+[56] button "Cost Price" @form
+[57] number "Unit Price" value="32.10" @form
+[58] button "Unit Price" @form
+[59] number "List Price" value="32.10" @form
+[60] button "List Price" @form
+[61] combobox "Tax" value="Standard" @form
+[62] button "Tax" @form
+[63] number "Discount %" value="0.0" @form
+[64] button "Discount %" @form
+[65] combobox "Project" value="" @form
+[66] button "Project" @form
+[67] combobox "Campaign" value="" @form
+[68] button "Campaign" @form
+[69] number "Line Amount" value="32.10" disabled @form
+[70] tab "Matching" selected @detail-pane
+[71] tab "Requisition Lines" @detail-pane
+[72] button "Save and Create New" @detail-pane
+[73] button "Edit Record" @detail-pane
+[74] button "Delete Record" @detail-pane
+[75] button "Save Changes" @detail-pane
+[76] button "Process" @detail-pane
+[77] button "Quick Form" @detail-pane
+[78] button "Customize" @detail-pane
+[79] button "Grid Toggle" @detail-pane
+[80] checkbox "" unchecked @detail-pane
