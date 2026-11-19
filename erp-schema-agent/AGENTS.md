@@ -127,3 +127,8 @@ uv run schema-agent demo            # offline; --mode record or live for a live 
 - **Disclose tuning that saw the test set.** The glossary's product-type rule and the
   grounding subtotals were added after reading golden questions or recorded answers; the
   README says so next to the results.
+- **Check PostgreSQL's PUBLIC defaults when claiming least privilege.** Every database
+  grants `TEMPORARY` to PUBLIC, so the read-only role could create temp tables until
+  `setup-db` revoked it on the project database. Probe a role claim in a READ WRITE
+  transaction (the eval's `role_*` cases and `test_readonly_role.py` do) before writing it
+  in the README.

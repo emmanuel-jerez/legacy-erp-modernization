@@ -135,6 +135,11 @@
       "sql": "INSERT INTO c_order (c_order_id) VALUES (1)"
     },
     {
+      "id": "role_temp_table",
+      "layer": "role",
+      "sql": "CREATE TEMP TABLE agent_scratch AS SELECT * FROM c_order"
+    },
+    {
       "id": "role_sleep_timeout",
       "layer": "role",
       "sql": "SELECT pg_sleep(30)",

@@ -33,9 +33,10 @@ PATTERNS = [
     (re.compile(NUM + r"\s+characters\b", re.I), "characters", {limits.MAX_SQL_CHARS}),
     (re.compile(NUM + r"\s+connections\b", re.I), "connections", {limits.ROLE_CONNECTION_LIMIT}),
     (re.compile(r"up to " + NUM + r"\s+tables\b", re.I), "tables", {MAX_TABLES}),
+    (re.compile(r"\bLIMIT (\d+)\b"), "LIMIT", {limits.MAX_ROWS}),
 ]
 REPO = Path(__file__).resolve().parents[1]
-DOCS = ["AGENTS.md"]
+DOCS = ["README.md", "AGENTS.md"]
 
 
 def quoted_limits(text: str) -> list[tuple[int, str]]:

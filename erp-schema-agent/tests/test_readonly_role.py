@@ -65,6 +65,8 @@ def test_missing_privileges_stop_writes_even_in_a_read_write_transaction(readonl
             conn.execute("UPDATE m_product SET name = name WHERE value = 'FH-001-1'")
         with pytest.raises(psycopg.errors.InsufficientPrivilege):
             conn.execute("CREATE TABLE adempiere.agent_scratch (id int)")
+        with pytest.raises(psycopg.errors.InsufficientPrivilege):
+            conn.execute("CREATE TEMP TABLE agent_scratch (id int)")
 
 
 def test_role_session_defaults(readonly_db):

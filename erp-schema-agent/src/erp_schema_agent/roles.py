@@ -85,6 +85,10 @@ def setup_readonly_role() -> dict[str, int]:
                 )
             )
         conn.execute(sql.SQL("GRANT CONNECT ON DATABASE {} TO {}").format(db, role))
+        # PostgreSQL grants TEMPORARY on every database to PUBLIC; take it back here so the
+        # role cannot create even session-local tables. Affects only this project database.
+        conn.execute(sql.SQL("REVOKE TEMPORARY ON DATABASE {} FROM PUBLIC").format(db))
+        conn.execute(sql.SQL("REVOKE TEMPORARY ON DATABASE {} FROM {}").format(db, role))
         conn.execute(sql.SQL("GRANT USAGE ON SCHEMA {} TO {}").format(schema, role))
         # Start clean: table-level REVOKE also drops column-level grants.
         conn.execute(sql.SQL("REVOKE ALL ON ALL TABLES IN SCHEMA {} FROM {}").format(schema, role))

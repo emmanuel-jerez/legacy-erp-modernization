@@ -27,6 +27,7 @@ def test_derived_figures_are_grounded_by_their_kind():
     assert grounded(80000.0, "total")
     assert grounded(59234.75, "total")  # top two rows
     assert grounded(51.54, "share")  # CA share of revenue, %
+    assert grounded(1.9, "share", [[6, 320]], ["without_orders", "customers"])  # 6 of 320
     assert grounded(23234.25, "change")  # CA minus NY
     assert grounded(56.35, "change")  # NY is 56.35% below CA
     assert grounded(49.91, "ratio")  # average order value: 80,000 / 1,603 orders

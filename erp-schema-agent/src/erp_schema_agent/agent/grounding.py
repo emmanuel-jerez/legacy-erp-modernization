@@ -11,7 +11,8 @@ figure is written with (10,067.55 grounds 10067.55 and 10,068, never 10,110):
   k rows (a "top 3 total"), or a column's subtotal per value of a text column ("Texas
   total" over state-by-month rows) or of a numeric column with at most ``MAX_GROUPS``
   distinct values ("shortfall where nothing is on order");
-* ``share``: a cell's or first-k-rows' percentage share of its column total;
+* ``share``: a cell's or first-k-rows' percentage share of its column total, or one
+  cell as a percentage of another cell in the same row (6 of 320 customers = 1.9%);
 * ``change``: the absolute difference or absolute percentage change between two cells
   of the same column or the same row;
 * ``ratio``: the ratio of two cells of the same row or column, or of two column totals
@@ -112,6 +113,10 @@ class _Pools:
                 yield v / total * 100, f"row {r + 1} share of {name} total, %"
             for k in range(2, len(vals)):
                 yield math.fsum(vals[:k]) / total * 100, f"first {k} rows' share of {name} total, %"
+        for r, row in enumerate(self.rows):
+            for a, b in itertools.permutations(row, 2):
+                if b:
+                    yield a / b * 100, f"one cell as % of another in row {r + 1}"
 
     def _pairs(self):
         for name, vals in self.numeric.items():
