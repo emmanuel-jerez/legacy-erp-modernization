@@ -94,5 +94,6 @@ shared rules in `../BUILD-BRIEF.md` and `../erp-sandbox/AGENTS.md`.
   probe fails `eval`. Reason: accepting any block let it pass without proving the
   destructive-control rule.
 - **Reports never overwrite each other and never blur cost.** Report files are named by
-  date and cassette mode, with the time appended if that name exists; the report separates the cost of calls made live in this eval
+  date and cassette mode, with the time appended if that name exists, and a hand-added
+  `-high` (or other effort) suffix for runs at a non-default `ERP_LLM_EFFORT`; the report separates the cost of calls made live in this eval
   from the recorded cost of replayed cassettes. README figures come from those files only.

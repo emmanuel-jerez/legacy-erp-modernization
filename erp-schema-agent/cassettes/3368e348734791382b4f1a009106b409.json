@@ -1,0 +1,146 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "recorded_at": "2026-11-19T11:47:19-0800",
+  "duration_ms": 6193,
+  "cost_usd_estimate": 0.025204699999999997,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1334,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 708,
+    "output_tokens_details": {
+      "thinking_tokens": 38
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: How many active SKUs are there per product type?\n\nSQL that ran: SELECT COALESCE(p.group1, '(none)') AS product_type, COUNT(*) AS active_sku_count FROM adempiere.m_product AS p WHERE p.ad_client_id = 11 AND p.value LIKE 'FH-%' AND p.isactive = 'Y' GROUP BY COALESCE(p.group1, '(none)') ORDER BY active_sku_count DESC, product_type LIMIT 200\nAssumptions made when writing it: [\"Product type means M_Product.Group1 (the tenant convention), not the iDempiere ProductType column.\", \"'Active' means IsActive = 'Y'; the Discontinued flag is ignored.\", \"Only Fernhollow products (Value LIKE 'FH-%') in tenant 11 are counted; Value is the SKU.\"]\n\nColumns: [\"product_type\", \"active_sku_count\"]\nRows returned: 11; showing 11:\n[\"Serums\", 12]\n[\"Eye Care\", 7]\n[\"Moisturizers\", 7]\n[\"Cleansers\", 5]\n[\"Body\", 4]\n[\"Masks\", 4]\n[\"Sun Care\", 4]\n[\"Toners\", 4]\n[\"Bundles\", 3]\n[\"Lip Care\", 2]\n[\"Tools\", 2]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "There are 54 active Fernhollow SKUs across 11 product types. Serums have the most by a clear margin:\n- Serums: 12\n- Eye Care: 7\n- Moisturizers: 7\n- Cleansers: 5\n- Body: 4\n- Masks: 4\n- Sun Care: 4\n- Toners: 4\n- Bundles: 3\n- Lip Care: 2\n- Tools: 2",
+    "figures": [
+      {
+        "label": "Total active SKUs",
+        "value": 54,
+        "kind": "total"
+      },
+      {
+        "label": "Number of product types",
+        "value": 11,
+        "kind": "value"
+      },
+      {
+        "label": "Serums",
+        "value": 12,
+        "kind": "value"
+      },
+      {
+        "label": "Eye Care",
+        "value": 7,
+        "kind": "value"
+      },
+      {
+        "label": "Moisturizers",
+        "value": 7,
+        "kind": "value"
+      },
+      {
+        "label": "Cleansers",
+        "value": 5,
+        "kind": "value"
+      },
+      {
+        "label": "Body",
+        "value": 4,
+        "kind": "value"
+      },
+      {
+        "label": "Masks",
+        "value": 4,
+        "kind": "value"
+      },
+      {
+        "label": "Sun Care",
+        "value": 4,
+        "kind": "value"
+      },
+      {
+        "label": "Toners",
+        "value": 4,
+        "kind": "value"
+      },
+      {
+        "label": "Bundles",
+        "value": 3,
+        "kind": "value"
+      },
+      {
+        "label": "Lip Care",
+        "value": 2,
+        "kind": "value"
+      },
+      {
+        "label": "Tools",
+        "value": 2,
+        "kind": "value"
+      }
+    ],
+    "caveats": [
+      "Product type is taken from the product's Group1 field (the convention this company uses), not from iDempiere's built-in Product Type column.",
+      "'Active' means the product record is marked active. Products flagged as discontinued but still active are included.",
+      "Only Fernhollow products (SKUs starting with 'FH-') in tenant 11 are counted."
+    ]
+  }
+}

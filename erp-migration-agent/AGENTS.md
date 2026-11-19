@@ -81,4 +81,10 @@ portfolio rules live in `../BUILD-BRIEF.md`; the sandbox contract in `../erp-san
 - **A failed eval never replaces the committed report.** If any target errors (for example a
   cassette miss after a prompt change), reports go to `runs/eval/failed-report/`; stale audit copies
   are deleted before new ones are written.
+- **An eval at another effort writes over the committed evidence.** `eval` always writes
+  `eval-report.{json,md}` and `audit/`, whatever `ERP_LLM_EFFORT` is. After a run at a
+  non-default effort, move both to effort-specific names (`eval-report-high.*`,
+  `audit-high/`) and restore the defaults with `git checkout`. Reason: moving only the
+  report leaves the committed audit logs overwritten. Renaming won over a code change
+  because the owner asked for evals only, with no code changes.
 

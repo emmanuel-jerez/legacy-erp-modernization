@@ -1,0 +1,187 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "recorded_at": "2026-11-19T11:49:03-0800",
+  "duration_ms": 15251,
+  "cost_usd_estimate": 0.057728999999999996,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 2162,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 1999,
+    "output_tokens_details": {
+      "thinking_tokens": 151
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: Which active products are below their reorder point? Give SKU, units on hand and the reorder point.\n\nSQL that ran: WITH onhand AS (SELECT s.m_product_id, l.m_warehouse_id, SUM(s.qtyonhand) AS qty_on_hand FROM adempiere.m_storageonhand AS s JOIN adempiere.m_locator AS l ON l.m_locator_id = s.m_locator_id WHERE s.ad_client_id = 11 GROUP BY s.m_product_id, l.m_warehouse_id) SELECT p.value AS sku, p.name AS product_name, w.name AS warehouse, COALESCE(o.qty_on_hand, 0) AS units_on_hand, r.level_min AS reorder_point, r.level_min - COALESCE(o.qty_on_hand, 0) AS shortfall_units FROM adempiere.m_replenish AS r JOIN adempiere.m_product AS p ON p.m_product_id = r.m_product_id JOIN adempiere.m_warehouse AS w ON w.m_warehouse_id = r.m_warehouse_id LEFT JOIN onhand AS o ON o.m_product_id = r.m_product_id AND o.m_warehouse_id = r.m_warehouse_id WHERE p.ad_client_id = 11 AND p.value LIKE 'FH-%' AND p.isactive = 'Y' AND r.isactive = 'Y' AND COALESCE(o.qty_on_hand, 0) < r.level_min ORDER BY shortfall_units DESC, p.value LIMIT 200\nAssumptions made when writing it: [\"Only Fernhollow products (SKU LIKE 'FH-%') with IsActive = 'Y' count as active.\", \"Units on hand are QtyOnHand added up per product across the locators of the warehouse named on the replenish rule (HQ Warehouse, 103). Products with no stock record count as 0.\", \"The reorder point is M_Replenish.Level_Min, using active replenish rules only.\", \"'Below' means on hand < reorder point, so products exactly at the point are left out.\"]\n\nColumns: [\"sku\", \"product_name\", \"warehouse\", \"units_on_hand\", \"reorder_point\", \"shortfall_units\"]\nRows returned: 10; showing 10:\n[\"FH-022-1\", \"Hand Cream 2.5 oz\", \"HQ Warehouse\", 0, 145, 145]\n[\"FH-017-1\", \"Tinted Sunscreen SPF 30 1.7 oz\", \"HQ Warehouse\", 35, 78, 43]\n[\"FH-016-1\", \"Mineral Sunscreen SPF 40 1.7 oz\", \"HQ Warehouse\", 26, 63, 37]\n[\"FH-025-1\", \"Eye Care Duo\", \"HQ Warehouse\", 9, 32, 23]\n[\"FH-004-2\", \"Vitamin C Serum 2 oz\", \"HQ Warehouse\", 7, 26, 19]\n[\"FH-010-1P2\", \"Rich Barrier Cream 1.7 oz / 2-Pack\", \"HQ Warehouse\", 11, 26, 15]\n[\"FH-002-1\", \"Overnight Eye Mask 0.5 oz\", \"HQ Warehouse\", 26, 38, 12]\n[\"FH-013-1P2\", \"Cleansing Balm 3 oz / 2-Pack\", \"HQ Warehouse\", 8, 20, 12]\n[\"FH-007-1P2\", \"Peptide Firming Serum 1 oz / 2-Pack\", \"HQ Warehouse\", 18, 28, 10]\n[\"FH-020-1P2\", \"Lip Repair Balm 0.35 oz / 2-Pack\", \"HQ Warehouse\", 16, 23, 7]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "10 active products are below their reorder point, all in HQ Warehouse. The biggest gap is Hand Cream 2.5 oz (FH-022-1), which has no stock against a reorder point of 145.\n\n| SKU | Product | Units on hand | Reorder point |\n|---|---|---|---|\n| FH-022-1 | Hand Cream 2.5 oz | 0 | 145 |\n| FH-017-1 | Tinted Sunscreen SPF 30 1.7 oz | 35 | 78 |\n| FH-016-1 | Mineral Sunscreen SPF 40 1.7 oz | 26 | 63 |\n| FH-025-1 | Eye Care Duo | 9 | 32 |\n| FH-004-2 | Vitamin C Serum 2 oz | 7 | 26 |\n| FH-010-1P2 | Rich Barrier Cream 1.7 oz / 2-Pack | 11 | 26 |\n| FH-002-1 | Overnight Eye Mask 0.5 oz | 26 | 38 |\n| FH-013-1P2 | Cleansing Balm 3 oz / 2-Pack | 8 | 20 |\n| FH-007-1P2 | Peptide Firming Serum 1 oz / 2-Pack | 18 | 28 |\n| FH-020-1P2 | Lip Repair Balm 0.35 oz / 2-Pack | 16 | 23 |",
+    "figures": [
+      {
+        "label": "Products below reorder point",
+        "value": 10,
+        "kind": "value"
+      },
+      {
+        "label": "FH-022-1 units on hand",
+        "value": 0,
+        "kind": "value"
+      },
+      {
+        "label": "FH-022-1 reorder point",
+        "value": 145,
+        "kind": "value"
+      },
+      {
+        "label": "FH-017-1 units on hand",
+        "value": 35,
+        "kind": "value"
+      },
+      {
+        "label": "FH-017-1 reorder point",
+        "value": 78,
+        "kind": "value"
+      },
+      {
+        "label": "FH-016-1 units on hand",
+        "value": 26,
+        "kind": "value"
+      },
+      {
+        "label": "FH-016-1 reorder point",
+        "value": 63,
+        "kind": "value"
+      },
+      {
+        "label": "FH-025-1 units on hand",
+        "value": 9,
+        "kind": "value"
+      },
+      {
+        "label": "FH-025-1 reorder point",
+        "value": 32,
+        "kind": "value"
+      },
+      {
+        "label": "FH-004-2 units on hand",
+        "value": 7,
+        "kind": "value"
+      },
+      {
+        "label": "FH-004-2 reorder point",
+        "value": 26,
+        "kind": "value"
+      },
+      {
+        "label": "FH-010-1P2 units on hand",
+        "value": 11,
+        "kind": "value"
+      },
+      {
+        "label": "FH-010-1P2 reorder point",
+        "value": 26,
+        "kind": "value"
+      },
+      {
+        "label": "FH-002-1 units on hand",
+        "value": 26,
+        "kind": "value"
+      },
+      {
+        "label": "FH-002-1 reorder point",
+        "value": 38,
+        "kind": "value"
+      },
+      {
+        "label": "FH-013-1P2 units on hand",
+        "value": 8,
+        "kind": "value"
+      },
+      {
+        "label": "FH-013-1P2 reorder point",
+        "value": 20,
+        "kind": "value"
+      },
+      {
+        "label": "FH-007-1P2 units on hand",
+        "value": 18,
+        "kind": "value"
+      },
+      {
+        "label": "FH-007-1P2 reorder point",
+        "value": 28,
+        "kind": "value"
+      },
+      {
+        "label": "FH-020-1P2 units on hand",
+        "value": 16,
+        "kind": "value"
+      },
+      {
+        "label": "FH-020-1P2 reorder point",
+        "value": 23,
+        "kind": "value"
+      }
+    ],
+    "caveats": [
+      "'Active' means Fernhollow products (SKUs starting with 'FH-') that are marked active and have an active reorder rule.",
+      "The reorder point is the minimum stock level (Level_Min) on the warehouse's reorder rule. Units on hand are added up across all storage locations in that warehouse. Products with no stock record count as 0.",
+      "Products whose stock exactly equals their reorder point are not included.",
+      "Units on hand are physical stock only. Stock already reserved for orders or arriving on open purchase orders is not counted."
+    ]
+  }
+}

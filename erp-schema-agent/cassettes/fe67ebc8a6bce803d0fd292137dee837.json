@@ -1,0 +1,142 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "recorded_at": "2026-11-19T11:49:39-0800",
+  "duration_ms": 6418,
+  "cost_usd_estimate": 0.029432700000000003,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1750,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 751,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: What is the average promised lead time in days for each vendor, across the active products they currently supply?\n\nSQL that ran: SELECT bp.value AS vendor_key, bp.name AS vendor_name, COUNT(DISTINCT p.m_product_id) AS active_products_supplied, ROUND(CAST(AVG(po.deliverytime_promised) AS DECIMAL), 1) AS avg_promised_lead_time_days, MIN(po.deliverytime_promised) AS min_promised_lead_time_days, MAX(po.deliverytime_promised) AS max_promised_lead_time_days FROM adempiere.m_product_po AS po JOIN adempiere.c_bpartner AS bp ON bp.c_bpartner_id = po.c_bpartner_id JOIN adempiere.m_product AS p ON p.m_product_id = po.m_product_id WHERE po.ad_client_id = 11 AND bp.value LIKE 'PH-VEND-%' AND p.value LIKE 'FH-%' AND p.isactive = 'Y' AND po.isactive = 'Y' AND po.iscurrentvendor = 'Y' GROUP BY bp.value, bp.name ORDER BY avg_promised_lead_time_days DESC, bp.name LIMIT 200\nAssumptions made when writing it: [\"'Currently supply' means the vendor-product record has IsCurrentVendor = 'Y' and is itself active (IsActive = 'Y').\", \"Active products are Fernhollow products (SKU LIKE 'FH-%') with M_Product.IsActive = 'Y'; the Discontinued flag is ignored.\", \"Only Fernhollow vendors (C_BPartner.Value LIKE 'PH-VEND-%') are included.\", \"Lead time is M_Product_PO.DeliveryTime_Promised in days, averaged per vendor and rounded to 1 decimal.\"]\n\nColumns: [\"vendor_key\", \"vendor_name\", \"active_products_supplied\", \"avg_promised_lead_time_days\", \"min_promised_lead_time_days\", \"max_promised_lead_time_days\"]\nRows returned: 3; showing 3:\n[\"PH-VEND-B\", \"Placeholder Contract Manufacturer B\", 20, 33.1, 25, 41]\n[\"PH-VEND-A\", \"Placeholder Contract Manufacturer A\", 16, 28.2, 19, 35]\n[\"PH-VEND-C\", \"Placeholder Co-Packer C\", 18, 14.8, 11, 18]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "Placeholder Contract Manufacturer B has the longest average promised lead time at 33.1 days across its 20 active products, with a range of 25 to 41 days. Placeholder Contract Manufacturer A comes next at 28.2 days across 16 products, ranging from 19 to 35 days. Placeholder Co-Packer C is the fastest at 14.8 days across 18 products, ranging from 11 to 18 days.",
+    "figures": [
+      {
+        "label": "Vendor B avg promised lead time (days)",
+        "value": 33.1,
+        "kind": "value"
+      },
+      {
+        "label": "Vendor B active products supplied",
+        "value": 20,
+        "kind": "value"
+      },
+      {
+        "label": "Vendor B min lead time (days)",
+        "value": 25,
+        "kind": "value"
+      },
+      {
+        "label": "Vendor B max lead time (days)",
+        "value": 41,
+        "kind": "value"
+      },
+      {
+        "label": "Vendor A avg promised lead time (days)",
+        "value": 28.2,
+        "kind": "value"
+      },
+      {
+        "label": "Vendor A active products supplied",
+        "value": 16,
+        "kind": "value"
+      },
+      {
+        "label": "Vendor A min lead time (days)",
+        "value": 19,
+        "kind": "value"
+      },
+      {
+        "label": "Vendor A max lead time (days)",
+        "value": 35,
+        "kind": "value"
+      },
+      {
+        "label": "Vendor C avg promised lead time (days)",
+        "value": 14.8,
+        "kind": "value"
+      },
+      {
+        "label": "Vendor C active products supplied",
+        "value": 18,
+        "kind": "value"
+      },
+      {
+        "label": "Vendor C min lead time (days)",
+        "value": 11,
+        "kind": "value"
+      },
+      {
+        "label": "Vendor C max lead time (days)",
+        "value": 18,
+        "kind": "value"
+      }
+    ],
+    "caveats": [
+      "'Currently supply' means the vendor-product record is marked as the current vendor and is active.",
+      "Active products are Fernhollow products (SKU starting 'FH-') marked active. The discontinued flag was not checked.",
+      "Only Fernhollow vendors (keys starting 'PH-VEND-') are included.",
+      "Lead time is the promised delivery time on the vendor-product record. Averages are a simple per-product mean, rounded to 1 decimal."
+    ]
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "recorded_at": "2026-11-19T11:47:56-0800",
+  "duration_ms": 9448,
+  "cost_usd_estimate": 0.034982400000000004,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1702,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 1048,
+    "output_tokens_details": {
+      "thinking_tokens": 210
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: What is booked revenue by customer state (state code)?\n\nSQL that ran: SELECT r.name AS state_code, r.description AS state_name, COUNT(DISTINCT o.c_order_id) AS booked_orders, ROUND(SUM(ol.linenetamt), 2) AS booked_revenue FROM adempiere.c_order AS o JOIN adempiere.c_orderline AS ol ON ol.c_order_id = o.c_order_id JOIN adempiere.c_bpartner AS bp ON bp.c_bpartner_id = o.c_bpartner_id LEFT JOIN adempiere.c_bpartner_location AS bpl ON bpl.c_bpartner_location_id = o.c_bpartner_location_id LEFT JOIN adempiere.c_location AS l ON l.c_location_id = bpl.c_location_id LEFT JOIN adempiere.c_region AS r ON r.c_region_id = l.c_region_id WHERE o.ad_client_id = 11 AND o.issotrx = 'Y' AND o.documentno LIKE 'FH-SO-%' AND o.docstatus IN ('CO', 'CL') AND bp.value LIKE 'DEMO-C%' GROUP BY r.name, r.description ORDER BY booked_revenue DESC LIMIT 200\nAssumptions made when writing it: [\"Booked revenue means Fernhollow sales orders (FH-SO-%) with status Completed (CO) or Closed (CL), summed as C_OrderLine.LineNetAmt.\", \"The customer's state comes from the order's ship-to partner location (C_Order.C_BPartner_Location_ID).\", \"Covers all sales order history (2025-12-01 to 2026-11-15) because no date range was given.\", \"Only Fernhollow customers (C_BPartner.Value LIKE 'DEMO-C%') are included.\"]\n\nColumns: [\"state_code\", \"state_name\", \"booked_orders\", \"booked_revenue\"]\nRows returned: 6; showing 6:\n[\"CA\", \"California\", 2914, 256255]\n[\"NY\", \"New York\", 1443, 130512.3]\n[\"TX\", \"Texas\", 1485, 128917.85]\n[\"IL\", \"Illinois\", 1345, 116198.75]\n[\"WA\", \"Washington\", 821, 72988.15]\n[\"FL\", \"Florida\", 831, 72893.55]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "Booked revenue comes to 777,765.60 across 6 states. California is far ahead at 256,255, about 32.9% of the total:\n- CA (California): 256,255 from 2,914 orders\n- NY (New York): 130,512.30 from 1,443 orders\n- TX (Texas): 128,917.85 from 1,485 orders\n- IL (Illinois): 116,198.75 from 1,345 orders\n- WA (Washington): 72,988.15 from 821 orders\n- FL (Florida): 72,893.55 from 831 orders\n\nTexas had more orders than New York but slightly less revenue.",
+    "figures": [
+      {
+        "label": "Total booked revenue, all states",
+        "value": 777765.6,
+        "kind": "total"
+      },
+      {
+        "label": "Number of states",
+        "value": 6,
+        "kind": "value"
+      },
+      {
+        "label": "California booked revenue",
+        "value": 256255,
+        "kind": "value"
+      },
+      {
+        "label": "California share of booked revenue",
+        "value": 32.9,
+        "kind": "share"
+      },
+      {
+        "label": "California booked orders",
+        "value": 2914,
+        "kind": "value"
+      },
+      {
+        "label": "New York booked revenue",
+        "value": 130512.3,
+        "kind": "value"
+      },
+      {
+        "label": "New York booked orders",
+        "value": 1443,
+        "kind": "value"
+      },
+      {
+        "label": "Texas booked revenue",
+        "value": 128917.85,
+        "kind": "value"
+      },
+      {
+        "label": "Texas booked orders",
+        "value": 1485,
+        "kind": "value"
+      },
+      {
+        "label": "Illinois booked revenue",
+        "value": 116198.75,
+        "kind": "value"
+      },
+      {
+        "label": "Illinois booked orders",
+        "value": 1345,
+        "kind": "value"
+      },
+      {
+        "label": "Washington booked revenue",
+        "value": 72988.15,
+        "kind": "value"
+      },
+      {
+        "label": "Washington booked orders",
+        "value": 821,
+        "kind": "value"
+      },
+      {
+        "label": "Florida booked revenue",
+        "value": 72893.55,
+        "kind": "value"
+      },
+      {
+        "label": "Florida booked orders",
+        "value": 831,
+        "kind": "value"
+      }
+    ],
+    "caveats": [
+      "Booked revenue means Fernhollow sales orders (FH-SO-%) with status Completed or Closed. It is summed from order line net amounts.",
+      "Each order's state comes from its ship-to customer location, not the customer's billing address.",
+      "It covers all sales order history (2025-12-01 to 2026-11-15) because no date range was given.",
+      "Only Fernhollow demo customers (DEMO-C%) are included."
+    ]
+  }
+}

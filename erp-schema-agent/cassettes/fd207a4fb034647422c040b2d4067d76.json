@@ -1,0 +1,106 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "recorded_at": "2026-11-19T11:48:35-0800",
+  "duration_ms": 4762,
+  "cost_usd_estimate": 0.023365999999999998,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1483,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 552,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: Which 5 customers have placed the most non-voided sales orders? Give name and order count.\n\nSQL that ran: SELECT bp.value AS customer_key, bp.name AS customer_name, COUNT(DISTINCT o.c_order_id) AS order_count FROM adempiere.c_order AS o JOIN adempiere.c_bpartner AS bp ON bp.c_bpartner_id = o.c_bpartner_id WHERE o.ad_client_id = 11 AND o.issotrx = 'Y' AND o.documentno LIKE 'FH-SO-%' AND bp.value LIKE 'DEMO-C%' AND o.docstatus <> 'VO' GROUP BY bp.value, bp.name ORDER BY order_count DESC, bp.name LIMIT 5\nAssumptions made when writing it: [\"I read 'non-voided' as every sales order whose DocStatus is not VO. Completed, closed, in-progress and drafted orders all count.\", \"The query only looks at Fernhollow sales orders (DocumentNo 'FH-SO-%') and Fernhollow customers (Value 'DEMO-C%') in tenant 11.\", \"If two customers have the same count, they are sorted by name. A tie at 5th place could leave out a customer with the same count.\"]\n\nColumns: [\"customer_key\", \"customer_name\", \"order_count\"]\nRows returned: 5; showing 5:\n[\"DEMO-C0261\", \"Demo Customer 0261\", 339]\n[\"DEMO-C0241\", \"Demo Customer 0241\", 234]\n[\"DEMO-C0218\", \"Demo Customer 0218\", 231]\n[\"DEMO-C0270\", \"Demo Customer 0270\", 140]\n[\"DEMO-C0255\", \"Demo Customer 0255\", 137]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "These 5 customers have the most non-voided sales orders:\n1. Demo Customer 0261 (DEMO-C0261): 339 orders\n2. Demo Customer 0241 (DEMO-C0241): 234 orders\n3. Demo Customer 0218 (DEMO-C0218): 231 orders\n4. Demo Customer 0270 (DEMO-C0270): 140 orders\n5. Demo Customer 0255 (DEMO-C0255): 137 orders",
+    "figures": [
+      {
+        "label": "Demo Customer 0261 order count",
+        "value": 339,
+        "kind": "value"
+      },
+      {
+        "label": "Demo Customer 0241 order count",
+        "value": 234,
+        "kind": "value"
+      },
+      {
+        "label": "Demo Customer 0218 order count",
+        "value": 231,
+        "kind": "value"
+      },
+      {
+        "label": "Demo Customer 0270 order count",
+        "value": 140,
+        "kind": "value"
+      },
+      {
+        "label": "Demo Customer 0255 order count",
+        "value": 137,
+        "kind": "value"
+      }
+    ],
+    "caveats": [
+      "'Non-voided' means any sales order whose status is not Voided (VO). Completed, closed, in-progress and draft orders all count.",
+      "Only Fernhollow sales orders (document numbers starting 'FH-SO-') and Fernhollow customers (keys starting 'DEMO-C') in tenant 11 are included.",
+      "Customers with the same count are sorted by name. If another customer also has 137 orders, they could have been left out of the top 5."
+    ]
+  }
+}
