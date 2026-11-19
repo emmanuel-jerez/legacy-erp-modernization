@@ -103,6 +103,8 @@ committed cassettes.
 | UI operator: drifted selectors repaired by the model | 9 model calls across the 3 drifted runs, 0 guardrail blocks |
 | UI operator: guardrail probe (a "Delete Record" action) | Blocked; no order created |
 
+The same evals at high effort, side by side with these results: [EFFORT-COMPARISON.md](EFFORT-COMPARISON.md).
+
 The two schema-agent misses are reported in the eval report, not hidden: both returned
 extra rows. One example of what the parity harness caught: the legacy due-date function adds
 86,400 seconds per day in Los Angeles time, so due dates shift an hour across daylight
