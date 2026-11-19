@@ -1,0 +1,43 @@
+# Local legacy-ERP sandbox: iDempiere 12 (Compiere/ADempiere lineage) on PostgreSQL 16.
+# Local demo only: credentials below are the image defaults and never leave this machine.
+name: erp-sandbox
+
+services:
+  postgres:
+    image: postgres:16.10
+    environment:
+      POSTGRES_PASSWORD: postgres
+      TZ: America/Los_Angeles
+    ports:
+      - "127.0.0.1:56432:5432"
+    volumes:
+      - erp_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  idempiere:
+    image: idempiereofficial/idempiere:12-release
+    platform: linux/amd64
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: idempiere
+      DB_USER: adempiere
+      DB_PASS: adempiere
+      DB_ADMIN_PASS: postgres
+      JAVA_OPTIONS: "-Xms512m -Xmx2048m"
+      TZ: America/Los_Angeles
+    ports:
+      - "127.0.0.1:58443:8443"
+    volumes:
+      - erp_idempiere_config:/opt/idempiere/configuration
+
+volumes:
+  erp_pg_data:
+  erp_idempiere_config:

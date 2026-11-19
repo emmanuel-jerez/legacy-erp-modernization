@@ -1,0 +1,24 @@
+[project]
+name = "erp-sandbox"
+version = "0.1.0"
+description = "Local legacy-ERP sandbox (iDempiere 12) with a fictional skincare brand, shared by the agent demos"
+requires-python = ">=3.12"
+dependencies = [
+    "jsonschema>=4.26.0",
+    "psycopg[binary]>=3.3.9",
+]
+
+[project.scripts]
+erp-sandbox = "erp_sandbox.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.13.7,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]
+
+[tool.pytest.ini_options]
+markers = ["integration: needs the running sandbox stack"]
