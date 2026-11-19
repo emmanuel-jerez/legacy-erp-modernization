@@ -1,0 +1,13 @@
+[project]
+name = "erp-migration-agent"
+version = "0.1.0"
+description = "Agent that ports legacy ERP business rules to modern code and proves parity with characterization tests"
+requires-python = ">=3.12"
+dependencies = []
+
+[build-system]
+requires = ["uv_build>=0.13.7,<0.14.0"]
+build-backend = "uv_build"
+
+[tool.uv.sources]
+erp-sandbox = { path = "../erp-sandbox", editable = true }
