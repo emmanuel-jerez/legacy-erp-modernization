@@ -20,8 +20,8 @@ medium-effort results.
 - **The schema and migration reports are offline replays** of the recorded high-effort
   runs, the same way the medium reports were made. During this re-run, each replay gave
   the same scores as its record run; only the live-call counts differed. The record-mode
-  reports were not committed. The UI operator has both a record report and a replay report at each effort,
-  because that eval always drives the live web UI.
+  reports were not committed. The UI operator has a record report and a replay report at
+  each effort, and both kinds of run drive the live web UI.
 
 ## Summary
 
@@ -97,7 +97,7 @@ Reports: [medium](erp-migration-agent/evals/reports/eval-report.md),
 |---|---|---|
 | Functions converged on the first port | 3 / 3 | 3 / 3 |
 | Guard rejections or runner failures | 0 | 0 |
-| Candidate cases rejected by the oracle | 6 (2, 3, 1) | 3 (0, 1, 2) |
+| Candidate cases rejected while building the case set | 6 (2, 3, 1) | 3 (0, 1, 2) |
 | Model calls | 9 | 9 |
 | Calls made live for this comparison | 0 (medium cassettes reused) | 9 |
 | Output tokens as recorded | 46,387 | 66,502 (+43%) |
@@ -133,9 +133,11 @@ Reports: medium [record](erp-ui-operator/evals/reports/eval-2026-11-19-record.md
 
 At both efforts, the model made the same 9 proposals: the same action on the same element,
 with the same value, for every drifted step (`po.vendor`, `line.qty`, `po.save`). Only the
-written reasons differ. Each proposal took longer at high effort, so the record run was
-slower (245.3 s against 219.3 s in total). The replay runs, which use no model calls, took
-about the same time.
+written reasons differ. The 9 proposals took 51.2 s in total at high effort against
+38.5 s at medium, although a few single proposals were faster at high. The two record runs
+are not a fair timing comparison (245.3 s against 219.3 s), because the medium record run
+took 3 of its 9 calls from cassettes. The replay runs, which use no model calls, took about
+the same time.
 
 ## Reproduce
 

@@ -84,7 +84,7 @@ portfolio rules live in `../BUILD-BRIEF.md`; the sandbox contract in `../erp-san
 - **An eval at another effort writes over the committed evidence.** `eval` always writes
   `eval-report.{json,md}` and `audit/`, whatever `ERP_LLM_EFFORT` is. After a run at a
   non-default effort, move both to effort-specific names (`eval-report-high.*`,
-  `audit-high/`) and restore the defaults with `git checkout`. Instructions that moved only
-  the report would have overwritten the committed medium-effort audit logs. Renaming won
-  over a code change because the owner asked for evals only, with no code changes.
+  `audit-high/`) and restore the defaults with `git checkout`. Reason: moving only the
+  report leaves the committed audit logs overwritten. Renaming won over a code change
+  because the owner asked for evals only, with no code changes.
 

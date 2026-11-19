@@ -125,8 +125,8 @@ uv run schema-agent demo            # offline; --mode record or live for a live 
 - **Compare money with an absolute tolerance.** A relative tolerance let a 145-dollar
   error pass on a 1.6-million total; scoring allows cent rounding and nothing more.
   Explain a scoring miss by that rule (`ABS_TOLERANCE` in `evals/scoring.py`), not by
-  precision matching: a value rounded to 1 decimal place fails because it is more than
-  a cent off.
+  precision matching: a value fails when it is more than `ABS_TOLERANCE` from the
+  expected value, so 33.1 fails against 33.05 but 14.80 passes against 14.8.
 - **Disclose tuning that saw the test set.** The glossary's product-type rule and the
   grounding subtotals were added after reading golden questions or recorded answers; the
   README says so next to the results.
