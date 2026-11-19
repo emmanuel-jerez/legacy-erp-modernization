@@ -1,0 +1,19 @@
+{
+  "name": "Restock 3 line(s) from vendor C",
+  "vendor": "Placeholder Co-Packer C",
+  "promised_date": "2026-12-04",
+  "lines": [
+    {
+      "sku": "FH-007-1P2",
+      "qty": 300
+    },
+    {
+      "sku": "FH-016-1",
+      "qty": 300
+    },
+    {
+      "sku": "FH-020-1P2",
+      "qty": 300
+    }
+  ]
+}

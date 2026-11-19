@@ -1,0 +1,822 @@
+[
+ {
+  "role": "combobox",
+  "label": "Alt+G",
+  "text": "",
+  "value": "Purchase Order",
+  "region": "global-search",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Expand",
+  "text": "",
+  "value": "",
+  "region": "global-search",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Menu Alt+M",
+  "text": "",
+  "value": "",
+  "region": "global-search",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "combobox",
+  "label": "Select Query",
+  "text": "",
+  "value": "",
+  "region": "window-toolbar",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Expand",
+  "text": "",
+  "value": "",
+  "region": "window-toolbar",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Lookup Record    Alt+F",
+  "text": "",
+  "value": "",
+  "region": "window-toolbar",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "New    Alt+N",
+  "text": "",
+  "value": "",
+  "region": "window-toolbar",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Copy Record    Alt+C",
+  "text": "",
+  "value": "",
+  "region": "window-toolbar",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Save Changes    Alt+S",
+  "text": "",
+  "value": "",
+  "region": "window-toolbar",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Delete Record    Alt+D",
+  "text": "",
+  "value": "",
+  "region": "window-toolbar",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Undo Changes    Alt+Z",
+  "text": "",
+  "value": "",
+  "region": "window-toolbar",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "ReQuery    Alt+E",
+  "text": "",
+  "value": "",
+  "region": "window-toolbar",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Grid Toggle    Alt+T",
+  "text": "",
+  "value": "",
+  "region": "window-toolbar",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Attachment",
+  "text": "",
+  "value": "",
+  "region": "window-toolbar",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Zoom Across (where used)",
+  "text": "",
+  "value": "",
+  "region": "window-toolbar",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Report    Alt+R",
+  "text": "",
+  "value": "",
+  "region": "window-toolbar",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Process    Alt+O",
+  "text": "",
+  "value": "",
+  "region": "window-toolbar",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Print    Alt+P",
+  "text": "",
+  "value": "",
+  "region": "window-toolbar",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Parent Record   Alt+Up",
+  "text": "",
+  "value": "",
+  "region": "window-toolbar",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Detail record   Alt+Down",
+  "text": "",
+  "value": "",
+  "region": "window-toolbar",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Label / Tag",
+  "text": "",
+  "value": "",
+  "region": "window-toolbar",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "More",
+  "text": "",
+  "value": "",
+  "region": "window-toolbar",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "First record    Alt+Home",
+  "text": "",
+  "value": "",
+  "region": "breadcrumb",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Previous record    Alt+Left",
+  "text": "",
+  "value": "",
+  "region": "breadcrumb",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Record Info ",
+  "text": "2/2",
+  "value": "",
+  "region": "breadcrumb",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Next record    Alt+Right",
+  "text": "",
+  "value": "",
+  "region": "breadcrumb",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Last record    Alt+End",
+  "text": "",
+  "value": "",
+  "region": "breadcrumb",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "combobox",
+  "label": "Tenant",
+  "text": "",
+  "value": "GardenWorld",
+  "region": "form",
+  "disabled": true,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "combobox",
+  "label": "Organization",
+  "text": "",
+  "value": "HQ",
+  "region": "form",
+  "disabled": true,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "combobox",
+  "label": "Purchase Order",
+  "text": "",
+  "value": "800003_11/19/2026",
+  "region": "form",
+  "disabled": true,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "combobox",
+  "label": "Business Partner",
+  "text": "",
+  "value": "Placeholder Contract Manufacturer A",
+  "region": "form",
+  "disabled": true,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "combobox",
+  "label": "Partner Location",
+  "text": "",
+  "value": "Demo City, CA",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Partner Location",
+  "text": "",
+  "value": "",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "date",
+  "label": "Date Promised",
+  "text": "",
+  "value": "12/05/2026",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Date Promised",
+  "text": "",
+  "value": "",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "date",
+  "label": "Date Ordered",
+  "text": "",
+  "value": "11/19/2026",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Date Ordered",
+  "text": "",
+  "value": "",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "number",
+  "label": "Line No",
+  "text": "",
+  "value": "20",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Line No",
+  "text": "",
+  "value": "",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "combobox",
+  "label": "Product",
+  "text": "",
+  "value": "FH-022-1P2_Hand Cream 2.5 oz / 2-Pack",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Product",
+  "text": "",
+  "value": "",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "combobox",
+  "label": "Charge",
+  "text": "",
+  "value": "",
+  "region": "form",
+  "disabled": true,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "textbox",
+  "label": "Attribute Set Instance",
+  "text": "",
+  "value": "",
+  "region": "form",
+  "disabled": true,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Attribute Set Instance",
+  "text": "",
+  "value": "",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "textbox",
+  "label": "Description",
+  "text": "",
+  "value": "",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "number",
+  "label": "Quantity",
+  "text": "",
+  "value": "50",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Quantity",
+  "text": "",
+  "value": "",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "combobox",
+  "label": "UOM",
+  "text": "",
+  "value": "Each",
+  "region": "form",
+  "disabled": true,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "number",
+  "label": "PO Quantity",
+  "text": "",
+  "value": "50",
+  "region": "form",
+  "disabled": true,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "number",
+  "label": "Delivered Quantity",
+  "text": "",
+  "value": "0",
+  "region": "form",
+  "disabled": true,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "number",
+  "label": "On Order Quantity",
+  "text": "",
+  "value": "0",
+  "region": "form",
+  "disabled": true,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "number",
+  "label": "Quantity Invoiced",
+  "text": "",
+  "value": "0",
+  "region": "form",
+  "disabled": true,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "number",
+  "label": "Price",
+  "text": "",
+  "value": "8.40",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Price",
+  "text": "",
+  "value": "",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "number",
+  "label": "Cost Price",
+  "text": "",
+  "value": "0.00",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Cost Price",
+  "text": "",
+  "value": "",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "number",
+  "label": "Unit Price",
+  "text": "",
+  "value": "8.40",
+  "region": "form",
+  "disabled": true,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "number",
+  "label": "List Price",
+  "text": "",
+  "value": "8.40",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "List Price",
+  "text": "",
+  "value": "",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "combobox",
+  "label": "Tax",
+  "text": "",
+  "value": "Standard",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Tax",
+  "text": "",
+  "value": "",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "number",
+  "label": "Discount %",
+  "text": "",
+  "value": "0.0",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Discount %",
+  "text": "",
+  "value": "",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "combobox",
+  "label": "Project",
+  "text": "",
+  "value": "",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Project",
+  "text": "",
+  "value": "",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "combobox",
+  "label": "Campaign",
+  "text": "",
+  "value": "",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Campaign",
+  "text": "",
+  "value": "",
+  "region": "form",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "number",
+  "label": "Line Amount",
+  "text": "",
+  "value": "420.00",
+  "region": "form",
+  "disabled": true,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "tab",
+  "label": "",
+  "text": "Matching",
+  "value": "",
+  "region": "detail-pane",
+  "disabled": false,
+  "checked": null,
+  "selected": true
+ },
+ {
+  "role": "tab",
+  "label": "",
+  "text": "Requisition Lines",
+  "value": "",
+  "region": "detail-pane",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Save and Create New    Shift+Alt+N",
+  "text": "",
+  "value": "",
+  "region": "detail-pane",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Edit Record    Shift+Alt+E",
+  "text": "",
+  "value": "",
+  "region": "detail-pane",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Delete Record    Shift+Alt+D",
+  "text": "",
+  "value": "",
+  "region": "detail-pane",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Save Changes    Shift+Alt+S",
+  "text": "",
+  "value": "",
+  "region": "detail-pane",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Process    Shift+Alt+O",
+  "text": "",
+  "value": "",
+  "region": "detail-pane",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Quick Form    Shift+Alt+F",
+  "text": "",
+  "value": "",
+  "region": "detail-pane",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Customize",
+  "text": "",
+  "value": "",
+  "region": "detail-pane",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Grid Toggle    Shift+Alt+T",
+  "text": "",
+  "value": "",
+  "region": "detail-pane",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "checkbox",
+  "label": "",
+  "text": "",
+  "value": "",
+  "region": "detail-pane",
+  "disabled": false,
+  "checked": false,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Home",
+  "text": "",
+  "value": "",
+  "region": "page",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "Show All Windows   Alt+W",
+  "text": "1",
+  "value": "",
+  "region": "page",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ },
+ {
+  "role": "button",
+  "label": "",
+  "text": "",
+  "value": "",
+  "region": "page",
+  "disabled": false,
+  "checked": null,
+  "selected": false
+ }
+]

@@ -1,0 +1,11 @@
+{
+  "name": "Restock 1 line(s) from vendor A",
+  "vendor": "Placeholder Contract Manufacturer A",
+  "promised_date": "2026-12-04",
+  "lines": [
+    {
+      "sku": "FH-002-1",
+      "qty": 300
+    }
+  ]
+}

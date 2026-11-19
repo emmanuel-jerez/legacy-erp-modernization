@@ -3,7 +3,14 @@ name = "erp-ui-operator"
 version = "0.1.0"
 description = "Playwright and LLM hybrid that completes tasks in a legacy ERP web UI, verified against the database"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "erp-sandbox",
+    "playwright>=1.65.2",
+    "psycopg[binary]>=3.3.9",
+]
+
+[project.scripts]
+ui-operator = "erp_ui_operator.cli:main"
 
 [build-system]
 requires = ["uv_build>=0.13.7,<0.14.0"]
@@ -11,3 +18,14 @@ build-backend = "uv_build"
 
 [tool.uv.sources]
 erp-sandbox = { path = "../erp-sandbox", editable = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: needs the running iDempiere database",
+    "browser: needs the iDempiere web UI and Playwright Chromium",
+]
