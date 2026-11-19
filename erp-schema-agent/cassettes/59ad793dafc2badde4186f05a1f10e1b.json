@@ -1,0 +1,241 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "medium",
+  "recorded_at": "2026-11-19T09:58:52-0800",
+  "duration_ms": 27711,
+  "cost_usd_estimate": 0.1021767,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 2496,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 4086,
+    "output_tokens_details": {
+      "thinking_tokens": 573
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: List the in-progress sales orders with document number, customer name and order total.\n\nSQL that ran: SELECT o.documentno AS document_no, bp.name AS customer_name, CAST(o.dateordered AS DATE) AS date_ordered, ROUND(o.grandtotal, 2) AS order_total FROM adempiere.c_order AS o JOIN adempiere.c_bpartner AS bp ON bp.c_bpartner_id = o.c_bpartner_id WHERE o.ad_client_id = 11 AND o.issotrx = 'Y' AND o.docstatus = 'IP' AND o.documentno LIKE 'FH-SO-%' ORDER BY o.dateordered, o.documentno LIMIT 200\nAssumptions made when writing it: [\"'In-progress' means DocStatus = 'IP'.\", \"The list only covers Fernhollow sales orders (DocumentNo LIKE 'FH-SO-%') in tenant 11.\", \"Order total is C_Order.GrandTotal, since the seed data has no tax.\"]\n\nColumns: [\"document_no\", \"customer_name\", \"date_ordered\", \"order_total\"]\nRows returned: 36; showing 36:\n[\"FH-SO-008931\", \"Demo Customer 0178\", \"2026-11-13\", 70]\n[\"FH-SO-008927\", \"Demo Customer 0235\", \"2026-11-13\", 38]\n[\"FH-SO-008925\", \"Demo Customer 0001\", \"2026-11-13\", 115.2]\n[\"FH-SO-008920\", \"Demo Customer 0146\", \"2026-11-13\", 109.9]\n[\"FH-SO-008929\", \"Demo Customer 0035\", \"2026-11-13\", 49]\n[\"FH-SO-008940\", \"Demo Customer 0212\", \"2026-11-13\", 72]\n[\"FH-SO-008936\", \"Demo Customer 0261\", \"2026-11-13\", 211]\n[\"FH-SO-008941\", \"Demo Customer 0217\", \"2026-11-14\", 99.9]\n[\"FH-SO-008952\", \"Demo Customer 0314\", \"2026-11-14\", 30]\n[\"FH-SO-008955\", \"Demo Customer 0270\", \"2026-11-14\", 126]\n[\"FH-SO-008948\", \"Demo Customer 0055\", \"2026-11-14\", 110]\n[\"FH-SO-008970\", \"Demo Customer 0214\", \"2026-11-14\", 52]\n[\"FH-SO-008958\", \"Demo Customer 0141\", \"2026-11-14\", 30]\n[\"FH-SO-008957\", \"Demo Customer 0211\", \"2026-11-14\", 54]\n[\"FH-SO-008959\", \"Demo Customer 0090\", \"2026-11-14\", 81]\n[\"FH-SO-008967\", \"Demo Customer 0237\", \"2026-11-14\", 42.9]\n[\"FH-SO-008949\", \"Demo Customer 0138\", \"2026-11-14\", 90]\n[\"FH-SO-008968\", \"Demo Customer 0273\", \"2026-11-14\", 48]\n[\"FH-SO-008969\", \"Demo Customer 0093\", \"2026-11-14\", 157]\n[\"FH-SO-008965\", \"Demo Customer 0273\", \"2026-11-14\", 68]\n[\"FH-SO-009000\", \"Demo Customer 0318\", \"2026-11-15\", 24]\n[\"FH-SO-008992\", \"Demo Customer 0069\", \"2026-11-15\", 93.6]\n[\"FH-SO-008980\", \"Demo Customer 0270\", \"2026-11-15\", 129.6]\n[\"FH-SO-008996\", \"Demo Customer 0115\", \"2026-11-15\", 38]\n[\"FH-SO-008995\", \"Demo Customer 0218\", \"2026-11-15\", 85.8]\n[\"FH-SO-008981\", \"Demo Customer 0061\", \"2026-11-15\", 52]\n[\"FH-SO-008971\", \"Demo Customer 0134\", \"2026-11-15\", 38]\n[\"FH-SO-008993\", \"Demo Customer 0104\", \"2026-11-15\", 45]\n[\"FH-SO-008994\", \"Demo Customer 0249\", \"2026-11-15\", 54]\n[\"FH-SO-008976\", \"Demo Customer 0177\", \"2026-11-15\", 162]\n[\"FH-SO-008991\", \"Demo Customer 0242\", \"2026-11-15\", 39]\n[\"FH-SO-008997\", \"Demo Customer 0197\", \"2026-11-15\", 60]\n[\"FH-SO-008987\", \"Demo Customer 0281\", \"2026-11-15\", 81]\n[\"FH-SO-008984\", \"Demo Customer 0178\", \"2026-11-15\", 64]\n[\"FH-SO-008990\", \"Demo Customer 0204\", \"2026-11-15\", 112]\n[\"FH-SO-008988\", \"Demo Customer 0111\", \"2026-11-15\", 189.6]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "There are 36 in-progress Fernhollow sales orders, all placed between 13 and 15 November 2026. Together they total 2,921.50. The largest is FH-SO-008936 for Demo Customer 0261 at 211.00, and the smallest is FH-SO-009000 for Demo Customer 0318 at 24.00. The full list (document number, customer, order total) is: FH-SO-008931 Demo Customer 0178 70.00; FH-SO-008927 Demo Customer 0235 38.00; FH-SO-008925 Demo Customer 0001 115.20; FH-SO-008920 Demo Customer 0146 109.90; FH-SO-008929 Demo Customer 0035 49.00; FH-SO-008940 Demo Customer 0212 72.00; FH-SO-008936 Demo Customer 0261 211.00; FH-SO-008941 Demo Customer 0217 99.90; FH-SO-008952 Demo Customer 0314 30.00; FH-SO-008955 Demo Customer 0270 126.00; FH-SO-008948 Demo Customer 0055 110.00; FH-SO-008970 Demo Customer 0214 52.00; FH-SO-008958 Demo Customer 0141 30.00; FH-SO-008957 Demo Customer 0211 54.00; FH-SO-008959 Demo Customer 0090 81.00; FH-SO-008967 Demo Customer 0237 42.90; FH-SO-008949 Demo Customer 0138 90.00; FH-SO-008968 Demo Customer 0273 48.00; FH-SO-008969 Demo Customer 0093 157.00; FH-SO-008965 Demo Customer 0273 68.00; FH-SO-009000 Demo Customer 0318 24.00; FH-SO-008992 Demo Customer 0069 93.60; FH-SO-008980 Demo Customer 0270 129.60; FH-SO-008996 Demo Customer 0115 38.00; FH-SO-008995 Demo Customer 0218 85.80; FH-SO-008981 Demo Customer 0061 52.00; FH-SO-008971 Demo Customer 0134 38.00; FH-SO-008993 Demo Customer 0104 45.00; FH-SO-008994 Demo Customer 0249 54.00; FH-SO-008976 Demo Customer 0177 162.00; FH-SO-008991 Demo Customer 0242 39.00; FH-SO-008997 Demo Customer 0197 60.00; FH-SO-008987 Demo Customer 0281 81.00; FH-SO-008984 Demo Customer 0178 64.00; FH-SO-008990 Demo Customer 0204 112.00; FH-SO-008988 Demo Customer 0111 189.60.",
+    "figures": [
+      {
+        "label": "In-progress sales orders",
+        "value": 36,
+        "kind": "value"
+      },
+      {
+        "label": "Combined order total",
+        "value": 2921.5,
+        "kind": "total"
+      },
+      {
+        "label": "Largest order total (FH-SO-008936)",
+        "value": 211,
+        "kind": "total"
+      },
+      {
+        "label": "Smallest order total (FH-SO-009000)",
+        "value": 24,
+        "kind": "total"
+      },
+      {
+        "label": "FH-SO-008931",
+        "value": 70,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008927",
+        "value": 38,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008925",
+        "value": 115.2,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008920",
+        "value": 109.9,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008929",
+        "value": 49,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008940",
+        "value": 72,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008941",
+        "value": 99.9,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008952",
+        "value": 30,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008955",
+        "value": 126,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008948",
+        "value": 110,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008970",
+        "value": 52,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008957",
+        "value": 54,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008959",
+        "value": 81,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008967",
+        "value": 42.9,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008949",
+        "value": 90,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008968",
+        "value": 48,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008969",
+        "value": 157,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008965",
+        "value": 68,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008992",
+        "value": 93.6,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008980",
+        "value": 129.6,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008995",
+        "value": 85.8,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008993",
+        "value": 45,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008976",
+        "value": 162,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008991",
+        "value": 39,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008997",
+        "value": 60,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008984",
+        "value": 64,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008990",
+        "value": 112,
+        "kind": "value"
+      },
+      {
+        "label": "FH-SO-008988",
+        "value": 189.6,
+        "kind": "value"
+      }
+    ],
+    "caveats": [
+      "'In progress' was taken to mean document status 'IP'.",
+      "Only Fernhollow sales orders (document numbers starting FH-SO-) in tenant 11 are included.",
+      "Order total is the order's grand total. The seed data has no tax, so that is the same as the net amount."
+    ]
+  }
+}

@@ -1,0 +1,141 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "medium",
+  "recorded_at": "2026-11-19T09:58:42-0800",
+  "duration_ms": 7990,
+  "cost_usd_estimate": 0.030562800000000005,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1430,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 937,
+    "output_tokens_details": {
+      "thinking_tokens": 59
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: How many sales orders were voided in each month of 2026? Return the month and the count.\n\nSQL that ran: SELECT TO_CHAR(DATE_TRUNC('MONTH', o.dateordered), 'YYYY-MM') AS order_month, COUNT(*) AS voided_sales_orders FROM adempiere.c_order AS o WHERE o.ad_client_id = 11 AND o.issotrx = 'Y' AND o.documentno LIKE 'FH-SO-%' AND o.docstatus = 'VO' AND o.dateordered >= CAST('2026-01-01' AS DATE) AND o.dateordered < CAST('2027-01-01' AS DATE) GROUP BY 1 ORDER BY 1 LIMIT 200\nAssumptions made when writing it: [\"Month is based on the order date (DateOrdered), not the date the void happened, because the schema doesn't store a separate void date.\", \"Only Fernhollow sales orders are counted (DocumentNo LIKE 'FH-SO-%', IsSOTrx = 'Y', AD_Client_ID = 11).\", \"Months with no voided orders won't appear in the results.\"]\n\nColumns: [\"order_month\", \"voided_sales_orders\"]\nRows returned: 11; showing 11:\n[\"2026-01\", 6]\n[\"2026-02\", 6]\n[\"2026-03\", 10]\n[\"2026-04\", 9]\n[\"2026-05\", 8]\n[\"2026-06\", 16]\n[\"2026-07\", 11]\n[\"2026-08\", 14]\n[\"2026-09\", 12]\n[\"2026-10\", 11]\n[\"2026-11\", 9]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "Fernhollow voided **112 sales orders** in 2026 so far:\n\n- 2026-01: 6\n- 2026-02: 6\n- 2026-03: 10\n- 2026-04: 9\n- 2026-05: 8\n- 2026-06: 16 (highest)\n- 2026-07: 11\n- 2026-08: 14\n- 2026-09: 12\n- 2026-10: 11\n- 2026-11: 9\n\nDecember isn't listed because it hasn't started yet, and November only runs to today.",
+    "figures": [
+      {
+        "label": "Total voided sales orders in 2026",
+        "value": 112,
+        "kind": "total"
+      },
+      {
+        "label": "2026-01 voided orders",
+        "value": 6,
+        "kind": "value"
+      },
+      {
+        "label": "2026-02 voided orders",
+        "value": 6,
+        "kind": "value"
+      },
+      {
+        "label": "2026-03 voided orders",
+        "value": 10,
+        "kind": "value"
+      },
+      {
+        "label": "2026-04 voided orders",
+        "value": 9,
+        "kind": "value"
+      },
+      {
+        "label": "2026-05 voided orders",
+        "value": 8,
+        "kind": "value"
+      },
+      {
+        "label": "2026-06 voided orders (highest)",
+        "value": 16,
+        "kind": "value"
+      },
+      {
+        "label": "2026-07 voided orders",
+        "value": 11,
+        "kind": "value"
+      },
+      {
+        "label": "2026-08 voided orders",
+        "value": 14,
+        "kind": "value"
+      },
+      {
+        "label": "2026-09 voided orders",
+        "value": 12,
+        "kind": "value"
+      },
+      {
+        "label": "2026-10 voided orders",
+        "value": 11,
+        "kind": "value"
+      },
+      {
+        "label": "2026-11 voided orders",
+        "value": 9,
+        "kind": "value"
+      }
+    ],
+    "caveats": [
+      "Each order is counted in the month it was placed, not the month it was voided. The system doesn't record a separate void date.",
+      "Only Fernhollow sales orders with document numbers starting 'FH-SO-' and status 'VO' (voided) are counted.",
+      "November 2026 covers only part of the month (to today, 19 November). Months with no voided orders wouldn't appear in the list."
+    ]
+  }
+}

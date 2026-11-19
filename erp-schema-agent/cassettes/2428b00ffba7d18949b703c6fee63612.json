@@ -1,0 +1,162 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "medium",
+  "recorded_at": "2026-11-19T10:01:09-0800",
+  "duration_ms": 11400,
+  "cost_usd_estimate": 0.0448163,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1995,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 1421,
+    "output_tokens_details": {
+      "thinking_tokens": 69
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: Which active products are below their reorder point and have no open purchase order quantity? Give SKU.\n\nSQL that ran: WITH onhand AS (SELECT s.m_product_id, SUM(s.qtyonhand) AS qty_on_hand FROM adempiere.m_storageonhand AS s JOIN adempiere.m_locator AS l ON l.m_locator_id = s.m_locator_id WHERE s.ad_client_id = 11 AND l.m_warehouse_id = 103 GROUP BY s.m_product_id), open_po AS (SELECT ol.m_product_id, SUM(ol.qtyordered - ol.qtydelivered) AS open_po_qty FROM adempiere.c_orderline AS ol JOIN adempiere.c_order AS o ON o.c_order_id = ol.c_order_id WHERE o.ad_client_id = 11 AND o.issotrx = 'N' AND o.docstatus = 'CO' AND o.documentno LIKE 'FH-PO-%' AND ol.qtyordered > ol.qtydelivered GROUP BY ol.m_product_id) SELECT p.value AS sku, p.name AS product_name, COALESCE(oh.qty_on_hand, 0) AS qty_on_hand, r.level_min AS reorder_point, r.level_min - COALESCE(oh.qty_on_hand, 0) AS shortfall FROM adempiere.m_product AS p JOIN adempiere.m_replenish AS r ON r.m_product_id = p.m_product_id AND r.m_warehouse_id = 103 LEFT JOIN onhand AS oh ON oh.m_product_id = p.m_product_id LEFT JOIN open_po AS po ON po.m_product_id = p.m_product_id WHERE p.ad_client_id = 11 AND p.value LIKE 'FH-%' AND p.isactive = 'Y' AND COALESCE(oh.qty_on_hand, 0) < r.level_min AND COALESCE(po.open_po_qty, 0) = 0 ORDER BY shortfall DESC, p.value LIMIT 200\nAssumptions made when writing it: [\"Products with no stock record at all are counted as having 0 on hand.\", \"The reorder point is taken from the HQ Warehouse (ID 103) replenishment settings.\", \"Only completed (CO) Fernhollow purchase orders with quantity still to be delivered count as open purchase order quantity. Drafted orders are ignored.\"]\n\nColumns: [\"sku\", \"product_name\", \"qty_on_hand\", \"reorder_point\", \"shortfall\"]\nRows returned: 5; showing 5:\n[\"FH-022-1\", \"Hand Cream 2.5 oz\", 0, 145, 145]\n[\"FH-016-1\", \"Mineral Sunscreen SPF 40 1.7 oz\", 26, 63, 37]\n[\"FH-002-1\", \"Overnight Eye Mask 0.5 oz\", 26, 38, 12]\n[\"FH-007-1P2\", \"Peptide Firming Serum 1 oz / 2-Pack\", 18, 28, 10]\n[\"FH-020-1P2\", \"Lip Repair Balm 0.35 oz / 2-Pack\", 16, 23, 7]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "Five active products are below their reorder point at HQ Warehouse and have no open purchase order quantity. They are listed below, largest shortfall first:\n- FH-022-1 (Hand Cream 2.5 oz): 0 on hand, reorder point 145, short by 145\n- FH-016-1 (Mineral Sunscreen SPF 40 1.7 oz): 26 on hand, reorder point 63, short by 37\n- FH-002-1 (Overnight Eye Mask 0.5 oz): 26 on hand, reorder point 38, short by 12\n- FH-007-1P2 (Peptide Firming Serum 1 oz / 2-Pack): 18 on hand, reorder point 28, short by 10\n- FH-020-1P2 (Lip Repair Balm 0.35 oz / 2-Pack): 16 on hand, reorder point 23, short by 7",
+    "figures": [
+      {
+        "label": "Products below reorder point with no open PO",
+        "value": 5,
+        "kind": "value"
+      },
+      {
+        "label": "FH-022-1 qty on hand",
+        "value": 0,
+        "kind": "value"
+      },
+      {
+        "label": "FH-022-1 reorder point",
+        "value": 145,
+        "kind": "value"
+      },
+      {
+        "label": "FH-022-1 shortfall",
+        "value": 145,
+        "kind": "value"
+      },
+      {
+        "label": "FH-016-1 qty on hand",
+        "value": 26,
+        "kind": "value"
+      },
+      {
+        "label": "FH-016-1 reorder point",
+        "value": 63,
+        "kind": "value"
+      },
+      {
+        "label": "FH-016-1 shortfall",
+        "value": 37,
+        "kind": "value"
+      },
+      {
+        "label": "FH-002-1 qty on hand",
+        "value": 26,
+        "kind": "value"
+      },
+      {
+        "label": "FH-002-1 reorder point",
+        "value": 38,
+        "kind": "value"
+      },
+      {
+        "label": "FH-002-1 shortfall",
+        "value": 12,
+        "kind": "value"
+      },
+      {
+        "label": "FH-007-1P2 qty on hand",
+        "value": 18,
+        "kind": "value"
+      },
+      {
+        "label": "FH-007-1P2 reorder point",
+        "value": 28,
+        "kind": "value"
+      },
+      {
+        "label": "FH-007-1P2 shortfall",
+        "value": 10,
+        "kind": "value"
+      },
+      {
+        "label": "FH-020-1P2 qty on hand",
+        "value": 16,
+        "kind": "value"
+      },
+      {
+        "label": "FH-020-1P2 reorder point",
+        "value": 23,
+        "kind": "value"
+      },
+      {
+        "label": "FH-020-1P2 shortfall",
+        "value": 7,
+        "kind": "value"
+      }
+    ],
+    "caveats": [
+      "Stock on hand and reorder points come only from HQ Warehouse (ID 103). Stock held in other warehouses is not counted.",
+      "A product with no stock record is treated as having 0 on hand.",
+      "Open purchase order quantity only counts completed (CO) Fernhollow purchase orders (document numbers starting FH-PO-) that still have quantity left to deliver. Draft orders are ignored, so some of these products may already have a draft PO.",
+      "Only products with SKUs starting FH- that have a replenishment setting at HQ Warehouse were checked."
+    ]
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "medium",
+  "recorded_at": "2026-11-19T09:59:26-0800",
+  "duration_ms": 4985,
+  "cost_usd_estimate": 0.0219715,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1508,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 471,
+    "output_tokens_details": {
+      "thinking_tokens": 73
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: How many customers placed no booked orders between July 1 and September 30, 2026?\n\nSQL that ran: SELECT COUNT(*) AS customers_without_booked_orders, COUNT(*) FILTER(WHERE bp.isactive = 'Y') AS active_customers_without_booked_orders, (SELECT COUNT(*) FROM adempiere.c_bpartner AS b2 WHERE b2.ad_client_id = 11 AND b2.value LIKE 'DEMO-C%') AS total_fernhollow_customers FROM adempiere.c_bpartner AS bp WHERE bp.ad_client_id = 11 AND bp.value LIKE 'DEMO-C%' AND NOT EXISTS(SELECT 1 FROM adempiere.c_order AS o WHERE o.c_bpartner_id = bp.c_bpartner_id AND o.ad_client_id = 11 AND o.issotrx = 'Y' AND o.documentno LIKE 'FH-SO-%' AND o.docstatus IN ('CO', 'CL') AND o.dateordered >= CAST('2026-07-01' AS DATE) AND o.dateordered < CAST('2026-10-01' AS DATE)) LIMIT 200\nAssumptions made when writing it: [\"Customers are Fernhollow business partners with Value LIKE 'DEMO-C%' in AD_Client_ID 11.\", \"Booked orders are Fernhollow sales orders (FH-SO-%) with DocStatus CO or CL.\", \"The main count includes inactive customers; a separate count of active customers only is also returned.\"]\n\nColumns: [\"customers_without_booked_orders\", \"active_customers_without_booked_orders\", \"total_fernhollow_customers\"]\nRows returned: 1; showing 1:\n[6, 6, 320]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "6 of the 320 Fernhollow customers placed no booked orders between July 1 and September 30, 2026. That's about 1.9% of customers. All 6 are still active.",
+    "figures": [
+      {
+        "label": "Customers with no booked orders in the period",
+        "value": 6,
+        "kind": "value"
+      },
+      {
+        "label": "Total Fernhollow customers",
+        "value": 320,
+        "kind": "value"
+      },
+      {
+        "label": "Active customers with no booked orders",
+        "value": 6,
+        "kind": "value"
+      },
+      {
+        "label": "Share of customers with no booked orders",
+        "value": 1.9,
+        "kind": "share"
+      }
+    ],
+    "caveats": [
+      "Customers are Fernhollow business partners whose code starts with 'DEMO-C' (client 11). Inactive partners count toward the total.",
+      "Only Fernhollow sales orders (FH-SO-...) with status Completed or Closed count as booked orders. Drafts, voided and in-progress orders don't count.",
+      "The period runs by order date, from July 1 through September 30, 2026."
+    ]
+  }
+}

@@ -1,0 +1,212 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "medium",
+  "recorded_at": "2026-11-19T09:59:48-0800",
+  "duration_ms": 13965,
+  "cost_usd_estimate": 0.053115199999999994,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1975,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 1844,
+    "output_tokens_details": {
+      "thinking_tokens": 297
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: Show booked revenue by state and month for July through September 2026.\n\nSQL that ran: SELECT r.name AS state_code, r.description AS state_name, TO_CHAR(DATE_TRUNC('MONTH', o.dateordered), 'YYYY-MM') AS month, COUNT(DISTINCT o.c_order_id) AS booked_orders, ROUND(SUM(ol.linenetamt), 2) AS booked_revenue FROM adempiere.c_order AS o JOIN adempiere.c_orderline AS ol ON ol.c_order_id = o.c_order_id JOIN adempiere.c_bpartner_location AS bpl ON bpl.c_bpartner_location_id = o.c_bpartner_location_id JOIN adempiere.c_location AS l ON l.c_location_id = bpl.c_location_id LEFT JOIN adempiere.c_region AS r ON r.c_region_id = l.c_region_id WHERE o.ad_client_id = 11 AND o.issotrx = 'Y' AND o.documentno LIKE 'FH-SO-%' AND o.docstatus IN ('CO', 'CL') AND o.dateordered >= CAST('2026-07-01' AS DATE) AND o.dateordered < CAST('2026-10-01' AS DATE) GROUP BY r.name, r.description, DATE_TRUNC('MONTH', o.dateordered) ORDER BY r.name, month LIMIT 200\nAssumptions made when writing it: [\"Booked = Fernhollow sales orders (FH-SO-%) with DocStatus CO or CL\", \"State taken from the order's ship-to partner location region\", \"July–September 2026 covers 2026-07-01 up to but not including 2026-10-01\"]\n\nColumns: [\"state_code\", \"state_name\", \"month\", \"booked_orders\", \"booked_revenue\"]\nRows returned: 18; showing 18:\n[\"CA\", \"California\", \"2026-07\", 229, 19989.15]\n[\"CA\", \"California\", \"2026-08\", 273, 24333.55]\n[\"CA\", \"California\", \"2026-09\", 282, 24326.1]\n[\"FL\", \"Florida\", \"2026-07\", 82, 8807.25]\n[\"FL\", \"Florida\", \"2026-08\", 92, 8313.95]\n[\"FL\", \"Florida\", \"2026-09\", 79, 7220.7]\n[\"IL\", \"Illinois\", \"2026-07\", 120, 11463.55]\n[\"IL\", \"Illinois\", \"2026-08\", 121, 10792.1]\n[\"IL\", \"Illinois\", \"2026-09\", 88, 7555.15]\n[\"NY\", \"New York\", \"2026-07\", 134, 11433.05]\n[\"NY\", \"New York\", \"2026-08\", 134, 12037.25]\n[\"NY\", \"New York\", \"2026-09\", 140, 12088.2]\n[\"TX\", \"Texas\", \"2026-07\", 132, 11034]\n[\"TX\", \"Texas\", \"2026-08\", 125, 10246.25]\n[\"TX\", \"Texas\", \"2026-09\", 148, 14597.6]\n[\"WA\", \"Washington\", \"2026-07\", 85, 7755.1]\n[\"WA\", \"Washington\", \"2026-08\", 82, 7825.6]\n[\"WA\", \"Washington\", \"2026-09\", 73, 7067.65]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "Booked revenue for July–September 2026 came to $216,886.20 across six states. California brought in the most, at $68,648.80:\n- California: $19,989.15 in July, $24,333.55 in August and $24,326.10 in September, for $68,648.80 in total.\n- Texas: $11,034.00 in July, $10,246.25 in August and $14,597.60 in September, for $35,877.85 in total.\n- New York: $11,433.05 in July, $12,037.25 in August and $12,088.20 in September, for $35,558.50 in total.\n- Illinois: $11,463.55 in July, $10,792.10 in August and $7,555.15 in September, for $29,810.80 in total.\n- Florida: $8,807.25 in July, $8,313.95 in August and $7,220.70 in September, for $24,341.90 in total.\n- Washington: $7,755.10 in July, $7,825.60 in August and $7,067.65 in September, for $22,648.35 in total.",
+    "figures": [
+      {
+        "label": "Total booked revenue Jul–Sep 2026",
+        "value": 216886.2,
+        "kind": "total"
+      },
+      {
+        "label": "Number of states",
+        "value": 6,
+        "kind": "value"
+      },
+      {
+        "label": "California Jul",
+        "value": 19989.15,
+        "kind": "value"
+      },
+      {
+        "label": "California Aug",
+        "value": 24333.55,
+        "kind": "value"
+      },
+      {
+        "label": "California Sep",
+        "value": 24326.1,
+        "kind": "value"
+      },
+      {
+        "label": "California total",
+        "value": 68648.8,
+        "kind": "total"
+      },
+      {
+        "label": "Texas Jul",
+        "value": 11034,
+        "kind": "value"
+      },
+      {
+        "label": "Texas Aug",
+        "value": 10246.25,
+        "kind": "value"
+      },
+      {
+        "label": "Texas Sep",
+        "value": 14597.6,
+        "kind": "value"
+      },
+      {
+        "label": "Texas total",
+        "value": 35877.85,
+        "kind": "total"
+      },
+      {
+        "label": "New York Jul",
+        "value": 11433.05,
+        "kind": "value"
+      },
+      {
+        "label": "New York Aug",
+        "value": 12037.25,
+        "kind": "value"
+      },
+      {
+        "label": "New York Sep",
+        "value": 12088.2,
+        "kind": "value"
+      },
+      {
+        "label": "New York total",
+        "value": 35558.5,
+        "kind": "total"
+      },
+      {
+        "label": "Illinois Jul",
+        "value": 11463.55,
+        "kind": "value"
+      },
+      {
+        "label": "Illinois Aug",
+        "value": 10792.1,
+        "kind": "value"
+      },
+      {
+        "label": "Illinois Sep",
+        "value": 7555.15,
+        "kind": "value"
+      },
+      {
+        "label": "Illinois total",
+        "value": 29810.8,
+        "kind": "total"
+      },
+      {
+        "label": "Florida Jul",
+        "value": 8807.25,
+        "kind": "value"
+      },
+      {
+        "label": "Florida Aug",
+        "value": 8313.95,
+        "kind": "value"
+      },
+      {
+        "label": "Florida Sep",
+        "value": 7220.7,
+        "kind": "value"
+      },
+      {
+        "label": "Florida total",
+        "value": 24341.9,
+        "kind": "total"
+      },
+      {
+        "label": "Washington Jul",
+        "value": 7755.1,
+        "kind": "value"
+      },
+      {
+        "label": "Washington Aug",
+        "value": 7825.6,
+        "kind": "value"
+      },
+      {
+        "label": "Washington Sep",
+        "value": 7067.65,
+        "kind": "value"
+      },
+      {
+        "label": "Washington total",
+        "value": 22648.35,
+        "kind": "total"
+      }
+    ],
+    "caveats": [
+      "Only Fernhollow sales orders (numbers starting FH-SO-) count as booked, and only those marked Completed or Closed.",
+      "Revenue is the net amount of the order lines, so tax and freight added at the order level are not included.",
+      "Each order is assigned to the state on its ship-to address.",
+      "Months are based on the order date."
+    ]
+  }
+}

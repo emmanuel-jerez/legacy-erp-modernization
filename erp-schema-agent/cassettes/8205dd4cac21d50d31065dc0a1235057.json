@@ -1,0 +1,96 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "medium",
+  "recorded_at": "2026-11-19T09:58:18-0800",
+  "duration_ms": 5123,
+  "cost_usd_estimate": 0.016653900000000003,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1271,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 306,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: How many Fernhollow sales orders have been booked (completed or closed)?\n\nSQL that ran: SELECT COUNT(*) AS booked_sales_orders, COUNT(*) FILTER(WHERE docstatus = 'CO') AS completed_orders, COUNT(*) FILTER(WHERE docstatus = 'CL') AS closed_orders FROM adempiere.c_order WHERE ad_client_id = 11 AND issotrx = 'Y' AND documentno LIKE 'FH-SO-%' AND docstatus IN ('CO', 'CL') LIMIT 200\nAssumptions made when writing it: [\"Booked means DocStatus CO or CL; voided, drafted and in-progress orders are left out.\", \"Fernhollow sales orders are identified by DocumentNo LIKE 'FH-SO-%' with IsSOTrx = 'Y' in tenant 11.\", \"All dates are included; no date filter is applied.\"]\n\nColumns: [\"booked_sales_orders\", \"completed_orders\", \"closed_orders\"]\nRows returned: 1; showing 1:\n[8839, 8839, 0]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "8,839 Fernhollow sales orders have been booked. Every one of them has the status completed, and none are closed.",
+    "figures": [
+      {
+        "label": "Booked Fernhollow sales orders",
+        "value": 8839,
+        "kind": "value"
+      },
+      {
+        "label": "Completed orders",
+        "value": 8839,
+        "kind": "value"
+      },
+      {
+        "label": "Closed orders",
+        "value": 0,
+        "kind": "value"
+      }
+    ],
+    "caveats": [
+      "'Booked' means document status completed (CO) or closed (CL). Voided, draft and in-progress orders are not counted.",
+      "Fernhollow sales orders are the sales transactions in tenant 11 whose document number starts with 'FH-SO-'.",
+      "Orders from all dates are counted."
+    ]
+  }
+}

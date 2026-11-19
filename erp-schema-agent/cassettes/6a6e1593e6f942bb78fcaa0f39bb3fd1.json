@@ -1,0 +1,101 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "medium",
+  "recorded_at": "2026-11-19T09:59:47-0800",
+  "duration_ms": 4639,
+  "cost_usd_estimate": 0.0235457,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1755,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 452,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: Which product sold the most units to California customers in 2026? Give SKU, name and units.\n\nSQL that ran: WITH units AS (SELECT p.value AS sku, p.name AS product_name, SUM(ol.qtyordered) AS units_sold FROM adempiere.c_order AS o JOIN adempiere.c_orderline AS ol ON ol.c_order_id = o.c_order_id JOIN adempiere.m_product AS p ON p.m_product_id = ol.m_product_id JOIN adempiere.c_bpartner AS bp ON bp.c_bpartner_id = o.c_bpartner_id JOIN adempiere.c_bpartner_location AS bpl ON bpl.c_bpartner_location_id = o.c_bpartner_location_id JOIN adempiere.c_location AS l ON l.c_location_id = bpl.c_location_id JOIN adempiere.c_region AS r ON r.c_region_id = l.c_region_id WHERE o.ad_client_id = 11 AND o.issotrx = 'Y' AND o.documentno LIKE 'FH-SO-%' AND o.docstatus IN ('CO', 'CL') AND p.value LIKE 'FH-%' AND bp.value LIKE 'DEMO-C%' AND r.name = 'CA' AND o.dateordered >= CAST('2026-01-01' AS DATE) AND o.dateordered < CAST('2027-01-01' AS DATE) GROUP BY p.value, p.name), ranked AS (SELECT sku, product_name, units_sold, RANK() OVER (ORDER BY units_sold DESC) AS rnk FROM units) SELECT sku, product_name, units_sold FROM ranked WHERE rnk <= 3 ORDER BY units_sold DESC, sku LIMIT 200\nAssumptions made when writing it: [\"California is the order's ship-to location whose region code is 'CA'\", \"Only booked sales (CO, CL) count\", \"2026 means calendar year 2026; data runs to 2026-11-15\", \"Top 3 are returned (with ties) so the leader and how close the runners-up are can both be seen\"]\n\nColumns: [\"sku\", \"product_name\", \"units_sold\"]\nRows returned: 3; showing 3:\n[\"FH-014-1\", \"Exfoliating Toner 6 oz\", 415]\n[\"FH-022-1\", \"Hand Cream 2.5 oz\", 402]\n[\"FH-016-1\", \"Mineral Sunscreen SPF 40 1.7 oz\", 279]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "The top seller to California customers in 2026 was FH-014-1, Exfoliating Toner 6 oz, with 415 units. Hand Cream 2.5 oz (FH-022-1) came close behind at 402 units, 13 fewer. Mineral Sunscreen SPF 40 1.7 oz (FH-016-1) was third with 279 units.",
+    "figures": [
+      {
+        "label": "Exfoliating Toner 6 oz units sold",
+        "value": 415,
+        "kind": "value"
+      },
+      {
+        "label": "Hand Cream 2.5 oz units sold",
+        "value": 402,
+        "kind": "value"
+      },
+      {
+        "label": "Gap between first and second",
+        "value": 13,
+        "kind": "change"
+      },
+      {
+        "label": "Mineral Sunscreen SPF 40 1.7 oz units sold",
+        "value": 279,
+        "kind": "value"
+      }
+    ],
+    "caveats": [
+      "California means the order's ship-to location has the region code 'CA'.",
+      "Only completed or closed sales orders (CO, CL) are counted. Units are quantities ordered, not quantities shipped.",
+      "2026 covers 1 January up to the latest data on 15 November 2026, so the year isn't complete yet."
+    ]
+  }
+}

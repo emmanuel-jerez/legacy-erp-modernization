@@ -6,6 +6,7 @@
     "DocStatus: CO = Completed, CL = Closed, VO = Voided, IP = In Progress, DR = Drafted. Booked sales and revenue count only CO and CL orders. Voided orders never count (their quantities and amounts are zero but they still exist as rows, so they inflate order counts and averages). 'Open', 'pending' or 'in progress' sales orders means DocStatus = 'IP'.",
     "Revenue / sales amount = SUM(C_OrderLine.LineNetAmt) over booked sales order lines (equal to C_Order.GrandTotal summed per order; the seed has no tax). Units sold = SUM(C_OrderLine.QtyOrdered). Order date = C_Order.DateOrdered (a timestamp); for a date range use DateOrdered >= start AND DateOrdered < day after end.",
     "Y/N flags are CHAR(1) 'Y'/'N'. IsActive = 'N' marks retired/inactive records; for products it is the only reliable retirement marker (do not rely on Discontinued). 'Current', 'active' or 'sellable' products exclude them.",
+    "Products: M_Product.Value is the SKU and Name the product name; M_Product.Group1 holds the product type (Eye Care, Serums, Moisturizers, Cleansers, Toners, Sun Care, Masks, Lip Care, Body, Tools, Bundles). All Fernhollow products share one product category, so use Group1 for type questions.",
     "Inventory: on-hand quantity is M_StorageOnHand.QtyOnHand summed per product (HQ Warehouse, M_Warehouse_ID 103, locator 101). The reorder point is M_Replenish.Level_Min (Level_Max is the maximum level), per product and warehouse. 'Below reorder point' means on-hand < Level_Min.",
     "Open purchase order quantity = SUM(C_OrderLine.QtyOrdered - C_OrderLine.QtyDelivered) on lines of completed (CO) purchase orders (IsSOTrx = 'N') where QtyOrdered > QtyDelivered. Drafted (DR) purchase orders are not placed yet and do not count.",
     "Customer state/region: C_Order.C_BPartner_Location_ID -> C_BPartner_Location.C_Location_ID -> C_Location.C_Region_ID -> C_Region.Name (two-letter code: CA, NY, FL, WA, IL, TX; C_Region.Description has the full name, e.g. 'California').",
@@ -150,6 +151,7 @@
       ],
       "tables": [
         "m_productprice",
+        "m_product",
         "m_product_po"
       ]
     },
@@ -162,7 +164,12 @@
         "item",
         "items",
         "retired",
-        "discontinued"
+        "discontinued",
+        "product type",
+        "product types",
+        "type",
+        "category",
+        "categories"
       ],
       "tables": [
         "m_product"

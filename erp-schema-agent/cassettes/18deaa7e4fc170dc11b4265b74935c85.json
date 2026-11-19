@@ -2,21 +2,21 @@
   "label": "answer",
   "model": "claude-opus-5-5",
   "effort": "medium",
-  "recorded_at": "2026-11-19T09:51:43-0800",
-  "duration_ms": 7332,
-  "cost_usd_estimate": 0.037652000000000005,
+  "recorded_at": "2026-11-19T10:03:12-0800",
+  "duration_ms": 7710,
+  "cost_usd_estimate": 0.0312476,
   "usage": {
     "input_tokens": 2,
-    "cache_creation_input_tokens": 2578,
-    "cache_read_input_tokens": 0,
-    "output_tokens": 851,
+    "cache_creation_input_tokens": 1591,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 906,
     "output_tokens_details": {
-      "thinking_tokens": 65
+      "thinking_tokens": 0
     }
   },
   "request": {
     "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
-    "prompt": "Question: Which 5 customers had the highest booked revenue in Q3 2026?\n\nSQL that ran: SELECT bp.value AS customer_key, bp.name AS customer_name, COUNT(DISTINCT o.c_order_id) AS booked_orders, ROUND(SUM(ol.linenetamt), 2) AS booked_revenue FROM adempiere.c_order AS o JOIN adempiere.c_orderline AS ol ON ol.c_order_id = o.c_order_id JOIN adempiere.c_bpartner AS bp ON bp.c_bpartner_id = o.c_bpartner_id WHERE o.ad_client_id = 11 AND o.issotrx = 'Y' AND o.documentno LIKE 'FH-SO-%' AND o.docstatus IN ('CO', 'CL') AND bp.value LIKE 'DEMO-C%' AND o.dateordered >= CAST('2026-07-01' AS DATE) AND o.dateordered < CAST('2026-10-01' AS DATE) GROUP BY bp.value, bp.name ORDER BY booked_revenue DESC, bp.name LIMIT 5\nAssumptions made when writing it: [\"Q3 2026 means order dates from 2026-07-01 up to but not including 2026-10-01 (calendar quarter).\", \"Booked revenue is the sum of order line net amounts on Completed (CO) and Closed (CL) Fernhollow sales orders.\", \"If customers tie at 5th place, only the first by name is shown.\"]\n\nColumns: [\"customer_key\", \"customer_name\", \"booked_orders\", \"booked_revenue\"]\nRows returned: 5; showing 5:\n[\"DEMO-C0261\", \"Demo Customer 0261\", 96, 10067.55]\n[\"DEMO-C0241\", \"Demo Customer 0241\", 64, 6511.85]\n[\"DEMO-C0218\", \"Demo Customer 0218\", 56, 4709.5]\n[\"DEMO-C0255\", \"Demo Customer 0255\", 40, 4240]\n[\"DEMO-C0270\", \"Demo Customer 0270\", 43, 3569.45]",
+    "prompt": "Question: Which 5 customers had the highest booked revenue in Q3 2026?\n\nSQL that ran: SELECT bp.value AS customer_key, bp.name AS customer_name, COUNT(DISTINCT o.c_order_id) AS booked_orders, ROUND(SUM(ol.linenetamt), 2) AS booked_revenue FROM adempiere.c_order AS o JOIN adempiere.c_orderline AS ol ON ol.c_order_id = o.c_order_id JOIN adempiere.c_bpartner AS bp ON bp.c_bpartner_id = o.c_bpartner_id WHERE o.ad_client_id = 11 AND o.issotrx = 'Y' AND o.documentno LIKE 'FH-SO-%' AND o.docstatus IN ('CO', 'CL') AND bp.value LIKE 'DEMO-C%' AND o.dateordered >= CAST('2026-07-01' AS DATE) AND o.dateordered < CAST('2026-10-01' AS DATE) GROUP BY bp.value, bp.name ORDER BY booked_revenue DESC LIMIT 5\nAssumptions made when writing it: [\"Q3 2026 = calendar quarter 2026-07-01 through 2026-09-30\", \"Booked revenue = SUM(LineNetAmt) on completed or closed (CO/CL) Fernhollow sales orders\", \"Ties at rank 5 are not broken specially\"]\n\nColumns: [\"customer_key\", \"customer_name\", \"booked_orders\", \"booked_revenue\"]\nRows returned: 5; showing 5:\n[\"DEMO-C0261\", \"Demo Customer 0261\", 96, 10067.55]\n[\"DEMO-C0241\", \"Demo Customer 0241\", 64, 6511.85]\n[\"DEMO-C0218\", \"Demo Customer 0218\", 56, 4709.5]\n[\"DEMO-C0255\", \"Demo Customer 0255\", 40, 4240]\n[\"DEMO-C0270\", \"Demo Customer 0270\", 43, 3569.45]",
     "schema": {
       "type": "object",
       "additionalProperties": false,
@@ -69,7 +69,7 @@
     }
   },
   "response": {
-    "answer": "These were the 5 customers with the highest booked revenue in Q3 2026:\n1. Demo Customer 0261 (DEMO-C0261): 10,067.55 from 96 orders\n2. Demo Customer 0241 (DEMO-C0241): 6,511.85 from 64 orders\n3. Demo Customer 0218 (DEMO-C0218): 4,709.50 from 56 orders\n4. Demo Customer 0255 (DEMO-C0255): 4,240.00 from 40 orders\n5. Demo Customer 0270 (DEMO-C0270): 3,569.45 from 43 orders",
+    "answer": "These were the top 5 customers by booked revenue in Q3 2026 (July–September):\n1. Demo Customer 0261 (DEMO-C0261): 10,067.55 from 96 orders\n2. Demo Customer 0241 (DEMO-C0241): 6,511.85 from 64 orders\n3. Demo Customer 0218 (DEMO-C0218): 4,709.50 from 56 orders\n4. Demo Customer 0255 (DEMO-C0255): 4,240.00 from 40 orders\n5. Demo Customer 0270 (DEMO-C0270): 3,569.45 from 43 orders\n\nTogether they booked 29,098.35. Customer 0261 alone brought in about 35% of that.",
     "figures": [
       {
         "label": "Demo Customer 0261 booked revenue",
@@ -120,13 +120,24 @@
         "label": "Demo Customer 0270 booked orders",
         "value": 43,
         "kind": "value"
+      },
+      {
+        "label": "Top 5 combined booked revenue",
+        "value": 29098.35,
+        "kind": "total"
+      },
+      {
+        "label": "Demo Customer 0261 share of top 5 revenue",
+        "value": 35,
+        "kind": "share"
       }
     ],
     "caveats": [
-      "Q3 2026 means calendar order dates from 1 July 2026 up to, but not including, 1 October 2026.",
-      "Booked revenue is the total of order line net amounts on Fernhollow sales orders with status Completed or Closed. Draft, in-progress, voided and reversed orders aren't counted.",
-      "Only demo customers (keys starting with DEMO-C) were included.",
-      "If two customers tie for 5th place, only the first by name is shown."
+      "Q3 2026 means orders dated 1 July to 30 September 2026.",
+      "Booked revenue is the sum of line net amounts on Fernhollow sales orders (FH-SO-) that are completed or closed (CO/CL). Drafts, voided and other statuses are left out.",
+      "Only customers whose keys start with DEMO-C were included.",
+      "The 35% share is out of the top 5 combined, not all customers' revenue.",
+      "If another customer tied with the 5th-place total, it may have been left out."
     ]
   }
 }

@@ -53,6 +53,20 @@ def test_role_cannot_write(readonly_db):
         run_readonly("CREATE TABLE adempiere.agent_scratch (id int)")
 
 
+def test_missing_privileges_stop_writes_even_in_a_read_write_transaction(readonly_db):
+    # The read-only default is only a default; the role's lack of write grants is the real stop.
+    import psycopg
+
+    from erp_schema_agent import settings
+
+    with psycopg.connect(settings.ro_dsn(), autocommit=True) as conn:
+        conn.execute("SET default_transaction_read_only = off")
+        with pytest.raises(psycopg.errors.InsufficientPrivilege):
+            conn.execute("UPDATE m_product SET name = name WHERE value = 'FH-001-1'")
+        with pytest.raises(psycopg.errors.InsufficientPrivilege):
+            conn.execute("CREATE TABLE adempiere.agent_scratch (id int)")
+
+
 def test_role_session_defaults(readonly_db):
     assert run_readonly("SHOW default_transaction_read_only").rows == [["on"]]
     assert run_readonly("SHOW statement_timeout").rows == [[f"{STATEMENT_TIMEOUT_S}s"]]

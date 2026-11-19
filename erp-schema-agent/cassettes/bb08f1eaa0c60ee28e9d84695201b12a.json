@@ -1,0 +1,96 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "medium",
+  "recorded_at": "2026-11-19T10:00:47-0800",
+  "duration_ms": 4901,
+  "cost_usd_estimate": 0.0178935,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1323,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 347,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: What is the total open purchase order quantity?\n\nSQL that ran: SELECT SUM(ol.qtyordered - ol.qtydelivered) AS open_po_quantity, COUNT(DISTINCT o.c_order_id) AS open_po_count, COUNT(*) AS open_po_lines FROM adempiere.c_order AS o JOIN adempiere.c_orderline AS ol ON ol.c_order_id = o.c_order_id WHERE o.ad_client_id = 11 AND o.issotrx = 'N' AND o.docstatus = 'CO' AND o.documentno LIKE 'FH-PO-%' AND ol.qtyordered > ol.qtydelivered LIMIT 200\nAssumptions made when writing it: [\"The question is about Fernhollow purchase orders only (DocumentNo LIKE 'FH-PO-%'), not GardenWorld's demo records.\", \"Open quantity uses the tenant definition: QtyOrdered - QtyDelivered on lines of completed (CO) purchase orders where QtyOrdered > QtyDelivered. Drafted orders are left out.\"]\n\nColumns: [\"open_po_quantity\", \"open_po_count\", \"open_po_lines\"]\nRows returned: 1; showing 1:\n[2400, 2, 24]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "The total open purchase order quantity is 2,400 units. That quantity is spread across 24 open lines on 2 completed purchase orders.",
+    "figures": [
+      {
+        "label": "Open purchase order quantity",
+        "value": 2400,
+        "kind": "value"
+      },
+      {
+        "label": "Open purchase order lines",
+        "value": 24,
+        "kind": "value"
+      },
+      {
+        "label": "Open purchase orders",
+        "value": 2,
+        "kind": "value"
+      }
+    ],
+    "caveats": [
+      "Only Fernhollow purchase orders were counted (document numbers starting with FH-PO-). GardenWorld demo records were left out.",
+      "Open quantity means quantity ordered minus quantity delivered. It only counts lines on completed (CO) purchase orders where less has been delivered than was ordered. Draft orders are not included.",
+      "The total adds up units across all products, which may use different units of measure."
+    ]
+  }
+}

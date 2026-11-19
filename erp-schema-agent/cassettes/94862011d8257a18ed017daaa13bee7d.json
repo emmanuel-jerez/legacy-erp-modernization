@@ -1,0 +1,92 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "medium",
+  "recorded_at": "2026-11-19T09:59:14-0800",
+  "duration_ms": 5075,
+  "cost_usd_estimate": 0.0202148,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1350,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 452,
+    "output_tokens_details": {
+      "thinking_tokens": 62
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: What was total booked revenue in 2026 so far?\n\nSQL that ran: SELECT ROUND(SUM(ol.linenetamt), 2) AS total_booked_revenue_2026, COUNT(DISTINCT o.c_order_id) AS booked_orders FROM adempiere.c_order AS o JOIN adempiere.c_orderline AS ol ON ol.c_order_id = o.c_order_id WHERE o.ad_client_id = 11 AND o.issotrx = 'Y' AND o.documentno LIKE 'FH-SO-%' AND o.docstatus IN ('CO', 'CL') AND o.dateordered >= CAST('2026-01-01' AS DATE) AND o.dateordered < CAST('2026-11-16' AS DATE) LIMIT 200\nAssumptions made when writing it: [\"'So far' means 2026-01-01 through 2026-11-15, which the tenant conventions treat as 'today' for the data.\", \"Booked revenue counts only Completed (CO) and Closed (CL) Fernhollow sales orders.\", \"The query covers Fernhollow orders only (document numbers starting 'FH-SO-'), not GardenWorld demo data.\"]\n\nColumns: [\"total_booked_revenue_2026\", \"booked_orders\"]\nRows returned: 1; showing 1:\n[706991.55, 7996]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "Total booked revenue for 2026 so far (1 January through 15 November) was 706,991.55, across 7,996 booked sales orders.",
+    "figures": [
+      {
+        "label": "Total booked revenue 2026 to date",
+        "value": 706991.55,
+        "kind": "value"
+      },
+      {
+        "label": "Booked sales orders 2026 to date",
+        "value": 7996,
+        "kind": "value"
+      }
+    ],
+    "caveats": [
+      "'So far' was taken as 1 January to 15 November 2026, because the data's conventions treat 15 November as 'today'. Orders placed after that date are not included.",
+      "Only Completed (CO) and Closed (CL) sales orders count as booked. Drafts, in-progress, voided and reversed orders are left out.",
+      "Only Fernhollow sales orders (document numbers starting 'FH-SO-') are included. GardenWorld demo data is excluded.",
+      "Revenue is the sum of order line net amounts, which usually means before tax and before any order-level charges."
+    ]
+  }
+}

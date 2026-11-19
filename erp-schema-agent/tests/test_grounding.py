@@ -38,6 +38,7 @@ def test_near_misses_identifiers_and_wrong_kinds_are_flagged():
     assert not grounded(103)  # an identifier column
     assert not grounded(2026)  # a date part
     assert not grounded(80000.0, "value")  # a total claimed as a cell
+    assert grounded(41234.5, "share")  # any kind accepts a value the SQL already computed
     check = check_figures([{"label": "growth", "value": 17.3, "kind": "share"}], COLUMNS, ROWS)[0]
     assert not check.grounded
     assert "no share" in check.evidence
@@ -50,3 +51,18 @@ def test_invented_values_rarely_pass_on_a_ranking():
     invented = [round(rng.uniform(1000, 30000), 2) for _ in range(200)]
     passed = sum(grounded(v, "value", rows, columns) or grounded(v, "total", rows, columns) for v in invented)
     assert passed <= 2
+
+
+def test_subtotals_per_group_are_totals():
+    columns = ["state", "month", "revenue"]
+    rows = [["TX", "2026-07-01", 11034.0], ["TX", "2026-08-01", 12000.5], ["NY", "2026-07-01", 9000.0]]
+    assert grounded(23034.5, "total", rows, columns)  # Texas total across months
+    assert grounded(20034.0, "total", rows, columns)  # July subtotal across states
+    assert not grounded(21000.5, "total", rows, columns)  # mixes groups
+
+
+def test_conditional_subtotals_group_by_low_cardinality_numbers():
+    columns = ["sku", "shortfall", "open_po_qty"]
+    rows = [["A", 145.0, 0.0], ["B", 43.0, 100.0], ["C", 37.0, 0.0], ["D", 23.0, 100.0]]
+    assert grounded(182, "total", rows, columns)  # shortfall where nothing is on order
+    assert not grounded(180, "total", rows, columns)

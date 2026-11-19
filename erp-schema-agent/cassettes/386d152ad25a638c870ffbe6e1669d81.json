@@ -1,0 +1,107 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "medium",
+  "recorded_at": "2026-11-19T09:58:27-0800",
+  "duration_ms": 11669,
+  "cost_usd_estimate": 0.0210312,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1414,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 467,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: What is the average order value of Fernhollow sales orders, excluding voided orders but including in-progress ones?\n\nSQL that ran: SELECT COUNT(*) AS order_count, ROUND(SUM(o.grandtotal), 2) AS total_order_value, ROUND(CAST(AVG(o.grandtotal) AS DECIMAL), 2) AS avg_order_value, COUNT(*) FILTER(WHERE o.docstatus IN ('CO', 'CL')) AS booked_orders, COUNT(*) FILTER(WHERE o.docstatus = 'IP') AS in_progress_orders FROM adempiere.c_order AS o WHERE o.ad_client_id = 11 AND o.issotrx = 'Y' AND o.documentno LIKE 'FH-SO-%' AND o.docstatus IN ('CO', 'CL', 'IP') LIMIT 200\nAssumptions made when writing it: [\"The orders counted are booked ones (Completed CO and Closed CL) plus In Progress (IP). Voided orders are left out. Drafted (DR) and any other statuses are also left out.\", \"Order value = C_Order.GrandTotal. The seed data has no tax, so this equals the sum of the order's line net amounts.\", \"All sales order history is included, with no date filter.\"]\n\nColumns: [\"order_count\", \"total_order_value\", \"avg_order_value\", \"booked_orders\", \"in_progress_orders\"]\nRows returned: 1; showing 1:\n[8875, 780687.1, 87.96, 8839, 36]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "The average Fernhollow sales order is worth 87.96. That comes from 8,875 orders with a combined value of 780,687.10. The 8,875 orders are 8,839 booked orders (Completed or Closed) and 36 in-progress orders. Voided orders are left out.",
+    "figures": [
+      {
+        "label": "Average order value",
+        "value": 87.96,
+        "kind": "value"
+      },
+      {
+        "label": "Orders counted",
+        "value": 8875,
+        "kind": "value"
+      },
+      {
+        "label": "Total order value",
+        "value": 780687.1,
+        "kind": "value"
+      },
+      {
+        "label": "Booked orders (Completed/Closed)",
+        "value": 8839,
+        "kind": "value"
+      },
+      {
+        "label": "In-progress orders",
+        "value": 36,
+        "kind": "value"
+      }
+    ],
+    "caveats": [
+      "Only orders with status Completed (CO), Closed (CL) or In Progress (IP) were counted. Voided orders were left out, and so were Drafted orders and any other statuses.",
+      "Fernhollow sales orders were picked out by document numbers starting with 'FH-SO-' within client 11.",
+      "Order value is the order's grand total. The seed data has no tax, so this equals the sum of the net line amounts.",
+      "All sales order history is included, with no date filter."
+    ]
+  }
+}

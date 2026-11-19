@@ -1,0 +1,102 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "medium",
+  "recorded_at": "2026-11-19T10:01:18-0800",
+  "duration_ms": 7046,
+  "cost_usd_estimate": 0.027061700000000005,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1502,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 733,
+    "output_tokens_details": {
+      "thinking_tokens": 64
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: How many active products does each vendor currently supply?\n\nSQL that ran: SELECT bp.value AS vendor_key, bp.name AS vendor_name, COUNT(DISTINCT p.m_product_id) AS active_products_supplied FROM adempiere.c_bpartner AS bp LEFT JOIN adempiere.m_product_po AS po ON po.c_bpartner_id = bp.c_bpartner_id AND po.isactive = 'Y' AND po.iscurrentvendor = 'Y' AND po.ad_client_id = 11 LEFT JOIN adempiere.m_product AS p ON p.m_product_id = po.m_product_id AND p.isactive = 'Y' AND p.value LIKE 'FH-%' AND p.ad_client_id = 11 WHERE bp.ad_client_id = 11 AND bp.value LIKE 'PH-VEND-%' GROUP BY bp.value, bp.name ORDER BY active_products_supplied DESC, bp.name LIMIT 200\nAssumptions made when writing it: [\"'Currently supply' means an active M_Product_PO row with IsCurrentVendor = 'Y'.\", \"'Active products' means Fernhollow products (Value LIKE 'FH-%') with IsActive = 'Y'.\", \"All Fernhollow vendors (PH-VEND-%) are listed, including any that supply zero active products.\"]\n\nColumns: [\"vendor_key\", \"vendor_name\", \"active_products_supplied\"]\nRows returned: 3; showing 3:\n[\"PH-VEND-B\", \"Placeholder Contract Manufacturer B\", 20]\n[\"PH-VEND-C\", \"Placeholder Co-Packer C\", 18]\n[\"PH-VEND-A\", \"Placeholder Contract Manufacturer A\", 16]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "There are three vendors, and each currently supplies between 16 and 20 active products:\n- **Placeholder Contract Manufacturer B (PH-VEND-B):** 20 products\n- **Placeholder Co-Packer C (PH-VEND-C):** 18 products\n- **Placeholder Contract Manufacturer A (PH-VEND-A):** 16 products\n\nThe same product can be listed under more than one vendor, so adding these counts together may overstate how many different products there are.",
+    "figures": [
+      {
+        "label": "Number of vendors",
+        "value": 3,
+        "kind": "value"
+      },
+      {
+        "label": "Placeholder Contract Manufacturer B active products",
+        "value": 20,
+        "kind": "value"
+      },
+      {
+        "label": "Placeholder Co-Packer C active products",
+        "value": 18,
+        "kind": "value"
+      },
+      {
+        "label": "Placeholder Contract Manufacturer A active products",
+        "value": 16,
+        "kind": "value"
+      }
+    ],
+    "caveats": [
+      "'Currently supplies' means the vendor has an active product-purchasing record marked as the current vendor.",
+      "'Active products' means active Fernhollow products (product codes starting with 'FH-').",
+      "Only Fernhollow vendors (codes starting with 'PH-VEND-') are included. A vendor supplying no products would show 0, and none did.",
+      "The same product can be listed under more than one vendor, so the counts may overlap."
+    ]
+  }
+}

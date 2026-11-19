@@ -11,6 +11,25 @@ uv run schema-agent setup-db      # idempotent; rerun after `erp-sandbox clone-d
 uv run pytest                     # integration tests skip when the database is down
 ```
 
+## Evals and cassettes
+
+```sh
+uv run schema-agent eval            # offline replay; writes evals/reports/eval-report.{json,md}
+uv run schema-agent eval --record   # calls Claude only for cases without a cassette
+uv run schema-agent eval --only id1,id2   # print a report for a few cases, write nothing
+uv run schema-agent build-golden    # recompute expected rows after a deliberate seed change
+uv run schema-agent demo            # offline; --mode record or live for a live run
+```
+
+- A cassette is keyed by model, effort, system prompt, user prompt and schema. Editing a
+  prompt, the glossary, the catalog snapshot or retrieval changes the generate prompt and
+  invalidates the cassettes of every affected question. Record once, then re-record only
+  what changed, and commit the cassettes with the change.
+- Post-processing (validator, grounding, scoring) does not touch prompts: improve it and
+  rerun `eval` offline to re-score the recorded runs at no model cost.
+- The golden set's expected rows come from hand-written reference SQL run against the
+  frozen seed; a test fails when they go stale.
+
 ## Rules
 
 - The agent and the MCP server only ever touch the database through
@@ -63,8 +82,11 @@ uv run pytest                     # integration tests skip when the database is 
   grounding check matched any figure within 0.5% of hundreds of derived values, so most
   invented numbers passed; tightening it alone then rejected legitimate "top 3 total"
   or "revenue per order" figures. The fix that held: the answer model declares each
-  figure's kind (value, total, share, change, ratio) and the check compares it only with
-  candidates of that kind, by display rounding. When adding a deterministic check, test
+  figure's kind (value, total, share, change, ratio) and the check compares it with the
+  cells (the SQL may have computed it) plus candidates of that kind only, by display
+  rounding. Every new candidate family widens what passes by coincidence: measure the
+  invented-figure pass rate before and after (the eval review caught distinct counts and
+  per-group row counts more than tripling it for integers, so they were dropped). When adding a deterministic check, test
   both sides: near misses that must fail and real derivations that must pass.
 - **Screen user text narrowly; leave judgement to the layered guardrails.** Single words
   such as "pins", "tokens" or "secret" are product names as often as credentials, so the
@@ -88,3 +110,20 @@ uv run pytest                     # integration tests skip when the database is 
 - **Prove isolation with an allow-list, not a deny-list.** The MCP import test checks the
   exact set of project modules the server loads, including the ones `ask` imports
   lazily; the admin DSN lives in `roles.py` so read-only code cannot reach it.
+- **An eval pass rule must be able to fail.** "Answered within the row cap" was true for
+  every answered run; it now parses the executed SQL for a literal LIMIT within the cap.
+  Count a guardrail block only for the layer's own refusal (a database timeout is not a
+  permission block), detect missing cassettes from the run's stage, not message text, and
+  exit non-zero when a guardrail case fails.
+- **Test each guardrail layer directly, not only through the model.** Adversarial prompts
+  were all stopped by the screen or the model, so the report said nothing about the
+  validator or the role. `sql_cases` in `evals/guardrails.json` send attack SQL through
+  the validator and through the role alone, at no model cost. A probe must isolate the
+  layer it credits: role probes run in a rolled-back READ WRITE transaction (otherwise
+  READ ONLY refuses first) and pass only on "permission denied" or the expected timeout,
+  never on any error such as a typo.
+- **Compare money with an absolute tolerance.** A relative tolerance let a 145-dollar
+  error pass on a 1.6-million total; scoring allows cent rounding and nothing more.
+- **Disclose tuning that saw the test set.** The glossary's product-type rule and the
+  grounding subtotals were added after reading golden questions or recorded answers; the
+  README says so next to the results.

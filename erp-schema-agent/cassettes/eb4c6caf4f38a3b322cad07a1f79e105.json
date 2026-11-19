@@ -1,0 +1,151 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "medium",
+  "recorded_at": "2026-11-19T10:00:35-0800",
+  "duration_ms": 10405,
+  "cost_usd_estimate": 0.038758400000000005,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 2000,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 1116,
+    "output_tokens_details": {
+      "thinking_tokens": 109
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: For products below their reorder point, how many units are needed to bring each back up to its maximum level? Give SKU and units needed.\n\nSQL that ran: WITH onhand AS (SELECT s.m_product_id, SUM(s.qtyonhand) AS qty_on_hand FROM adempiere.m_storageonhand AS s JOIN adempiere.m_locator AS l ON l.m_locator_id = s.m_locator_id WHERE s.ad_client_id = 11 AND l.m_warehouse_id = 103 GROUP BY s.m_product_id) SELECT p.value AS sku, p.name AS product_name, COALESCE(o.qty_on_hand, 0) AS qty_on_hand, r.level_min AS reorder_point, r.level_max AS max_level, r.level_max - COALESCE(o.qty_on_hand, 0) AS units_needed FROM adempiere.m_replenish AS r JOIN adempiere.m_product AS p ON p.m_product_id = r.m_product_id LEFT JOIN onhand AS o ON o.m_product_id = r.m_product_id WHERE r.ad_client_id = 11 AND r.m_warehouse_id = 103 AND r.isactive = 'Y' AND p.value LIKE 'FH-%' AND p.isactive = 'Y' AND COALESCE(o.qty_on_hand, 0) < r.level_min ORDER BY units_needed DESC, p.value LIMIT 200\nAssumptions made when writing it: [\"Inventory and replenishment levels are taken from the HQ Warehouse (M_Warehouse_ID 103).\", \"A product with no on-hand record counts as having 0 units.\", \"Retired (inactive) products and inactive replenishment rows are left out.\", \"Units needed = Level_Max minus current on-hand. Open purchase orders are not subtracted.\"]\n\nColumns: [\"sku\", \"product_name\", \"qty_on_hand\", \"reorder_point\", \"max_level\", \"units_needed\"]\nRows returned: 10; showing 10:\n[\"FH-022-1\", \"Hand Cream 2.5 oz\", 0, 145, 435, 435]\n[\"FH-004-2\", \"Vitamin C Serum 2 oz\", 7, 26, 300, 293]\n[\"FH-013-1P2\", \"Cleansing Balm 3 oz / 2-Pack\", 8, 20, 300, 292]\n[\"FH-025-1\", \"Eye Care Duo\", 9, 32, 300, 291]\n[\"FH-010-1P2\", \"Rich Barrier Cream 1.7 oz / 2-Pack\", 11, 26, 300, 289]\n[\"FH-020-1P2\", \"Lip Repair Balm 0.35 oz / 2-Pack\", 16, 23, 300, 284]\n[\"FH-007-1P2\", \"Peptide Firming Serum 1 oz / 2-Pack\", 18, 28, 300, 282]\n[\"FH-002-1\", \"Overnight Eye Mask 0.5 oz\", 26, 38, 300, 274]\n[\"FH-016-1\", \"Mineral Sunscreen SPF 40 1.7 oz\", 26, 63, 300, 274]\n[\"FH-017-1\", \"Tinted Sunscreen SPF 30 1.7 oz\", 35, 78, 300, 265]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "Ten products are below their reorder point. Getting all of them back to maximum would take 2,979 units in total:\n- FH-022-1 (Hand Cream 2.5 oz): 435 units. It has none on hand and its maximum is 435.\n- FH-004-2: 293 units\n- FH-013-1P2: 292 units\n- FH-025-1: 291 units\n- FH-010-1P2: 289 units\n- FH-020-1P2: 284 units\n- FH-007-1P2: 282 units\n- FH-002-1: 274 units\n- FH-016-1: 274 units\n- FH-017-1: 265 units",
+    "figures": [
+      {
+        "label": "Products below reorder point",
+        "value": 10,
+        "kind": "value"
+      },
+      {
+        "label": "Total units needed",
+        "value": 2979,
+        "kind": "total"
+      },
+      {
+        "label": "FH-022-1 units needed",
+        "value": 435,
+        "kind": "value"
+      },
+      {
+        "label": "FH-022-1 on hand",
+        "value": 0,
+        "kind": "value"
+      },
+      {
+        "label": "FH-022-1 max level",
+        "value": 435,
+        "kind": "value"
+      },
+      {
+        "label": "FH-004-2 units needed",
+        "value": 293,
+        "kind": "value"
+      },
+      {
+        "label": "FH-013-1P2 units needed",
+        "value": 292,
+        "kind": "value"
+      },
+      {
+        "label": "FH-025-1 units needed",
+        "value": 291,
+        "kind": "value"
+      },
+      {
+        "label": "FH-010-1P2 units needed",
+        "value": 289,
+        "kind": "value"
+      },
+      {
+        "label": "FH-020-1P2 units needed",
+        "value": 284,
+        "kind": "value"
+      },
+      {
+        "label": "FH-007-1P2 units needed",
+        "value": 282,
+        "kind": "value"
+      },
+      {
+        "label": "FH-002-1 units needed",
+        "value": 274,
+        "kind": "value"
+      },
+      {
+        "label": "FH-016-1 units needed",
+        "value": 274,
+        "kind": "value"
+      },
+      {
+        "label": "FH-017-1 units needed",
+        "value": 265,
+        "kind": "value"
+      }
+    ],
+    "caveats": [
+      "Stock and replenishment levels are for the HQ Warehouse only.",
+      "Units needed = maximum level minus current on-hand stock. Open purchase orders already on the way are not subtracted, so the real amount to order may be lower.",
+      "Only active FH- products with active replenishment settings are included. A product with no stock record is counted as having 0 units."
+    ]
+  }
+}

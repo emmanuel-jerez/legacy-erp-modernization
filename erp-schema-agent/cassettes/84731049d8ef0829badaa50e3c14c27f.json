@@ -1,0 +1,200 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "medium",
+  "recorded_at": "2026-11-19T09:59:26-0800",
+  "duration_ms": 15035,
+  "cost_usd_estimate": 0.041102599999999996,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1576,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 1405,
+    "output_tokens_details": {
+      "thinking_tokens": 247
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: Show booked revenue by month from December 2025 through October 2026.\n\nSQL that ran: SELECT TO_CHAR(DATE_TRUNC('MONTH', o.dateordered), 'YYYY-MM') AS month, COUNT(DISTINCT o.c_order_id) AS booked_orders, ROUND(SUM(ol.linenetamt), 2) AS booked_revenue FROM adempiere.c_order AS o JOIN adempiere.c_orderline AS ol ON ol.c_order_id = o.c_order_id WHERE o.ad_client_id = 11 AND o.issotrx = 'Y' AND o.documentno LIKE 'FH-SO-%' AND o.docstatus IN ('CO', 'CL') AND o.dateordered >= CAST('2025-12-01' AS DATE) AND o.dateordered < CAST('2026-11-01' AS DATE) GROUP BY DATE_TRUNC('MONTH', o.dateordered) ORDER BY DATE_TRUNC('MONTH', o.dateordered) LIMIT 200\nAssumptions made when writing it: [\"Booked revenue = SUM(LineNetAmt) on Fernhollow sales orders (FH-SO-%) with DocStatus CO or CL\", \"Months are grouped by DateOrdered; the range covers 2025-12-01 up to but not including 2026-11-01\"]\n\nColumns: [\"month\", \"booked_orders\", \"booked_revenue\"]\nRows returned: 11; showing 11:\n[\"2025-12\", 843, 70774.05]\n[\"2026-01\", 640, 55380.9]\n[\"2026-02\", 550, 44687.85]\n[\"2026-03\", 677, 63414.35]\n[\"2026-04\", 671, 55994.9]\n[\"2026-05\", 937, 81772.8]\n[\"2026-06\", 876, 77753.65]\n[\"2026-07\", 782, 70482.1]\n[\"2026-08\", 827, 73548.7]\n[\"2026-09\", 810, 72855.4]\n[\"2026-10\", 853, 75821.1]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "Booked revenue from December 2025 through October 2026 was 742,485.80 across 8,466 orders. The low point was February 2026 and the high point was May 2026.\n- 2025-12: 70,774.05 (843 orders)\n- 2026-01: 55,380.90 (640 orders)\n- 2026-02: 44,687.85 (550 orders)\n- 2026-03: 63,414.35 (677 orders)\n- 2026-04: 55,994.90 (671 orders)\n- 2026-05: 81,772.80 (937 orders)\n- 2026-06: 77,753.65 (876 orders)\n- 2026-07: 70,482.10 (782 orders)\n- 2026-08: 73,548.70 (827 orders)\n- 2026-09: 72,855.40 (810 orders)\n- 2026-10: 75,821.10 (853 orders)",
+    "figures": [
+      {
+        "label": "Total booked revenue Dec 2025–Oct 2026",
+        "value": 742485.8,
+        "kind": "total"
+      },
+      {
+        "label": "Total booked orders Dec 2025–Oct 2026",
+        "value": 8466,
+        "kind": "total"
+      },
+      {
+        "label": "2025-12 revenue",
+        "value": 70774.05,
+        "kind": "value"
+      },
+      {
+        "label": "2025-12 orders",
+        "value": 843,
+        "kind": "value"
+      },
+      {
+        "label": "2026-01 revenue",
+        "value": 55380.9,
+        "kind": "value"
+      },
+      {
+        "label": "2026-01 orders",
+        "value": 640,
+        "kind": "value"
+      },
+      {
+        "label": "2026-02 revenue",
+        "value": 44687.85,
+        "kind": "value"
+      },
+      {
+        "label": "2026-02 orders",
+        "value": 550,
+        "kind": "value"
+      },
+      {
+        "label": "2026-03 revenue",
+        "value": 63414.35,
+        "kind": "value"
+      },
+      {
+        "label": "2026-03 orders",
+        "value": 677,
+        "kind": "value"
+      },
+      {
+        "label": "2026-04 revenue",
+        "value": 55994.9,
+        "kind": "value"
+      },
+      {
+        "label": "2026-04 orders",
+        "value": 671,
+        "kind": "value"
+      },
+      {
+        "label": "2026-05 revenue",
+        "value": 81772.8,
+        "kind": "value"
+      },
+      {
+        "label": "2026-05 orders",
+        "value": 937,
+        "kind": "value"
+      },
+      {
+        "label": "2026-06 revenue",
+        "value": 77753.65,
+        "kind": "value"
+      },
+      {
+        "label": "2026-06 orders",
+        "value": 876,
+        "kind": "value"
+      },
+      {
+        "label": "2026-07 revenue",
+        "value": 70482.1,
+        "kind": "value"
+      },
+      {
+        "label": "2026-07 orders",
+        "value": 782,
+        "kind": "value"
+      },
+      {
+        "label": "2026-08 revenue",
+        "value": 73548.7,
+        "kind": "value"
+      },
+      {
+        "label": "2026-08 orders",
+        "value": 827,
+        "kind": "value"
+      },
+      {
+        "label": "2026-09 revenue",
+        "value": 72855.4,
+        "kind": "value"
+      },
+      {
+        "label": "2026-09 orders",
+        "value": 810,
+        "kind": "value"
+      },
+      {
+        "label": "2026-10 revenue",
+        "value": 75821.1,
+        "kind": "value"
+      },
+      {
+        "label": "2026-10 orders",
+        "value": 853,
+        "kind": "value"
+      }
+    ],
+    "caveats": [
+      "Booked revenue is the sum of order-line net amounts (before tax) on Fernhollow sales orders (document numbers starting FH-SO-) with status Completed or Closed. Draft, voided and reversed orders are left out.",
+      "Each order is placed in the month of its order date, not its shipping or invoice date."
+    ]
+  }
+}

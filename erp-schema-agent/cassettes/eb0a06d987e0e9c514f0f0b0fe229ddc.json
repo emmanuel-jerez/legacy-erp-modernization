@@ -1,0 +1,266 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "medium",
+  "recorded_at": "2026-11-19T10:03:46-0800",
+  "duration_ms": 20760,
+  "cost_usd_estimate": 0.07383479999999999,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 2474,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 2678,
+    "output_tokens_details": {
+      "thinking_tokens": 241
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: Which active products are below their reorder point, and how many units of each are already on open purchase orders?\n\nSQL that ran: WITH onhand AS (SELECT s.m_product_id, SUM(s.qtyonhand) AS qty_on_hand FROM adempiere.m_storageonhand AS s WHERE s.ad_client_id = 11 GROUP BY s.m_product_id), openpo AS (SELECT ol.m_product_id, SUM(ol.qtyordered - ol.qtydelivered) AS open_po_qty, COUNT(DISTINCT o.c_order_id) AS open_po_count FROM adempiere.c_orderline AS ol JOIN adempiere.c_order AS o ON o.c_order_id = ol.c_order_id WHERE o.ad_client_id = 11 AND o.issotrx = 'N' AND o.docstatus = 'CO' AND o.documentno LIKE 'FH-PO-%' AND ol.qtyordered > ol.qtydelivered GROUP BY ol.m_product_id) SELECT p.value AS sku, p.name AS product_name, p.group1 AS product_type, COALESCE(oh.qty_on_hand, 0) AS qty_on_hand, r.level_min AS reorder_point, r.level_max AS max_level, r.level_min - COALESCE(oh.qty_on_hand, 0) AS shortfall_vs_reorder_point, COALESCE(po.open_po_qty, 0) AS open_po_qty, COALESCE(po.open_po_count, 0) AS open_po_count FROM adempiere.m_product AS p JOIN adempiere.m_replenish AS r ON r.m_product_id = p.m_product_id AND r.m_warehouse_id = 103 LEFT JOIN onhand AS oh ON oh.m_product_id = p.m_product_id LEFT JOIN openpo AS po ON po.m_product_id = p.m_product_id WHERE p.ad_client_id = 11 AND p.value LIKE 'FH-%' AND p.isactive = 'Y' AND r.isactive = 'Y' AND COALESCE(oh.qty_on_hand, 0) < r.level_min ORDER BY shortfall_vs_reorder_point DESC, p.value LIMIT 200\nAssumptions made when writing it: [\"Only active Fernhollow products (SKU starting with FH-) are included.\", \"The reorder point is M_Replenish.Level_Min for HQ Warehouse 103. Inactive replenish rows are left out.\", \"A product with no stock record counts as 0 on hand.\", \"Open PO quantity is QtyOrdered minus QtyDelivered on completed (CO) Fernhollow purchase orders (FH-PO-%). Drafted POs are not counted.\"]\n\nColumns: [\"sku\", \"product_name\", \"product_type\", \"qty_on_hand\", \"reorder_point\", \"max_level\", \"shortfall_vs_reorder_point\", \"open_po_qty\", \"open_po_count\"]\nRows returned: 10; showing 10:\n[\"FH-022-1\", \"Hand Cream 2.5 oz\", \"Body\", 0, 145, 435, 145, 0, 0]\n[\"FH-017-1\", \"Tinted Sunscreen SPF 30 1.7 oz\", \"Sun Care\", 35, 78, 300, 43, 100, 1]\n[\"FH-016-1\", \"Mineral Sunscreen SPF 40 1.7 oz\", \"Sun Care\", 26, 63, 300, 37, 0, 0]\n[\"FH-025-1\", \"Eye Care Duo\", \"Bundles\", 9, 32, 300, 23, 100, 1]\n[\"FH-004-2\", \"Vitamin C Serum 2 oz\", \"Serums\", 7, 26, 300, 19, 100, 1]\n[\"FH-010-1P2\", \"Rich Barrier Cream 1.7 oz / 2-Pack\", \"Moisturizers\", 11, 26, 300, 15, 100, 1]\n[\"FH-002-1\", \"Overnight Eye Mask 0.5 oz\", \"Eye Care\", 26, 38, 300, 12, 0, 0]\n[\"FH-013-1P2\", \"Cleansing Balm 3 oz / 2-Pack\", \"Cleansers\", 8, 20, 300, 12, 100, 1]\n[\"FH-007-1P2\", \"Peptide Firming Serum 1 oz / 2-Pack\", \"Serums\", 18, 28, 300, 10, 0, 0]\n[\"FH-020-1P2\", \"Lip Repair Balm 0.35 oz / 2-Pack\", \"Lip Care\", 16, 23, 300, 7, 0, 0]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "Ten active products are below their reorder point. Five of them have 100 units each on one open purchase order, and five have nothing on order.\n\n**Products with stock on order (100 units each, on one open PO):**\n- Tinted Sunscreen SPF 30 1.7 oz: 35 on hand vs. reorder point 78 (short 43)\n- Eye Care Duo: 9 vs. 32 (short 23)\n- Vitamin C Serum 2 oz: 7 vs. 26 (short 19)\n- Rich Barrier Cream 1.7 oz / 2-Pack: 11 vs. 26 (short 15)\n- Cleansing Balm 3 oz / 2-Pack: 8 vs. 20 (short 12)\n\n**Products with nothing on order:**\n- Hand Cream 2.5 oz: 0 on hand vs. reorder point 145 (short 145). This is the biggest gap.\n- Mineral Sunscreen SPF 40 1.7 oz: 26 vs. 63 (short 37)\n- Overnight Eye Mask 0.5 oz: 26 vs. 38 (short 12)\n- Peptide Firming Serum 1 oz / 2-Pack: 18 vs. 28 (short 10)\n- Lip Repair Balm 0.35 oz / 2-Pack: 16 vs. 23 (short 7)\n\nIn total, 500 units are on open purchase orders, which covers the shortfall for each of the five products that have one. The five products with nothing on order are short a combined 211 units.",
+    "figures": [
+      {
+        "label": "Products below reorder point",
+        "value": 10,
+        "kind": "value"
+      },
+      {
+        "label": "Products with an open PO",
+        "value": 5,
+        "kind": "total"
+      },
+      {
+        "label": "Products with no open PO",
+        "value": 5,
+        "kind": "total"
+      },
+      {
+        "label": "Open PO units per covered product",
+        "value": 100,
+        "kind": "value"
+      },
+      {
+        "label": "Open POs per covered product",
+        "value": 1,
+        "kind": "value"
+      },
+      {
+        "label": "Tinted Sunscreen on hand",
+        "value": 35,
+        "kind": "value"
+      },
+      {
+        "label": "Tinted Sunscreen reorder point",
+        "value": 78,
+        "kind": "value"
+      },
+      {
+        "label": "Tinted Sunscreen shortfall",
+        "value": 43,
+        "kind": "value"
+      },
+      {
+        "label": "Eye Care Duo on hand",
+        "value": 9,
+        "kind": "value"
+      },
+      {
+        "label": "Eye Care Duo reorder point",
+        "value": 32,
+        "kind": "value"
+      },
+      {
+        "label": "Eye Care Duo shortfall",
+        "value": 23,
+        "kind": "value"
+      },
+      {
+        "label": "Vitamin C Serum on hand",
+        "value": 7,
+        "kind": "value"
+      },
+      {
+        "label": "Vitamin C Serum reorder point",
+        "value": 26,
+        "kind": "value"
+      },
+      {
+        "label": "Vitamin C Serum shortfall",
+        "value": 19,
+        "kind": "value"
+      },
+      {
+        "label": "Rich Barrier Cream 2-Pack on hand",
+        "value": 11,
+        "kind": "value"
+      },
+      {
+        "label": "Rich Barrier Cream 2-Pack reorder point",
+        "value": 26,
+        "kind": "value"
+      },
+      {
+        "label": "Rich Barrier Cream 2-Pack shortfall",
+        "value": 15,
+        "kind": "value"
+      },
+      {
+        "label": "Cleansing Balm 2-Pack on hand",
+        "value": 8,
+        "kind": "value"
+      },
+      {
+        "label": "Cleansing Balm 2-Pack reorder point",
+        "value": 20,
+        "kind": "value"
+      },
+      {
+        "label": "Cleansing Balm 2-Pack shortfall",
+        "value": 12,
+        "kind": "value"
+      },
+      {
+        "label": "Hand Cream on hand",
+        "value": 0,
+        "kind": "value"
+      },
+      {
+        "label": "Hand Cream reorder point",
+        "value": 145,
+        "kind": "value"
+      },
+      {
+        "label": "Hand Cream shortfall",
+        "value": 145,
+        "kind": "value"
+      },
+      {
+        "label": "Mineral Sunscreen on hand",
+        "value": 26,
+        "kind": "value"
+      },
+      {
+        "label": "Mineral Sunscreen reorder point",
+        "value": 63,
+        "kind": "value"
+      },
+      {
+        "label": "Mineral Sunscreen shortfall",
+        "value": 37,
+        "kind": "value"
+      },
+      {
+        "label": "Overnight Eye Mask on hand",
+        "value": 26,
+        "kind": "value"
+      },
+      {
+        "label": "Overnight Eye Mask reorder point",
+        "value": 38,
+        "kind": "value"
+      },
+      {
+        "label": "Overnight Eye Mask shortfall",
+        "value": 12,
+        "kind": "value"
+      },
+      {
+        "label": "Peptide Firming Serum 2-Pack on hand",
+        "value": 18,
+        "kind": "value"
+      },
+      {
+        "label": "Peptide Firming Serum 2-Pack reorder point",
+        "value": 28,
+        "kind": "value"
+      },
+      {
+        "label": "Peptide Firming Serum 2-Pack shortfall",
+        "value": 10,
+        "kind": "value"
+      },
+      {
+        "label": "Lip Repair Balm 2-Pack on hand",
+        "value": 16,
+        "kind": "value"
+      },
+      {
+        "label": "Lip Repair Balm 2-Pack reorder point",
+        "value": 23,
+        "kind": "value"
+      },
+      {
+        "label": "Lip Repair Balm 2-Pack shortfall",
+        "value": 7,
+        "kind": "value"
+      },
+      {
+        "label": "Total open PO units",
+        "value": 500,
+        "kind": "total"
+      },
+      {
+        "label": "Combined shortfall of products with no open PO",
+        "value": 211,
+        "kind": "total"
+      }
+    ],
+    "caveats": [
+      "The reorder point is the minimum level set for HQ Warehouse 103. On-hand stock is added up across all of the company's storage records, not just that warehouse.",
+      "Only completed Fernhollow purchase orders (FH-PO-…) count as open. Draft POs are left out. Open quantity is units ordered minus units delivered.",
+      "Only active products with an FH- SKU and an active replenishment setting are included. A product with no stock record counts as 0 on hand."
+    ]
+  }
+}
