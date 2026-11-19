@@ -1,2 +1,1 @@
-def hello() -> str:
-    return "Hello from erp-schema-agent!"
+"""LangGraph agent that answers business questions over the iDempiere schema."""

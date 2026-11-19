@@ -3,7 +3,16 @@ name = "erp-schema-agent"
 version = "0.1.0"
 description = "LangGraph agent that answers business questions over a legacy ERP schema, with guardrails, an MCP server and evals"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "erp-sandbox",
+    "langgraph>=1.2.23",
+    "mcp>=2.3.0",
+    "psycopg[binary]>=3.3.9",
+    "sqlglot>=30.33.0",
+]
+
+[project.scripts]
+schema-agent = "erp_schema_agent.cli:main"
 
 [build-system]
 requires = ["uv_build>=0.13.7,<0.14.0"]
@@ -11,3 +20,12 @@ build-backend = "uv_build"
 
 [tool.uv.sources]
 erp-sandbox = { path = "../erp-sandbox", editable = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]
+
+[tool.pytest.ini_options]
+markers = ["integration: needs the running erp-sandbox PostgreSQL"]
+testpaths = ["tests"]
