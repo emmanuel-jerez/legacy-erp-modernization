@@ -86,3 +86,11 @@ def test_run_tag_fits_po_reference_column():
 @pytest.mark.parametrize("on_hand, expected", [(35, 300), (0, 300), (290, 100), (-5, 350)])
 def test_reorder_qty_tops_up_to_max_in_vendor_packs(on_hand, expected):
     assert reorder_qty(on_hand, level_max=300, order_min=100, order_pack=50) == expected
+
+
+def test_header_readback_ignores_lines_but_checks_the_run_tag():
+    from erp_ui_operator.erpdb import compare_header
+    assert compare_header(SPEC, TAG, [order()], vendor_ids=VENDORS).passed
+    lost = compare_header(SPEC, TAG, [order(poreference=None)], vendor_ids=VENDORS)
+    assert {c.name for c in lost.failures} == {"po_reference"}
+    assert {c.name for c in compare_header(SPEC, TAG, [order(description="x")], vendor_ids=VENDORS).failures} == {"description"}

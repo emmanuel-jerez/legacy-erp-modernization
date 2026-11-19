@@ -18,6 +18,32 @@ shared rules in `../BUILD-BRIEF.md` and `../erp-sandbox/AGENTS.md`.
   UI is unreachable.
 - Tests: `uv run pytest`.
 
+## Driving iDempiere's ZK UI
+
+- **Never locate by ZK id.** Ids like `wFTB10` change per page load. Use label cells,
+  login-row labels, toolbar titles, visible text, and `instancename` attributes
+  (`C_Order0C_BPartner_ID`), as `selectors.py` does.
+- **Postconditions must prove server state, not client text.** A ZK input shows typed
+  text before the server applies it, and iDempiere skips a callout while another is still
+  running. Check a field the server computes from the value (PO Quantity after Quantity,
+  Unit Price after Product, invoice partner and price list after Business Partner), and
+  re-check values after each save. Reason: client-only checks let a draft be saved with
+  quantity 1 and without its POReference; the database check caught both.
+- **Read saved headers back from the database mid-run.** The `po.readback` check step
+  compares the stored header with the task and re-runs the header fills and save once
+  (clearing each field first so ZK sends a change) before failing. A slow partner
+  callout can reset POReference after the UI already showed the typed value.
+- **Settle means "quiet for a window", not "idle once".** iDempiere posts follow-up
+  events after a response, so `settle()` waits for ZK to stay idle for 600 ms.
+- **Repeat only idempotent actions.** A fill, select or type may be re-applied once (a
+  fill clears the field first so ZK sends a real change). Clicks are never repeated: a
+  second click can undo a row selection.
+- **Prompt text is part of the cassette key.** Changing a step goal, a postcondition's
+  description, the snapshot format or the system prompt invalidates cassettes. Re-record
+  only the misses (`ERP_LLM_MODE=record`), and say so in the commit.
+- **`/tmp/pytest-of-<user>` is shared** with the other portfolio agents; use
+  `--basetemp` when you need a run's evidence after the fact.
+
 ## Lessons from review
 
 - **Check destructive intent on every signal, not just the button text.** A harmless
@@ -41,3 +67,21 @@ shared rules in `../BUILD-BRIEF.md` and `../erp-sandbox/AGENTS.md`.
 - **Compare ids, not names, and see every row.** The verifier checks `C_BPartner_ID`
   against the one vendor with that name, and reads lines with a LEFT JOIN so a line
   without a product counts as unexpected. iDempiere ids are NUMERIC; cast them to int.
+- **Heal a selector only when the selector was the problem.** Heal after a missing
+  locator, for a proposal of the step's own action, and only if the candidate entry
+  resolves to the element the model picked, checked before the action re-renders it.
+  Reason: a late callout can make a postcondition pass after the model touched a
+  different field, and healing then would retarget later steps.
+- **Every run ends with evidence and a verdict.** The run boundary, including browser
+  setup, catches every exception, always stops the trace and closes the browser, and records a failed
+  `verification_ran` check if the database check itself errors.
+- **Deterministic actions get the same destructive check as model actions,** on the real
+  element's text, title and enclosing dialog, not just the selector-map name.
+- **Least privilege per step:** a fallback may only use actions that fit the step's kind
+  (`plan.STEP_ACTIONS`). Steps that carry a secret have no fallback, so the secret never
+  reaches the model.
+- **Keep flickering values out of prompts.** Failure reasons that go into a prompt carry
+  no counts or timings ("matches more than one element"), or cassette keys drift.
+- **Commands clean up only what they created.** `demo` deletes its own runs' drafts by
+  run tag (in a `finally`, so a failed second run still cleans the first) and replays
+  cassettes by default; only `cleanup` sweeps every tagged draft.

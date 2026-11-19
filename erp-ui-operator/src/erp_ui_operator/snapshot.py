@@ -20,7 +20,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-MAX_ELEMENTS = 90
+MAX_ELEMENTS = 120
 MAX_TEXT = 60
 INPUT_ROLES = frozenset({"textbox", "password", "combobox", "date", "number"})
 
@@ -99,7 +99,7 @@ COLLECT_JS = r"""
   };
   const out = [];
   for (const e of root.querySelectorAll(SEL)) {
-    if (out.length >= maxEls) break;
+    if (out.length > maxEls) break;  // one extra, so normalize() can report truncation
     if (!visible(e) || e.closest(EXCLUDE)) continue;
     const role = roleOf(e);
     const isInput = ['textbox', 'password', 'combobox', 'date', 'number', 'checkbox'].includes(role);

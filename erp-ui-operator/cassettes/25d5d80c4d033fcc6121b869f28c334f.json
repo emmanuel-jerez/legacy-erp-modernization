@@ -1,0 +1,67 @@
+{
+  "label": "fallback:po.vendor",
+  "model": "claude-opus-5-5",
+  "effort": "medium",
+  "recorded_at": "2026-11-19T10:15:38-0800",
+  "duration_ms": 2960,
+  "cost_usd_estimate": 0.0269189,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 2877,
+    "cache_read_input_tokens": 956,
+    "output_tokens": 169,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    }
+  },
+  "request": {
+    "system": "You are the fallback layer of a UI automation agent working in iDempiere, a legacy ERP web application.\nA deterministic step of a fixed plan failed: its locator found nothing, or its success check did not hold afterwards.\nPropose exactly ONE next UI action that achieves the step's goal on the current page.\n\nYou get a numbered list of the visible interactive elements: [index] role \"name\" value=... @region.\nRules:\n- element_index must be an index from the list (null only for \"wait\").\n- \"fill\": type the step's value into a textbox, combobox, date or number field; the executor commits it with Tab.\n- \"select\": choose an option in a dropdown field; value is the option's text.\n- \"click\": buttons, tabs, list rows, checkboxes.\n- \"press\": only the keys Enter, Escape, Tab, on the given element.\n- \"wait\": only if the page is visibly still loading.\n- Use the step's value exactly as given. Never invent or change values.\n- Controls that delete, void, complete, process, post, reverse or close documents are blocked and end the run.\n- The UI may have changed since the plan was written (renamed labels, new tooltips). Match by meaning.\nGive a one-sentence reason.",
+    "prompt": "Step: po.vendor\nGoal: Fill the vendor (business partner) field of the purchase order with 'Placeholder Contract Manufacturer A'.\nValue to enter: 'Placeholder Contract Manufacturer A'\nWhy the deterministic step failed: no visible element matches selector-map entry form_field 'Vendor'\nSuccess check: the business partner is 'Placeholder Contract Manufacturer A' and the server filled in its location, invoice partner and price list\nPage elements:\n[0] combobox \"Alt+G\" value=\"Purchase Order\" @global-search\n[1] button \"Expand\" @global-search\n[2] button \"Menu\" @global-search\n[3] combobox \"Select Query\" value=\"\" @window-toolbar\n[4] button \"Expand\" @window-toolbar\n[5] button \"Lookup Record\" @window-toolbar\n[6] button \"New\" @window-toolbar\n[7] button \"Copy Record\" @window-toolbar\n[8] button \"Save Changes\" @window-toolbar\n[9] button \"Delete Record\" @window-toolbar\n[10] button \"Undo Changes\" @window-toolbar\n[11] button \"ReQuery\" @window-toolbar\n[12] button \"Grid Toggle\" @window-toolbar\n[13] button \"Attachment\" @window-toolbar\n[14] button \"Zoom Across (where used)\" @window-toolbar\n[15] button \"Report\" @window-toolbar\n[16] button \"Process\" @window-toolbar\n[17] button \"Print\" @window-toolbar\n[18] button \"Parent Record\" @window-toolbar\n[19] button \"Detail record\" @window-toolbar\n[20] button \"Label / Tag\" @window-toolbar\n[21] button \"More\" @window-toolbar\n[22] button \"First record\" @breadcrumb\n[23] button \"Previous record\" @breadcrumb\n[24] button \"Record Info\" text=\"[ +*1/1 ]\" @breadcrumb\n[25] button \"Next record\" @breadcrumb\n[26] button \"Last record\" @breadcrumb\n[27] combobox \"Tenant\" value=\"GardenWorld\" disabled @form\n[28] combobox \"Organization\" value=\"HQ\" @form\n[29] button \"Organization\" @form\n[30] textbox \"Document No\" value=\"<<n>>\" @form\n[31] textbox \"Order Reference\" value=\"\" @form\n[32] textbox \"Description\" value=\"\" @form\n[33] combobox \"Target Document Type\" value=\"Purchase Order\" @form\n[34] button \"Target Document Type\" @form\n[35] date \"Date Ordered\" value=\"<date>\" @form\n[36] button \"Date Ordered\" @form\n[37] date \"Date Promised\" value=\"<date>\" @form\n[38] button \"Date Promised\" @form\n[39] combobox \"Business Partner\" value=\"\" @form\n[40] button \"Business Partner\" @form\n[41] combobox \"Invoice Partner\" value=\"\" @form\n[42] button \"Invoice Partner\" @form\n[43] combobox \"Partner Location\" value=\"\" @form\n[44] button \"Partner Location\" @form\n[45] combobox \"Invoice Location\" value=\"\" @form\n[46] button \"Invoice Location\" @form\n[47] combobox \"User/Contact\" value=\"\" @form\n[48] button \"User/Contact\" @form\n[49] combobox \"Invoice Contact\" value=\"\" @form\n[50] button \"Invoice Contact\" @form\n[51] combobox \"Warehouse\" value=\"HQ Warehouse\" @form\n[52] button \"Warehouse\" @form\n[53] checkbox \"Drop Shipment\" unchecked @form\n[54] combobox \"Delivery Via\" value=\"Pickup\" @form\n[55] button \"Delivery Via\" @form\n[56] combobox \"Priority\" value=\"Medium\" @form\n[57] button \"Priority\" @form\n[58] combobox \"Price List\" value=\"\" @form\n[59] button \"Price List\" @form\n[60] combobox \"Currency\" value=\"USD\" disabled @form\n[61] combobox \"Company Agent\" value=\"GardenAdmin\" @form\n[62] button \"Company Agent\" @form\n[63] checkbox \"Discount Printed\" unchecked @form\n[64] combobox \"Payment Rule\" value=\"On Credit\" @form\n[65] button \"Payment Rule\" @form\n[66] combobox \"Payment Term\" value=\"Immediate\" @form\n[67] button \"Payment Term\" @form\n[68] combobox \"Project\" value=\"\" @form\n[69] button \"Project\" @form\n[70] combobox \"Campaign\" value=\"\" @form\n[71] button \"Campaign\" @form\n[72] combobox \"Document Status\" value=\"Drafted\" disabled @form\n[73] combobox \"Document Type\" value=\"** New **\" disabled @form\n[74] number \"Total Lines\" value=\"0.00\" disabled @form\n[75] number \"Grand Total\" value=\"0.00\" disabled @form\n[76] checkbox \"Pay Schedule valid\" unchecked disabled @form\n[77] button \"Document Action\" @form\n[78] combobox \"Cash Plan Line\" value=\"\" @form\n[79] button \"Cash Plan Line\" @form\n[80] tab \"PO Line\" selected @detail-pane\n[81] tab \"Matching\" disabled @detail-pane\n[82] tab \"Requisition Lines\" disabled @detail-pane\n[83] tab \"Order Tax\" @detail-pane\n[84] tab \"Payment Schedule\" @detail-pane\n[85] tab \"Estimated Landed Cost\" @detail-pane\n[86] tab \"Estimated Landed Cost Allocation\" disabled @detail-pane\n[87] button \"Save and Create New\" @detail-pane\n[88] button \"Edit Record\" @detail-pane\n[89] button \"Delete Record\" @detail-pane\n[90] button \"Save Changes\" @detail-pane\n[91] button \"Process\" @detail-pane\n[92] button \"Quick Form\" @detail-pane\n[93] button \"Customize\" @detail-pane\n[94] button \"Grid Toggle\" @detail-pane\n[95] checkbox \"\" unchecked @detail-pane",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action",
+        "element_index",
+        "value",
+        "reason"
+      ],
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "click",
+            "fill",
+            "press",
+            "select",
+            "wait"
+          ]
+        },
+        "element_index": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "value": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 300
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 300
+        }
+      }
+    }
+  },
+  "response": {
+    "action": "fill",
+    "element_index": 39,
+    "value": "Placeholder Contract Manufacturer A",
+    "reason": "The vendor field is now labeled \"Business Partner\" on this purchase order form, so I'm entering the vendor name there."
+  }
+}

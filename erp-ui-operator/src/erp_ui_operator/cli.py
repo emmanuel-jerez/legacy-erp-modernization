@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -12,6 +13,36 @@ from . import erpdb
 from .task import TaskSpecError, load_task, validate_task
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+CASSETTES = REPO_ROOT / "cassettes"
+TASKS = REPO_ROOT / "tasks"
+
+
+def model_client(mode: str | None):
+    """The project's only model client: Claude via erp_sandbox.llm, with committed cassettes."""
+    from erp_sandbox.llm import ClaudeCodeClient
+
+    return ClaudeCodeClient(cassette_dir=CASSETTES, mode=mode)
+
+
+def _print_run(result) -> None:
+    log = result.log
+    t = log["totals"]
+    state = "SUCCESS" if result.success else "FAILED"
+    print(f"{state}  run {result.run_id}  drift={log['drift'] or 'none'}  {log['duration_ms'] / 1000:.1f}s")
+    print(f"  steps run {t['steps_run']} (skipped {t['steps_skipped']}), actions {t['actions']}, "
+          f"fallback calls {t['fallback_calls']}, guardrail blocks {t['guardrail_blocks']}")
+    for key, heal in log["healed_selectors"].items():
+        print(f"  healed {key}: {heal['from']} -> {heal['to']}")
+    order = log["verification"].get("order")
+    if order:
+        lines = ", ".join(f"{ln['sku']} x {ln['qty']}" for ln in order["lines"])
+        print(f"  database: order {order['documentno']} {order['docstatus']} for {order['vendor']}: {lines}")
+    for check in log["verification"]["checks"]:
+        if not check["passed"]:
+            print(f"  FAILED CHECK {check['name']}: {check['detail']}")
+    if log["diagnosis"]:
+        print(f"  diagnosis: {log['diagnosis']}")
+    print(f"  evidence: {result.run_dir}")
 
 
 def _positive_int(text: str) -> int:
@@ -42,6 +73,44 @@ def _cmd_derive(args: argparse.Namespace) -> int:
     else:
         sys.stdout.write(text)
     return 0
+
+
+def _run_options(args: argparse.Namespace, drift: str | None):
+    from .runner import RunOptions
+
+    return RunOptions(drift=drift, headed=args.headed)
+
+
+def _cmd_run(args: argparse.Namespace) -> int:
+    from .runner import run_task
+
+    spec = load_task(args.task)
+    result = run_task(spec, model_client(args.llm_mode), _run_options(args, args.drift))
+    _print_run(result)
+    return 0 if result.success else 1
+
+
+def _cmd_demo(args: argparse.Namespace) -> int:
+    from .runner import new_run_id, run_task
+
+    # Offline by default: fallback decisions come from committed cassettes. Pass
+    # --llm-mode record (or live) to let a cassette miss call the model.
+    client = model_client(args.llm_mode or os.environ.get("ERP_LLM_MODE") or "replay")
+    results = []
+    run_ids: list[str] = []
+    try:
+        for task_file, drift in ((TASKS / "restock-2-lines.json", None), (TASKS / "restock-1-line.json", "drifted")):
+            spec = load_task(task_file)
+            print(f"\n== {spec.name} ({'drifted selector map' if drift else 'clean selector map'})")
+            run_ids.append(new_run_id())
+            result = run_task(spec, client, _run_options(args, drift), run_id=run_ids[-1])
+            _print_run(result)
+            results.append(result)
+    finally:
+        if not args.keep:
+            deleted = sum(erpdb.cleanup(tag=erpdb.RunTag(r))[1] for r in run_ids)
+            print(f"\ncleanup: deleted {deleted} draft purchase order(s) created by this demo's runs")
+    return 0 if all(r.success for r in results) else 1
 
 
 def _cmd_verify(args: argparse.Namespace) -> int:
@@ -89,6 +158,23 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--name", default=None, help="task name (default: derived from the vendor)")
     p.add_argument("--out", default=None, help="write the spec here instead of stdout")
     p.set_defaults(func=_cmd_derive)
+
+    def ui_flags(p: argparse.ArgumentParser) -> None:
+        p.add_argument("--headed", action="store_true", help="show the browser window")
+        p.add_argument("--llm-mode", choices=("replay", "record", "live"), default=None,
+                       help="cassette mode for fallback calls (default: ERP_LLM_MODE, else record; "
+                            "demo defaults to replay)")
+
+    p = sub.add_parser("run", help="create one draft purchase order through the web UI")
+    p.add_argument("task", help="task spec JSON")
+    p.add_argument("--drift", default=None, help="perturb the selector map with a drift profile (e.g. drifted)")
+    ui_flags(p)
+    p.set_defaults(func=_cmd_run)
+
+    p = sub.add_parser("demo", help="one clean and one drifted task against the live UI, then cleanup")
+    p.add_argument("--keep", action="store_true", help="keep the demo's draft orders")
+    ui_flags(p)
+    p.set_defaults(func=_cmd_demo)
 
     p = sub.add_parser("verify", help="check a run's order in the database")
     p.add_argument("task", help="task spec JSON")

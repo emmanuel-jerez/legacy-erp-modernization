@@ -170,6 +170,16 @@ def compare(
     return Verification(passed=all(c.passed for c in checks), checks=checks, order=order)
 
 
+def compare_header(spec: TaskSpec, tag: RunTag, orders: list[OrderRow], *, vendor_ids: list[int]) -> Verification:
+    """The header checks of ``compare`` alone, for reading a saved header back mid-run."""
+    full = compare(spec, tag, orders, [], vendor_ids=vendor_ids)
+    header = [c for c in full.checks if c.name != "lines_match"]
+    if len(orders) == 1:
+        o = orders[0]
+        header.append(Check("description", o.description == tag.description(spec), f"Description={o.description!r}"))
+    return Verification(passed=all(c.passed for c in header), checks=header, order=full.order)
+
+
 def _untouched(before: dict[str, Any], after: dict[str, Any] | None) -> Check:
     changed = sorted(k for k in before if after is None or before.get(k) != after.get(k))
     return Check(
