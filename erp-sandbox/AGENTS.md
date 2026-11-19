@@ -47,3 +47,7 @@ The shared foundation for the portfolio's agent demos. Read [README.md](README.m
 - **Every adapter failure is a `ModelError`.** Callers' eval harnesses catch that type
   only, so launching the CLI, writing the prompt file, decoding output, reading or saving
   a cassette, and unexpected JSON shapes all re-raise as `ModelError`.
+- **Every row in a batch insert carries the same keys.** `_insert` takes its column list
+  from the first row and raises if any row's keys differ, because a key set on only some
+  rows would otherwise be dropped silently. Set the default on every row (for example
+  `"discontinued": "N"`) and override it where needed.

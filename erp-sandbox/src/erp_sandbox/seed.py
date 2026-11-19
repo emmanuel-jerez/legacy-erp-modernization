@@ -121,6 +121,10 @@ def _insert(conn: psycopg.Connection, table: str, rows: list[dict[str, Any]], uu
     if not rows:
         return
     columns = list(rows[0].keys())
+    mismatched = [i for i, row in enumerate(rows) if row.keys() != rows[0].keys()]
+    if mismatched:
+        # The column list comes from the first row; a key on only some rows would be dropped.
+        raise ValueError(f"{table}: rows {mismatched[:5]} have different keys from row 0")
     placeholders = ", ".join(["%s"] * len(columns))
     uu_sql = f", {uu}" if uu else ""
     uu_val = ", gen_random_uuid()::text" if uu else ""
@@ -303,7 +307,7 @@ def seed(conn: psycopg.Connection) -> dict[str, int]:
                 "sku": variant["sku"], "group1": item["product_type"], "group2": item["handle"],
                 "weight": Decimal(variant["grams"]) / 1000, "c_uom_id": UOM_EACH,
                 "m_product_category_id": category_id, "c_taxcategory_id": TAX_CATEGORY, "producttype": "I",
-                "issold": "Y", "ispurchased": "Y", "isstocked": "Y",
+                "issold": "Y", "ispurchased": "Y", "isstocked": "Y", "discontinued": "N",
             })
     # Retire two variants so "active products" questions have a trap.
     retired = {products[5].id, products[-3].id}

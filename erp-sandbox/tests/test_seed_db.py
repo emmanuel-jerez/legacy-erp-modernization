@@ -35,6 +35,7 @@ def scalar(conn, query: str) -> int:
 def test_seed_counts_are_stable(conn):
     assert scalar(conn, "SELECT count(*) FROM m_product WHERE value LIKE 'FH-%'") == 56
     assert scalar(conn, "SELECT count(*) FROM m_product WHERE value LIKE 'FH-%' AND isactive = 'N'") == 2
+    assert scalar(conn, "SELECT count(*) FROM m_product WHERE value LIKE 'FH-%' AND discontinued = 'Y'") == 2
     assert scalar(conn, "SELECT count(*) FROM c_order WHERE documentno LIKE 'FH-SO-%'") == 9000
     assert scalar(conn, "SELECT count(*) FROM c_order WHERE documentno LIKE 'FH-PO-%'") == 36
     assert scalar(conn, "SELECT count(*) FROM c_bpartner WHERE value LIKE 'DEMO-C%'") == 320
