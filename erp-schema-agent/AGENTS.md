@@ -59,3 +59,21 @@ uv run pytest                     # integration tests skip when the database is 
   The seed meant to mark retired products `Discontinued = 'Y'` but never writes it; a
   glossary that repeated the intent would have taught the model a filter that matches
   nothing. Query each convention before writing it down.
+- **A verification check must be able to fail, and must accept what is true.** The first
+  grounding check matched any figure within 0.5% of hundreds of derived values, so most
+  invented numbers passed; tightening it alone then rejected legitimate "top 3 total"
+  or "revenue per order" figures. The fix that held: the answer model declares each
+  figure's kind (value, total, share, change, ratio) and the check compares it only with
+  candidates of that kind, by display rounding. When adding a deterministic check, test
+  both sides: near misses that must fail and real derivations that must pass.
+- **Screen user text narrowly; leave judgement to the layered guardrails.** Single words
+  such as "pins", "tokens" or "secret" are product names as often as credentials, so the
+  intent screen matches credential phrases only. Plain-English write requests go to the
+  model's refusal, then the validator and the role.
+- **Each repair attempt replaces the previous attempt's state.** `generate` clears the
+  generation, verdict and rows (also on a model error), so a failed run never reports an
+  earlier attempt's SQL. Every node that can set a terminal status needs a conditional
+  edge to END; a plain edge carries a failed run into the next node.
+- **Screen patterns must cover the syntax they claim.** `update \w+ set` missed
+  `update adempiere.c_order set`; identifiers in screen and validator patterns allow
+  schema qualification and quoting (`[\w."]+`).
