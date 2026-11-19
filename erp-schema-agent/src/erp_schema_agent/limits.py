@@ -18,6 +18,7 @@ MAX_REPAIR_ATTEMPTS = 2
 RECURSION_LIMIT = 4 * (MAX_REPAIR_ATTEMPTS + 1) + 8
 # Database statement timeout, applied by the role default and again per transaction.
 STATEMENT_TIMEOUT_MS = 5_000
+STATEMENT_TIMEOUT_S = STATEMENT_TIMEOUT_MS // 1000
 # Further database session limits for the read-only role.
 LOCK_TIMEOUT_MS = 1_000
 IDLE_IN_TRANSACTION_TIMEOUT_MS = 10_000

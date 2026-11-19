@@ -30,8 +30,15 @@ from __future__ import annotations
 import psycopg
 from psycopg import sql
 
+from erp_sandbox import config
+
 from . import limits, settings
 from .policy import is_sensitive_column
+
+
+def admin_dsn() -> str:
+    """Cluster-admin connection to the project database: role setup and test fixtures only."""
+    return config.dsn(settings.DB_NAME)
 
 
 def _relations(conn: psycopg.Connection) -> dict[str, list[str]]:
@@ -55,7 +62,7 @@ def setup_readonly_role() -> dict[str, int]:
     role = sql.Identifier(settings.RO_ROLE)
     db = sql.Identifier(settings.DB_NAME)
     schema = sql.Identifier(settings.SCHEMA)
-    with psycopg.connect(settings.admin_dsn()) as conn:
+    with psycopg.connect(admin_dsn()) as conn:
         exists = conn.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", (settings.RO_ROLE,)).fetchone()
         if not exists:
             conn.execute(sql.SQL("CREATE ROLE {}").format(role))

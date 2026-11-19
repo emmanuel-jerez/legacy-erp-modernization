@@ -8,7 +8,7 @@ from __future__ import annotations
 import pytest
 
 from erp_schema_agent.executor import QueryError, run_readonly
-from erp_schema_agent.limits import MAX_ROWS, STATEMENT_TIMEOUT_MS
+from erp_schema_agent.limits import MAX_ROWS, STATEMENT_TIMEOUT_S
 
 pytestmark = pytest.mark.integration
 
@@ -55,7 +55,7 @@ def test_role_cannot_write(readonly_db):
 
 def test_role_session_defaults(readonly_db):
     assert run_readonly("SHOW default_transaction_read_only").rows == [["on"]]
-    assert run_readonly("SHOW statement_timeout").rows == [[f"{STATEMENT_TIMEOUT_MS // 1000}s"]]
+    assert run_readonly("SHOW statement_timeout").rows == [[f"{STATEMENT_TIMEOUT_S}s"]]
 
 
 def test_executor_caps_rows(readonly_db):

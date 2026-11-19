@@ -77,3 +77,12 @@ uv run pytest                     # integration tests skip when the database is 
 - **Screen patterns must cover the syntax they claim.** `update \w+ set` missed
   `update adempiere.c_order set`; identifiers in screen and validator patterns allow
   schema qualification and quoting (`[\w."]+`).
+- **Name every number a user or model can see, and scan for it.** The MCP `ask` tool
+  sliced rows with a hand-typed 20 and the timeout was derived in three places. Limits
+  are constants in `limits.py` (derived ones too, such as `STATEMENT_TIMEOUT_S`), and
+  `tests/test_limit_drift.py` scans prompts, MCP tool and parameter descriptions and the
+  docs for numbers quoted with a limit's unit ("200-row", "5 s", "two retries") so a
+  retyped number fails. Docs must not quote non-limit numbers in those units.
+- **Prove isolation with an allow-list, not a deny-list.** The MCP import test checks the
+  exact set of project modules the server loads, including the ones `ask` imports
+  lazily; the admin DSN lives in `roles.py` so read-only code cannot reach it.

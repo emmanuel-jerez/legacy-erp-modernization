@@ -13,6 +13,7 @@ dependencies = [
 
 [project.scripts]
 schema-agent = "erp_schema_agent.cli:main"
+schema-agent-mcp = "erp_schema_agent.mcp_server:main"
 
 [build-system]
 requires = ["uv_build>=0.13.7,<0.14.0"]

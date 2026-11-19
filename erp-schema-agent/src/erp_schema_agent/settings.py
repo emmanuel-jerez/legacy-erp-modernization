@@ -22,6 +22,3 @@ CASSETTE_DIR = Path(os.environ.get("SCHEMA_AGENT_CASSETTES", REPO_ROOT / "casset
 def ro_dsn() -> str:
     return config.dsn(DB_NAME, user=RO_ROLE, password=RO_PASSWORD)
 
-
-def admin_dsn() -> str:
-    return config.dsn(DB_NAME)

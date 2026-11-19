@@ -3,12 +3,12 @@ from __future__ import annotations
 import psycopg
 import pytest
 
-from erp_schema_agent import limits, settings
+from erp_schema_agent import limits, roles
 
 
 def _database_up() -> bool:
     try:
-        with psycopg.connect(settings.admin_dsn(), connect_timeout=limits.CONNECT_TIMEOUT_S):
+        with psycopg.connect(roles.admin_dsn(), connect_timeout=limits.CONNECT_TIMEOUT_S):
             return True
     except psycopg.Error:
         return False

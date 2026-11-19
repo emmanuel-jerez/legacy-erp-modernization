@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from ..limits import ANSWER_ROWS, MAX_REPAIR_ATTEMPTS, MAX_ROWS, STATEMENT_TIMEOUT_MS
+from ..limits import ANSWER_ROWS, MAX_REPAIR_ATTEMPTS, MAX_ROWS, STATEMENT_TIMEOUT_S
 
 GENERATE_SYSTEM = f"""\
 You are a careful analytics engineer answering business questions over an iDempiere ERP
@@ -25,7 +25,7 @@ Rules:
 - Follow the tenant conventions in the context exactly; they override what the generic
   dictionary text suggests.
 - Results are capped at {MAX_ROWS} rows and queries time out after
-  {STATEMENT_TIMEOUT_MS // 1000} seconds, so aggregate in SQL instead of returning raw rows.
+  {STATEMENT_TIMEOUT_S} seconds, so aggregate in SQL instead of returning raw rows.
 - Name output columns clearly, keep identifiers (SKU, name, document number) next to
   figures, and round money to 2 decimals.
 - If an attempt failed, you see the validator's or the database's reason; fix the
