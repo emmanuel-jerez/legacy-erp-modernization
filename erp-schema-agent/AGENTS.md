@@ -16,8 +16,9 @@ uv run pytest                     # integration tests skip when the database is 
 - The agent and the MCP server only ever touch the database through
   `executor.run_readonly`, which connects as the read-only role. Admin credentials are
   used by `roles.setup_readonly_role` and by tests' setup only.
-- Every limit (row cap, timeouts, connection limits, retries, SQL length) lives in
-  `limits.py`, including test and connect timeouts. Prompts, tool descriptions and docs
+- Every enforced limit (row cap, timeouts, connection limits, retries, SQL length) lives
+  in `limits.py`, including test and connect timeouts. Context budgets (how many tables
+  or columns retrieval shows the model) are named constants in `retrieval/`. Prompts, tool descriptions and docs
   interpolate those constants instead of retyping numbers; so do tests.
 - Model calls go through `erp_sandbox.llm` (`ClaudeCodeClient` live, `ScriptedModelClient`
   in unit tests). Never call the live model from tests.
@@ -51,3 +52,10 @@ uv run pytest                     # integration tests skip when the database is 
   holding no write grants; `default_transaction_read_only` is a session default the
   session could change. PUBLIC catalog access remains at the database layer and only
   the validator blocks it; docstrings and the README must say so.
+- **Give everything that feeds a prompt a total order.** Prompts are cassette keys, so
+  catalog queries need `ORDER BY`, loops over sets go through `sorted()`, and ties get an
+  explicit key. A column with two FK targets made the snapshot depend on row order.
+- **Verify glossary facts against the database, not against what the seed intends.**
+  The seed meant to mark retired products `Discontinued = 'Y'` but never writes it; a
+  glossary that repeated the intent would have taught the model a filter that matches
+  nothing. Query each convention before writing it down.

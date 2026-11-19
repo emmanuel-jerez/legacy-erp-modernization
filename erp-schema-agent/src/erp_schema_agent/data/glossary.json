@@ -1,0 +1,182 @@
+{
+  "conventions": [
+    "Fernhollow Skincare (a fictional brand) lives in iDempiere's GardenWorld tenant, AD_Client_ID = 11. GardenWorld's own demo records share that tenant; unless the question is explicitly about GardenWorld, restrict every query to Fernhollow records by their prefixes.",
+    "Fernhollow prefixes: products M_Product.Value LIKE 'FH-%' (Value is the SKU); sales orders C_Order.DocumentNo LIKE 'FH-SO-%'; purchase orders C_Order.DocumentNo LIKE 'FH-PO-%'; customers C_BPartner.Value LIKE 'DEMO-C%' (names 'Demo Customer NNNN'); vendors C_BPartner.Value LIKE 'PH-VEND-%'.",
+    "C_Order holds both sales and purchase orders: IsSOTrx = 'Y' for sales, 'N' for purchases. Lines are in C_OrderLine (C_Order_ID).",
+    "DocStatus: CO = Completed, CL = Closed, VO = Voided, IP = In Progress, DR = Drafted. Booked sales and revenue count only CO and CL orders. Voided orders never count (their quantities and amounts are zero but they still exist as rows, so they inflate order counts and averages). 'Open', 'pending' or 'in progress' sales orders means DocStatus = 'IP'.",
+    "Revenue / sales amount = SUM(C_OrderLine.LineNetAmt) over booked sales order lines (equal to C_Order.GrandTotal summed per order; the seed has no tax). Units sold = SUM(C_OrderLine.QtyOrdered). Order date = C_Order.DateOrdered (a timestamp); for a date range use DateOrdered >= start AND DateOrdered < day after end.",
+    "Y/N flags are CHAR(1) 'Y'/'N'. IsActive = 'N' marks retired/inactive records; for products it is the only reliable retirement marker (do not rely on Discontinued). 'Current', 'active' or 'sellable' products exclude them.",
+    "Inventory: on-hand quantity is M_StorageOnHand.QtyOnHand summed per product (HQ Warehouse, M_Warehouse_ID 103, locator 101). The reorder point is M_Replenish.Level_Min (Level_Max is the maximum level), per product and warehouse. 'Below reorder point' means on-hand < Level_Min.",
+    "Open purchase order quantity = SUM(C_OrderLine.QtyOrdered - C_OrderLine.QtyDelivered) on lines of completed (CO) purchase orders (IsSOTrx = 'N') where QtyOrdered > QtyDelivered. Drafted (DR) purchase orders are not placed yet and do not count.",
+    "Customer state/region: C_Order.C_BPartner_Location_ID -> C_BPartner_Location.C_Location_ID -> C_Location.C_Region_ID -> C_Region.Name (two-letter code: CA, NY, FL, WA, IL, TX; C_Region.Description has the full name, e.g. 'California').",
+    "Prices: M_ProductPrice rows per price list version. Sales price list version M_PriceList_Version_ID = 104 (PriceStd = selling price, PriceList = compare-at/list price, PriceLimit = floor); purchase price list version 103 (cost). Vendor terms: M_Product_PO (C_BPartner_ID = vendor, IsCurrentVendor, PricePO, DeliveryTime_Promised = lead time in days, Order_Min, Order_Pack).",
+    "Sales order history runs from 2025-12-01 to 2026-11-15 (purchase orders start in November 2025); treat 2026-11-15 as 'today' for relative dates.",
+    "Return human-readable identifiers (SKU, product name, customer name, document number) next to figures, round money to 2 decimals, and name output columns clearly."
+  ],
+  "terms": [
+    {
+      "terms": [
+        "revenue",
+        "sales",
+        "sold",
+        "sell",
+        "turnover",
+        "order value",
+        "aov",
+        "basket"
+      ],
+      "tables": [
+        "c_order",
+        "c_orderline"
+      ]
+    },
+    {
+      "terms": [
+        "order",
+        "orders",
+        "sales order"
+      ],
+      "tables": [
+        "c_order",
+        "c_orderline"
+      ]
+    },
+    {
+      "terms": [
+        "customer",
+        "customers",
+        "buyer",
+        "shopper",
+        "client"
+      ],
+      "tables": [
+        "c_bpartner",
+        "c_order"
+      ]
+    },
+    {
+      "terms": [
+        "vendor",
+        "vendors",
+        "supplier",
+        "suppliers",
+        "manufacturer",
+        "lead time"
+      ],
+      "tables": [
+        "m_product_po",
+        "c_bpartner"
+      ]
+    },
+    {
+      "terms": [
+        "state",
+        "states",
+        "region",
+        "regions",
+        "geography",
+        "where",
+        "california",
+        "new york",
+        "florida",
+        "washington",
+        "illinois",
+        "texas",
+        "ca",
+        "ny",
+        "fl",
+        "wa",
+        "il",
+        "tx"
+      ],
+      "tables": [
+        "c_region",
+        "c_location",
+        "c_bpartner_location"
+      ]
+    },
+    {
+      "terms": [
+        "reorder point",
+        "reorder",
+        "restock",
+        "replenish",
+        "minimum level",
+        "maximum level",
+        "safety stock"
+      ],
+      "tables": [
+        "m_replenish",
+        "m_storageonhand"
+      ]
+    },
+    {
+      "terms": [
+        "on hand",
+        "on-hand",
+        "stock",
+        "inventory",
+        "in stock",
+        "out of stock"
+      ],
+      "tables": [
+        "m_storageonhand",
+        "m_product"
+      ]
+    },
+    {
+      "terms": [
+        "purchase order",
+        "purchase orders",
+        "po",
+        "pos",
+        "incoming",
+        "inbound"
+      ],
+      "tables": [
+        "c_order",
+        "c_orderline"
+      ]
+    },
+    {
+      "terms": [
+        "price",
+        "prices",
+        "list price",
+        "compare-at",
+        "msrp",
+        "cost",
+        "margin"
+      ],
+      "tables": [
+        "m_productprice",
+        "m_product_po"
+      ]
+    },
+    {
+      "terms": [
+        "product",
+        "products",
+        "sku",
+        "skus",
+        "item",
+        "items",
+        "retired",
+        "discontinued"
+      ],
+      "tables": [
+        "m_product"
+      ]
+    },
+    {
+      "terms": [
+        "warehouse",
+        "locator"
+      ],
+      "tables": [
+        "m_warehouse",
+        "m_locator"
+      ]
+    }
+  ]
+}
