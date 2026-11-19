@@ -1,0 +1,13 @@
+[project]
+name = "erp-ui-operator"
+version = "0.1.0"
+description = "Playwright and LLM hybrid that completes tasks in a legacy ERP web UI, verified against the database"
+requires-python = ">=3.12"
+dependencies = []
+
+[build-system]
+requires = ["uv_build>=0.13.7,<0.14.0"]
+build-backend = "uv_build"
+
+[tool.uv.sources]
+erp-sandbox = { path = "../erp-sandbox", editable = true }
