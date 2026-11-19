@@ -1,0 +1,406 @@
+{
+  "label": "currencyround:edge_cases",
+  "model": "claude-opus-5-5",
+  "effort": "medium",
+  "recorded_at": "2026-11-19T09:48:01-0800",
+  "duration_ms": 20203,
+  "cost_usd_estimate": 0.0928252,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 5803,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 2293,
+    "output_tokens_details": {
+      "thinking_tokens": 453
+    }
+  },
+  "request": {
+    "system": "You modernize legacy ERP business rules. You are given a PL/pgSQL function from iDempiere (a 20-year-old open-source ERP) and you help port it to Python that behaves identically, bug for bug. The legacy function is the oracle: when the source and your intuition disagree, the source wins, including its quirks. Reply only with JSON matching the schema; a harness validates and executes what you propose.",
+    "prompt": "## Legacy function adempiere.currencyround(p_amount numeric, p_curto_id numeric, p_costing character varying) RETURNS numeric [STABLE]\n```sql\nCREATE OR REPLACE FUNCTION adempiere.currencyround(p_amount numeric, p_curto_id numeric, p_costing character varying)\n RETURNS numeric\n LANGUAGE plpgsql\n STABLE\nAS $function$\n\n/*************************************************************************\n * The contents of this file are subject to the Compiere License.  You may\n * obtain a copy of the License at    http://www.compiere.org/license.html\n * Software is on an  \"AS IS\" basis,  WITHOUT WARRANTY OF ANY KIND, either\n * express or implied. See the License for details. Code: Compiere ERP+CRM\n * Copyright (C) 1999-2001 Jorg Janke, ComPiere, Inc. All Rights Reserved.\n *\n * converted to postgreSQL by Karsten Thiemann (Schaeffer AG), \n * kthiemann@adempiere.org\n *************************************************************************\n ***\n * Title:\tRound amount for Traget Currency\n * Description:\n *\t\tRound Amount using Costing or Standard Precision\n *\t\tReturns unmodified amount if currency not found\n * Test:\n *\t\tSELECT currencyRound(currencyConvert(100,116,100,null,null),100,null) FROM AD_System => 64.72 \n ************************************************************************/\n\t\n\t\nDECLARE\n\tv_StdPrecision\t\tint;\n\tv_CostPrecision\t\tint;\n\nBEGIN\n\t--\tNothing to convert\n\tIF (p_Amount IS NULL OR p_CurTo_ID IS NULL) THEN\n\t\tRETURN p_Amount;\n\tEND IF;\n\n\t--\tGer Precision\n\tSELECT\tMAX(StdPrecision), MAX(CostingPrecision)\n\t  INTO\tv_StdPrecision, v_CostPrecision\n\tFROM\tC_Currency\n\t  WHERE\tC_Currency_ID = p_CurTo_ID;\n\t--\tCurrency Not Found\n\tIF (v_StdPrecision IS NULL) THEN\n\t\tRETURN p_Amount;\n\tEND IF;\n\n\tIF (p_Costing = 'Y') THEN\n\t\tRETURN ROUND (p_Amount, v_CostPrecision);\n\tEND IF;\n\n\tRETURN ROUND (p_Amount, v_StdPrecision);\n\t\nEND;\n\n$function$\n```\n## Schema functions it calls (directly, transitively, or through operators)\n```sql\nCREATE OR REPLACE FUNCTION adempiere.round(numeric, numeric)\n RETURNS numeric\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\n BEGIN\n\tRETURN ROUND($1, cast($2 as integer));\n END;\n$function$\n```\n## Tables it reads (columns the source names; primary key first)\n- c_currency (175 rows): c_currency_id numeric, stdprecision numeric, costingprecision numeric\n## Session\nThe oracle runs with TimeZone = 'America/Los_Angeles' and search_path = adempiere, pg_catalog. Unqualified function calls resolve against adempiere first.\n\n## Spec from the analysis step\n{\"branches\": [{\"behavior\": \"Return p_amount (NULL, or the amount unchanged if only the currency id is NULL).\", \"condition\": \"p_amount IS NULL OR p_curto_id IS NULL\"}, {\"behavior\": \"Return p_amount unchanged, with its original scale.\", \"condition\": \"No C_Currency row with C_Currency_ID = p_curto_id, or that row's StdPrecision IS NULL\"}, {\"behavior\": \"Return ROUND(p_amount, int(CostingPrecision)). If CostingPrecision is NULL, return NULL.\", \"condition\": \"p_costing = 'Y' (case-sensitive, exact match)\"}, {\"behavior\": \"Return ROUND(p_amount, int(StdPrecision)).\", \"condition\": \"Otherwise (p_costing NULL, 'N', 'y', '', etc.)\"}], \"date_time_semantics\": \"None. The function has no date or time logic, so the session TimeZone does not matter.\", \"edge_cases\": [\"amount NULL → NULL (even with an invalid currency)\", \"currency id NULL → amount unchanged, scale kept (1.23456 stays 1.23456)\", \"currency id not found (e.g. 999999) → amount unchanged\", \"non-integer currency id such as 100.5 → numeric equality matches no row → amount unchanged\", \"currency id 100.0 matches the row with id 100 (numeric equality)\", \"costing 'Y' vs 'y' vs 'N' vs NULL vs '' vs 'Y ' (trailing space: varchar comparison does not match 'Y')\", \"half cases: 2.345, -2.345, 0.5, -0.5 at precision 2 or 0\", \"result scale padding: 5 at precision 2 → 5.00; 5.000000 at precision 2 → 5.00\", \"StdPrecision present but CostingPrecision NULL, with costing='Y' → NULL\", \"StdPrecision NULL but CostingPrecision present → amount unchanged even when costing='Y'\", \"negative precision in the table (e.g. -2) → round to hundreds, scale 0\", \"fractional precision in the table (2.5 → 3, 2.4 → 2) caused by the int assignment\", \"precision too large for int → error\", \"NaN amount → NaN\", \"the docstring example: currency 100 (USD), StdPrecision 2\"], \"inputs\": [{\"meaning\": \"Amount to round\", \"name\": \"p_amount\", \"null_behavior\": \"NULL returns NULL right away. No table lookup happens.\", \"pg_type\": \"numeric\"}, {\"meaning\": \"Target currency, C_Currency.C_Currency_ID\", \"name\": \"p_curto_id\", \"null_behavior\": \"NULL returns p_amount unchanged.\", \"pg_type\": \"numeric\"}, {\"meaning\": \"'Y' means use CostingPrecision. Any other value means use StdPrecision.\", \"name\": \"p_costing\", \"null_behavior\": \"NULL is not 'Y' (the comparison gives NULL, which counts as false), so StdPrecision is used.\", \"pg_type\": \"character varying\"}], \"null_semantics\": \"A NULL amount or currency id makes the function return the amount as-is. A missing currency and a NULL StdPrecision are treated the same way: the amount comes back unchanged. A NULL p_costing falls through to standard precision. A NULL CostingPrecision is not checked. When costing='Y' it leads to ROUND(x, NULL), which is NULL, so the function returns NULL instead of falling back.\", \"output\": {\"meaning\": \"The amount rounded to the chosen precision. The result's scale equals the precision (or 0 if the precision is negative). Otherwise the original amount is returned unchanged, keeping its original scale.\", \"null_behavior\": \"NULL when p_amount is NULL. Also NULL when p_costing='Y', StdPrecision is not NULL, and CostingPrecision is NULL, because ROUND(x, NULL) is NULL.\", \"pg_type\": \"numeric\"}, \"porting_risks\": [\"Using Python round() or float gives banker's rounding and binary float error. Use Decimal with ROUND_HALF_UP.\", \"Normalizing the result or dropping trailing zeros changes the scale: PG returns 5.00, not 5.\", \"A port might fall back to StdPrecision when CostingPrecision is NULL. The legacy function returns NULL instead.\", \"Lowercasing or trimming p_costing would change behavior. The comparison is an exact, case-sensitive match with 'Y'.\", \"Passing precision straight from the DB without converting it to int the PG way (half away from zero) is a risk. Python int() truncates instead.\", \"A port might treat a missing currency as an error. The legacy function returns the amount unchanged and keeps its original scale; do not quantize it.\", \"Casting the currency id to int before the lookup would let 100.5 match currency 100. PG compares numeric to numeric and finds no match.\", \"quantize with a negative exponent: Decimal('1250').quantize(Decimal('1E2')) gives 1.3E+3. Convert it back to scale 0 (e.g. quantize(Decimal(1)) afterwards) so it matches PG's 1300.\", \"Decimal quantize can raise InvalidOperation when the context precision is too small. Raise the context precision to handle large numerics.\", \"Caching currency precision for the duration of a statement is fine (the function is STABLE), but data changes between statements must be visible.\"], \"rounding_semantics\": \"Numeric ROUND rounds half away from zero: 2.345→2.35, -2.345→-2.35, 0.5→1 at precision 0. In Python this is Decimal.quantize(Decimal(1).scaleb(-p), ROUND_HALF_UP), not banker's rounding. The result's scale is fixed at the precision, so 5 at precision 2 becomes 5.00 (trailing zeros are kept). Negative precision rounds to the left of the decimal point: round(1250, -2)=1300, and the result has scale 0. Before rounding, the numeric precision values are assigned to int variables, which rounds them half away from zero (2.5→3, 1.4→1). Values outside the int range raise an 'integer out of range' error. ROUND(numeric, int) resolves to pg_catalog.round, which is an exact type match. The adempiere.round(numeric,numeric) wrapper would give the same result anyway. NaN stays NaN. On PG14+, ±Infinity stays ±Infinity.\", \"summary\": \"Rounds an amount to the target currency's precision. If the amount or currency id is NULL, it returns the amount unchanged. Otherwise it looks up MAX(StdPrecision) and MAX(CostingPrecision) in C_Currency for the given id. If no row is found, or the row's StdPrecision is NULL, it returns the amount unchanged. If p_costing is exactly 'Y', it returns ROUND(amount, CostingPrecision). Otherwise it returns ROUND(amount, StdPrecision). Both precisions are first stored in PL/pgSQL int variables, which converts the numeric values to integers with rounding.\", \"table_dependencies\": [{\"columns\": [\"c_currency_id\", \"stdprecision\", \"costingprecision\"], \"purpose\": \"Look up the standard and costing precision for the target currency. The query uses MAX() as an aggregate, so it always returns one row, which is all NULL when nothing matches.\", \"table\": \"c_currency\"}]}\n\n## Task\nPropose at most 20 edge cases that would expose a wrong port: boundaries, NULLs,\nunusual dates (month ends, leap days, daylight-saving changes in the session time zone), rounding\nties, and configurations the seed data lacks. The seed data is already sampled separately, so focus\non what it does not cover.\n\nEach case gives `args` positionally, as strings in PostgreSQL input syntax or null:\n  - p_amount (numeric)\n  - p_curto_id (numeric)\n  - p_costing (character varying)\nTimestamps with time zone may include an offset (e.g. 2026-03-08T01:30:00-08:00); without one they are\nread in the session time zone.\n\nA case may add up to 3 `fixtures`: synthetic rows inserted for that case only\n(in a transaction that is rolled back). A fixture copies the row whose primary key is `clone_from`,\ntakes the new primary key `id` (must be between 990000 and 999999),\nand overrides the columns in `set` (values as strings in PostgreSQL input syntax, or null). Fixtures\nare allowed in: c_currency. The harness assigns unique name/value/uuid columns itself. Reference a\nfixture from `args` by its id.",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cases"
+      ],
+      "properties": {
+        "cases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "rationale",
+              "args",
+              "fixtures"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "rationale": {
+                "type": "string"
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "fixtures": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "table",
+                    "id",
+                    "clone_from",
+                    "set"
+                  ],
+                  "properties": {
+                    "table": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "integer"
+                    },
+                    "clone_from": {
+                      "type": "integer"
+                    },
+                    "set": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "column",
+                          "value"
+                        ],
+                        "properties": {
+                          "column": {
+                            "type": "string"
+                          },
+                          "value": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "cases": [
+      {
+        "name": "null_amount_invalid_currency",
+        "rationale": "A NULL amount returns NULL straight away, before any lookup.",
+        "args": [
+          null,
+          "999999",
+          "Y"
+        ],
+        "fixtures": []
+      },
+      {
+        "name": "null_currency_keeps_scale",
+        "rationale": "A NULL currency id returns the amount unchanged, keeping its full scale.",
+        "args": [
+          "1.23456",
+          null,
+          "N"
+        ],
+        "fixtures": []
+      },
+      {
+        "name": "currency_not_found",
+        "rationale": "A missing currency returns the amount unchanged, not quantized.",
+        "args": [
+          "1.23456789",
+          "999999",
+          "N"
+        ],
+        "fixtures": []
+      },
+      {
+        "name": "fractional_currency_id",
+        "rationale": "100.5 must not match currency 100, because numeric equality is used rather than an int cast.",
+        "args": [
+          "1.23456",
+          "100.5",
+          null
+        ],
+        "fixtures": []
+      },
+      {
+        "name": "currency_id_with_trailing_zero",
+        "rationale": "100.0 equals 100 under numeric equality, so the half tie rounds up.",
+        "args": [
+          "2.345",
+          "100.0",
+          "N"
+        ],
+        "fixtures": []
+      },
+      {
+        "name": "negative_half_tie",
+        "rationale": "Half away from zero: -2.345 becomes -2.35, not banker's rounding.",
+        "args": [
+          "-2.345",
+          "100",
+          null
+        ],
+        "fixtures": []
+      },
+      {
+        "name": "lowercase_y_uses_std",
+        "rationale": "The comparison is case-sensitive, so 'y' uses StdPrecision.",
+        "args": [
+          "1.234567",
+          "100",
+          "y"
+        ],
+        "fixtures": []
+      },
+      {
+        "name": "Y_trailing_space_uses_std",
+        "rationale": "For varchar, 'Y ' is not equal to 'Y'.",
+        "args": [
+          "1.234567",
+          "100",
+          "Y "
+        ],
+        "fixtures": []
+      },
+      {
+        "name": "empty_costing_uses_std",
+        "rationale": "An empty string is not 'Y'.",
+        "args": [
+          "1.234567",
+          "100",
+          ""
+        ],
+        "fixtures": []
+      },
+      {
+        "name": "costing_Y_uses_cost_precision",
+        "rationale": "Exactly 'Y' uses CostingPrecision.",
+        "args": [
+          "1.23456789",
+          "100",
+          "Y"
+        ],
+        "fixtures": []
+      },
+      {
+        "name": "scale_padding",
+        "rationale": "5 at precision 2 must come back as 5.00 with the scale kept.",
+        "args": [
+          "5",
+          "100",
+          "N"
+        ],
+        "fixtures": []
+      },
+      {
+        "name": "scale_reduction_trailing_zeros",
+        "rationale": "5.000000 must come back as 5.00.",
+        "args": [
+          "5.000000",
+          "100",
+          "N"
+        ],
+        "fixtures": []
+      },
+      {
+        "name": "costing_precision_null_returns_null",
+        "rationale": "With 'Y' and a NULL CostingPrecision the result is NULL. There is no fallback to StdPrecision.",
+        "args": [
+          "1.2345",
+          "990001",
+          "Y"
+        ],
+        "fixtures": [
+          {
+            "table": "c_currency",
+            "id": 990001,
+            "clone_from": 100,
+            "set": [
+              {
+                "column": "stdprecision",
+                "value": "2"
+              },
+              {
+                "column": "costingprecision",
+                "value": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "std_precision_null_returns_unchanged",
+        "rationale": "A NULL StdPrecision returns the amount unchanged even when costing is 'Y'.",
+        "args": [
+          "1.23456",
+          "990002",
+          "Y"
+        ],
+        "fixtures": [
+          {
+            "table": "c_currency",
+            "id": 990002,
+            "clone_from": 100,
+            "set": [
+              {
+                "column": "stdprecision",
+                "value": null
+              },
+              {
+                "column": "costingprecision",
+                "value": "2"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "negative_precision",
+        "rationale": "round(1250,-2) gives 1300 at scale 0, not 1.3E+3.",
+        "args": [
+          "1250",
+          "990003",
+          "N"
+        ],
+        "fixtures": [
+          {
+            "table": "c_currency",
+            "id": 990003,
+            "clone_from": 100,
+            "set": [
+              {
+                "column": "stdprecision",
+                "value": "-2"
+              },
+              {
+                "column": "costingprecision",
+                "value": "-2"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "fractional_precision_half_rounds_up",
+        "rationale": "Precision 2.5 becomes int 3 (half away from zero), not 2 from truncation.",
+        "args": [
+          "1.23456",
+          "990004",
+          "N"
+        ],
+        "fixtures": [
+          {
+            "table": "c_currency",
+            "id": 990004,
+            "clone_from": 100,
+            "set": [
+              {
+                "column": "stdprecision",
+                "value": "2.5"
+              },
+              {
+                "column": "costingprecision",
+                "value": "1.5"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "fractional_cost_precision_and_std_2_4",
+        "rationale": "StdPrecision 2.4 becomes 2 and CostingPrecision 1.5 becomes 2. This tests the int conversion on the costing path.",
+        "args": [
+          "1.23456",
+          "990005",
+          "Y"
+        ],
+        "fixtures": [
+          {
+            "table": "c_currency",
+            "id": 990005,
+            "clone_from": 100,
+            "set": [
+              {
+                "column": "stdprecision",
+                "value": "2.4"
+              },
+              {
+                "column": "costingprecision",
+                "value": "1.5"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "precision_zero_negative_half",
+        "rationale": "-0.5 at precision 0 becomes -1 (half away from zero).",
+        "args": [
+          "-0.5",
+          "990006",
+          "N"
+        ],
+        "fixtures": [
+          {
+            "table": "c_currency",
+            "id": 990006,
+            "clone_from": 100,
+            "set": [
+              {
+                "column": "stdprecision",
+                "value": "0"
+              },
+              {
+                "column": "costingprecision",
+                "value": "0"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "nan_amount",
+        "rationale": "NaN stays NaN.",
+        "args": [
+          "NaN",
+          "100",
+          "N"
+        ],
+        "fixtures": []
+      },
+      {
+        "name": "huge_amount",
+        "rationale": "A large-precision Decimal must not hit the context precision limit.",
+        "args": [
+          "123456789012345678901234567890123456789.995",
+          "100",
+          "N"
+        ],
+        "fixtures": []
+      }
+    ]
+  }
+}

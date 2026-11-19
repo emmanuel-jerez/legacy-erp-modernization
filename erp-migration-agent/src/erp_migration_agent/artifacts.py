@@ -27,6 +27,9 @@ def _sha256(text: str) -> str:
 def decision_label(decision: dict[str, Any]) -> str:
     if decision.get("auto"):
         return "AUTO-APPROVED (flag, not a human review)"
+    if decision.get("agent"):
+        verdict = "APPROVED" if decision.get("approved") else "REJECTED"
+        return f"{verdict} BY AN AGENT (owner review pending)"
     return "APPROVED" if decision.get("approved") else "REJECTED"
 
 
@@ -70,7 +73,8 @@ def _report_markdown(summary: dict[str, Any], decision: dict[str, Any], usage: d
     lines = [
         f"# Parity report: adempiere.{summary['function']}",
         "",
-        f"- Decided: {decision['decided_at']}, {decision_label(decision)} by {decision['approver']}",
+        f"- Decided: {decision['decided_at']}, {decision_label(decision)}"
+        + ("" if decision.get("auto") else f" by {decision['approver']}"),
         f"- Run: `{state['run_id']}`",
         f"- Oracle: the legacy PL/pgSQL function in database `{config.DB_NAME}`, TimeZone {config.SESSION_TIMEZONE}",
         f"- Cases: {c['total']} ({c['sampled']} sampled from seed data, {c['edge']} model-proposed edge cases; "

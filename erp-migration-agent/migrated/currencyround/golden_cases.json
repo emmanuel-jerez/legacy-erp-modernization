@@ -1,0 +1,807 @@
+{
+ "function": "currencyround",
+ "arg_names": [
+  "p_amount",
+  "p_curto_id",
+  "p_costing"
+ ],
+ "arg_types": [
+  "numeric",
+  "numeric",
+  "character varying"
+ ],
+ "return_type": "numeric",
+ "session_tz": "America/Los_Angeles",
+ "cases": [
+  {
+   "id": "e-0516bc7189f7",
+   "source": "edge",
+   "name": "scale_padding",
+   "rationale": "5 at precision 2 must come back as 5.00 with the scale kept.",
+   "args": [
+    "5",
+    "100",
+    "N"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "5.00"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "e-6268731fa91e",
+   "source": "edge",
+   "name": "empty_costing_uses_std",
+   "rationale": "An empty string is not 'Y'.",
+   "args": [
+    "1.234567",
+    "100",
+    ""
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "1.23"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "e-691335b9563b",
+   "source": "edge",
+   "name": "fractional_precision_half_rounds_up",
+   "rationale": "Precision 2.5 becomes int 3 (half away from zero), not 2 from truncation.",
+   "args": [
+    "1.23456",
+    "990004",
+    "N"
+   ],
+   "fixture_spec": [
+    {
+     "table": "c_currency",
+     "id": 990004,
+     "clone_from": 100,
+     "set": {
+      "stdprecision": "2.5",
+      "costingprecision": "1.5"
+     }
+    }
+   ],
+   "fixtures": [
+    {
+     "table": "c_currency",
+     "row": {
+      "c_currency_id": "990004",
+      "stdprecision": "3",
+      "costingprecision": "2"
+     }
+    }
+   ],
+   "golden": {
+    "value": "1.235"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "e-ad34a68ed1e5",
+   "source": "edge",
+   "name": "scale_reduction_trailing_zeros",
+   "rationale": "5.000000 must come back as 5.00.",
+   "args": [
+    "5.000000",
+    "100",
+    "N"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "5.00"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "e-b42266c9444c",
+   "source": "edge",
+   "name": "precision_zero_negative_half",
+   "rationale": "-0.5 at precision 0 becomes -1 (half away from zero).",
+   "args": [
+    "-0.5",
+    "990006",
+    "N"
+   ],
+   "fixture_spec": [
+    {
+     "table": "c_currency",
+     "id": 990006,
+     "clone_from": 100,
+     "set": {
+      "stdprecision": "0",
+      "costingprecision": "0"
+     }
+    }
+   ],
+   "fixtures": [
+    {
+     "table": "c_currency",
+     "row": {
+      "c_currency_id": "990006",
+      "stdprecision": "0",
+      "costingprecision": "0"
+     }
+    }
+   ],
+   "golden": {
+    "value": "-1"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "e-b9940aecbf69",
+   "source": "edge",
+   "name": "currency_not_found",
+   "rationale": "A missing currency returns the amount unchanged, not quantized.",
+   "args": [
+    "1.23456789",
+    "999999",
+    "N"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "1.23456789"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-04b775874b45",
+   "source": "sampled",
+   "name": "sampled row 5",
+   "rationale": "real seeded data",
+   "args": [
+    "115.2941176470588235294117647058823529415800",
+    "105",
+    "N"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "115"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-0d4d6f764d19",
+   "source": "sampled",
+   "name": "sampled row 19",
+   "rationale": "real seeded data",
+   "args": [
+    "176.60860",
+    "200",
+    "N"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "176.609"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-2c5432dfbbcb",
+   "source": "sampled",
+   "name": "sampled row 12",
+   "rationale": "real seeded data",
+   "args": [
+    "73.4400",
+    "100",
+    "Y"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "73.4400"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-2e2a9b743618",
+   "source": "sampled",
+   "name": "sampled row 10",
+   "rationale": "real seeded data",
+   "args": [
+    "20.8166533226581265012009607686148919135200",
+    "159",
+    "Y"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "20.82"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-70d8da4cf068",
+   "source": "sampled",
+   "name": "sampled row 16",
+   "rationale": "real seeded data",
+   "args": [
+    "311.6100",
+    "100",
+    "Y"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "311.6100"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-81ed186fb76c",
+   "source": "sampled",
+   "name": "sampled row 2",
+   "rationale": "real seeded data",
+   "args": [
+    "46.4371497197758206565252201761409127301600",
+    "159",
+    "Y"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "46.44"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-9e433aaf17f6",
+   "source": "sampled",
+   "name": "sampled row 8",
+   "rationale": "real seeded data",
+   "args": [
+    "28.9000",
+    "100",
+    "Y"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "28.9000"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-b118ae138b4c",
+   "source": "sampled",
+   "name": "sampled row 9",
+   "rationale": "real seeded data",
+   "args": [
+    "30.5882352941176470588235294117647058824600",
+    "105",
+    "N"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "31"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "e-0c2506b38398",
+   "source": "edge",
+   "name": "costing_Y_uses_cost_precision",
+   "rationale": "Exactly 'Y' uses CostingPrecision.",
+   "args": [
+    "1.23456789",
+    "100",
+    "Y"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "1.2346"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-2233838cec17",
+   "source": "edge",
+   "name": "lowercase_y_uses_std",
+   "rationale": "The comparison is case-sensitive, so 'y' uses StdPrecision.",
+   "args": [
+    "1.234567",
+    "100",
+    "y"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "1.23"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-2534473cf001",
+   "source": "edge",
+   "name": "currency_id_with_trailing_zero",
+   "rationale": "100.0 equals 100 under numeric equality, so the half tie rounds up.",
+   "args": [
+    "2.345",
+    "100.0",
+    "N"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2.35"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-35e0a5b0ae6d",
+   "source": "edge",
+   "name": "null_amount_invalid_currency",
+   "rationale": "A NULL amount returns NULL straight away, before any lookup.",
+   "args": [
+    null,
+    "999999",
+    "Y"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": null
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-3d087d90dd17",
+   "source": "edge",
+   "name": "huge_amount",
+   "rationale": "A large-precision Decimal must not hit the context precision limit.",
+   "args": [
+    "123456789012345678901234567890123456789.995",
+    "100",
+    "N"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "123456789012345678901234567890123456790.00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-4296293ea7cf",
+   "source": "edge",
+   "name": "fractional_currency_id",
+   "rationale": "100.5 must not match currency 100, because numeric equality is used rather than an int cast.",
+   "args": [
+    "1.23456",
+    "100.5",
+    null
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "1.23456"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-87026cdab5f2",
+   "source": "edge",
+   "name": "nan_amount",
+   "rationale": "NaN stays NaN.",
+   "args": [
+    "NaN",
+    "100",
+    "N"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "NaN"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-8e848b76f96e",
+   "source": "edge",
+   "name": "fractional_cost_precision_and_std_2_4",
+   "rationale": "StdPrecision 2.4 becomes 2 and CostingPrecision 1.5 becomes 2. This tests the int conversion on the costing path.",
+   "args": [
+    "1.23456",
+    "990005",
+    "Y"
+   ],
+   "fixture_spec": [
+    {
+     "table": "c_currency",
+     "id": 990005,
+     "clone_from": 100,
+     "set": {
+      "stdprecision": "2.4",
+      "costingprecision": "1.5"
+     }
+    }
+   ],
+   "fixtures": [
+    {
+     "table": "c_currency",
+     "row": {
+      "c_currency_id": "990005",
+      "stdprecision": "2",
+      "costingprecision": "2"
+     }
+    }
+   ],
+   "golden": {
+    "value": "1.23"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-a033e52d52e6",
+   "source": "edge",
+   "name": "Y_trailing_space_uses_std",
+   "rationale": "For varchar, 'Y ' is not equal to 'Y'.",
+   "args": [
+    "1.234567",
+    "100",
+    "Y "
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "1.23"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-bf09a71b2c23",
+   "source": "edge",
+   "name": "negative_half_tie",
+   "rationale": "Half away from zero: -2.345 becomes -2.35, not banker's rounding.",
+   "args": [
+    "-2.345",
+    "100",
+    null
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "-2.35"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-f051c91daef9",
+   "source": "edge",
+   "name": "null_currency_keeps_scale",
+   "rationale": "A NULL currency id returns the amount unchanged, keeping its full scale.",
+   "args": [
+    "1.23456",
+    null,
+    "N"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "1.23456"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-f559af05ba97",
+   "source": "edge",
+   "name": "negative_precision",
+   "rationale": "round(1250,-2) gives 1300 at scale 0, not 1.3E+3.",
+   "args": [
+    "1250",
+    "990003",
+    "N"
+   ],
+   "fixture_spec": [
+    {
+     "table": "c_currency",
+     "id": 990003,
+     "clone_from": 100,
+     "set": {
+      "stdprecision": "-2",
+      "costingprecision": "-2"
+     }
+    }
+   ],
+   "fixtures": [
+    {
+     "table": "c_currency",
+     "row": {
+      "c_currency_id": "990003",
+      "stdprecision": "-2",
+      "costingprecision": "-2"
+     }
+    }
+   ],
+   "golden": {
+    "value": "1300"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-10dea6ba2a50",
+   "source": "sampled",
+   "name": "sampled row 21",
+   "rationale": "real seeded data",
+   "args": [
+    "50.4705882352941176470588235294117647060590",
+    "105",
+    "N"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "50"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-258df08b5205",
+   "source": "sampled",
+   "name": "sampled row 24",
+   "rationale": "real seeded data",
+   "args": [
+    "33.1500",
+    "100",
+    "Y"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "33.1500"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-2fd1947309f6",
+   "source": "sampled",
+   "name": "sampled row 6",
+   "rationale": "real seeded data",
+   "args": [
+    "97.9983987189751801441152922337870296236480",
+    "159",
+    "Y"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "98.00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-30e4221698b6",
+   "source": "sampled",
+   "name": "sampled row 17",
+   "rationale": "real seeded data",
+   "args": [
+    "178.8235294117647058823529411764705882359200",
+    "105",
+    "N"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "179"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-37a9c1c75c7c",
+   "source": "sampled",
+   "name": "sampled row 1",
+   "rationale": "real seeded data",
+   "args": [
+    "165.5294117647058823529411764705882352946970",
+    "105",
+    "N"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "166"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-558bcf6b7934",
+   "source": "sampled",
+   "name": "sampled row 4",
+   "rationale": "real seeded data",
+   "args": [
+    "115.0900",
+    "100",
+    "Y"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "115.0900"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-5c61ada663d9",
+   "source": "sampled",
+   "name": "sampled row 3",
+   "rationale": "real seeded data",
+   "args": [
+    "57.70380",
+    "200",
+    "N"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "57.704"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-64d8e1b397e0",
+   "source": "sampled",
+   "name": "sampled row 18",
+   "rationale": "real seeded data",
+   "args": [
+    "112.2898318654923939151321056845476381104300",
+    "159",
+    "Y"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "112.29"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-664dd2b5e76a",
+   "source": "sampled",
+   "name": "sampled row 13",
+   "rationale": "real seeded data",
+   "args": [
+    "167.7647058823529411764705882352941176476460",
+    "105",
+    "N"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "168"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-7131327f6900",
+   "source": "sampled",
+   "name": "sampled row 14",
+   "rationale": "real seeded data",
+   "args": [
+    "103.2826261008807045636509207365892714170800",
+    "159",
+    "Y"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "103.28"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-86e291a9b200",
+   "source": "sampled",
+   "name": "sampled row 11",
+   "rationale": "real seeded data",
+   "args": [
+    "194.84400",
+    "200",
+    "N"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "194.844"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-9ead4518d7c5",
+   "source": "sampled",
+   "name": "sampled row 22",
+   "rationale": "real seeded data",
+   "args": [
+    "72.2177742193755004003202562049639711769040",
+    "159",
+    "Y"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "72.22"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-a09736131221",
+   "source": "sampled",
+   "name": "sampled row 20",
+   "rationale": "real seeded data",
+   "args": [
+    "39.2700",
+    "100",
+    "Y"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "39.2700"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-d651b17ace6b",
+   "source": "sampled",
+   "name": "sampled row 23",
+   "rationale": "real seeded data",
+   "args": [
+    "143.88480",
+    "200",
+    "N"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "143.885"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-e31c6d84b68b",
+   "source": "sampled",
+   "name": "sampled row 15",
+   "rationale": "real seeded data",
+   "args": [
+    "110.34915",
+    "200",
+    "N"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "110.349"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-fc993aa839dd",
+   "source": "sampled",
+   "name": "sampled row 7",
+   "rationale": "real seeded data",
+   "args": [
+    "47.46200",
+    "200",
+    "N"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "47.462"
+   },
+   "split": "visible"
+  }
+ ]
+}

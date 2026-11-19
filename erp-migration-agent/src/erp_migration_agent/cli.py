@@ -1,4 +1,4 @@
-"""Command line: ``migration-agent migrate|approve|reject|status|demo``."""
+"""Command line: ``migration-agent migrate|approve|reject|status|demo|eval``."""
 
 from __future__ import annotations
 
@@ -69,7 +69,7 @@ def cmd_migrate(args: argparse.Namespace, *, mode: str | None = None, out_dir: P
 def _decide(args: argparse.Namespace, approved: bool) -> int:
     with sqlite_checkpointer(CHECKPOINTS) as saver:
         graph = build_graph(Deps(model=_client("replay"), reporter=_print_stage), saver)
-        state = resume(graph, args.run_id, approved=approved, approver=args.by, note=args.note)
+        state = resume(graph, args.run_id, approved=approved, approver=args.by, note=args.note, agent=args.agent)
     return _finish(state)
 
 
@@ -96,6 +96,13 @@ def cmd_demo(args: argparse.Namespace) -> int:
     return cmd_migrate(ns, mode="replay", out_dir=config.RUNS_DIR / "demo" / "migrated")
 
 
+def cmd_eval(args: argparse.Namespace) -> int:
+    from .evals import run_eval
+
+    _require_oracle()
+    return run_eval(record=args.record, functions=args.functions or list(TARGETS), jobs=args.jobs)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="migration-agent", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -112,11 +119,18 @@ def main(argv: list[str] | None = None) -> int:
         q.add_argument("--by", required=(name == "approve"), default="unnamed operator",
                        help="who decided (recorded in the decision and approval records)")
         q.add_argument("--note", default="")
+        q.add_argument("--agent", action="store_true",
+                       help="the decider is an automated agent, not a person; labelled 'owner review pending'")
 
     s = sub.add_parser("status", help="show run status")
     s.add_argument("run_id", nargs="?")
 
     sub.add_parser("demo", help="offline end-to-end demo of the warm-up function (auto-approved)")
+
+    e = sub.add_parser("eval", help="replay every target from cassettes and write evals/reports/")
+    e.add_argument("--record", action="store_true", help="record missing cassettes with live model calls")
+    e.add_argument("--jobs", type=int, default=1, help="functions to run in parallel (capped at 3)")
+    e.add_argument("functions", nargs="*", help=f"targets (default: all of {', '.join(TARGETS)})")
 
     args = parser.parse_args(argv)
     try:
@@ -128,7 +142,9 @@ def main(argv: list[str] | None = None) -> int:
             return _decide(args, False)
         if args.command == "status":
             return cmd_status(args)
-        return cmd_demo(args)
+        if args.command == "demo":
+            return cmd_demo(args)
+        return cmd_eval(args)
     except ModelError as exc:
         hint = " (run with ERP_LLM_MODE=record to call the model)" if "no cassette" in str(exc) else ""
         print(f"model error: {exc}{hint}", file=sys.stderr)

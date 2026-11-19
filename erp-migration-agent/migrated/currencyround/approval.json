@@ -1,0 +1,38 @@
+{
+  "function": "currencyround",
+  "run_id": "currencyround-20261119T180704-c4ed",
+  "approved": true,
+  "approver": "implementation agent",
+  "note": "Approved by the build agent after 100% held-out parity; owner review pending.",
+  "auto": false,
+  "agent": true,
+  "decided_at": "2026-11-19T18:07:05+00:00",
+  "label": "APPROVED BY AN AGENT (owner review pending)",
+  "parity": {
+    "visible": {
+      "matched": 28,
+      "total": 28,
+      "rate": 1.0,
+      "passed": true,
+      "runner_failure": null
+    },
+    "held_out": {
+      "matched": 14,
+      "total": 14,
+      "rate": 1.0,
+      "passed": true,
+      "runner_failure": null
+    },
+    "repair_iterations": 0,
+    "cases": {
+      "total": 42,
+      "sampled": 24,
+      "edge": 18,
+      "visible": 28,
+      "held_out": 14,
+      "rejected": 2
+    }
+  },
+  "module_sha256": "36ac3e59473f49705fc8a3422bf4677c9f0919f1438e92e181f940d5a7d63c5d",
+  "golden_cases_sha256": "59133609b73bce7c7be0547ec7d15e305ab4533d045a97066a50d0a4aefce09d"
+}

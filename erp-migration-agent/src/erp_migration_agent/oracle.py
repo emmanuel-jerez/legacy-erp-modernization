@@ -18,6 +18,7 @@ from psycopg import sql
 from . import config, pgtypes
 from .extract import LegacySource, extract
 
+FIXTURE_LOCK_KEY = 990_000  # advisory lock id for fixture transactions (the reserved id range's start)
 FIXTURE_NAMESPACE = uuid.UUID("6f1d3c2e-8a8b-4c55-9d0e-0c3a1f6b7e21")
 # Unique columns the harness fills itself so fixture rows never collide with seed rows.
 _PROTECTED_SUFFIXES = ("_uu",)
@@ -147,6 +148,11 @@ class Oracle:
         if len(fixture_specs) > config.MAX_FIXTURES_PER_CASE:
             raise CaseRejected(f"at most {config.MAX_FIXTURES_PER_CASE} fixture rows per case")
         with self.conn.transaction(force_rollback=True):
+            if fixture_specs:
+                # Fixture ids come from one reserved range for every function, so concurrent runs
+                # (eval --jobs) would wait on each other's uncommitted keys or deadlock. A
+                # transaction-scoped advisory lock serializes fixture cases instead.
+                self.conn.execute("SELECT pg_advisory_xact_lock(%s)", (FIXTURE_LOCK_KEY,))
             args = self._normalize(source, raw_args)
             fixtures = [self._insert_fixture(source, spec) for spec in fixture_specs]
             # The legacy call itself always runs read-only, with or without fixtures, so a

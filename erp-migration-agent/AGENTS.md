@@ -20,6 +20,14 @@ portfolio rules live in `../BUILD-BRIEF.md`; the sandbox contract in `../erp-san
   transaction. Do not touch `idempiere` or `idempiere_seed`.
 - **Generated code is untrusted.** It runs only through `runner.run_port` (guard, subprocess,
   limits) during a migration. Approved modules in `migrated/` are reviewed code and may run in-process.
+- **Cassettes are evidence.** Record once with `uv run migration-agent eval --record` (at most 3
+  functions in parallel, the portfolio's live-call cap), commit `cassettes/` with the eval report,
+  and re-record only functions whose prompts changed. Delete cassettes no replay uses.
+  `tests/test_cassette_replay.py` fails when a prompt drifts from its cassette.
+- **`migrated/` holds approved work only.** Write it through `migrate` + `approve` (or the labelled
+  `--approve` flag), never by hand; `demo` writes to `runs/demo/` instead.
+- **Committed evidence carries no machine paths.** Audit entries and reports record paths relative
+  to the repo; scan `cassettes/`, `migrated/` and `evals/` for `/home/` before committing.
 - Tests: `uv run pytest`. `integration` tests need the sandbox database and skip without it.
 
 ## Lessons from review
@@ -58,8 +66,19 @@ portfolio rules live in `../BUILD-BRIEF.md`; the sandbox contract in `../erp-san
   decision that only lived in the checkpoint left a run stuck after a disk error.
 - **Fail cleanly when the oracle is down.** CLI commands check `oracle.is_available()` first and
   map database errors to exit code 2 with a message, not a traceback.
-- **A human approval names a human.** `approve` requires `--by`; only the labelled auto-approve
-  flag may approve without one.
+- **A human approval names a human.** `approve` requires `--by`; an agent deciding at the gate
+  must pass `--agent` (label "BY AN AGENT (owner review pending)"), and only the labelled
+  auto-approve flag skips the gate. A plain `APPROVED` label always means a person decided.
 - **Replay can diverge only through timing.** Prompts are byte-stable, but a port that hits the
   runner timeout on a loaded machine changes the branch taken. Keep the timeout generous (30 s).
+- **Store labels, don't only print them.** The auto-approve label lives in the decision record
+  itself (`label`, `approver`), so `approval.json`, `decision.json` and the audit log say "not a
+  human review" without relying on the console or Markdown.
+- **Serialize fixture transactions across connections.** Every function draws fixture ids from one
+  reserved range, so `eval --jobs` would block on or deadlock over uncommitted keys and turn cases
+  into rejections, changing replays. `Oracle.record` takes a transaction-scoped advisory lock when a
+  case has fixtures; per-function id ranges were rejected because the model picks the ids.
+- **A failed eval never replaces the committed report.** If any target errors (for example a
+  cassette miss after a prompt change), reports go to `runs/eval/failed-report/`; stale audit copies
+  are deleted before new ones are written.
 

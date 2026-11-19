@@ -1,0 +1,57 @@
+{
+ "session_tz": "America/Los_Angeles",
+ "tables": {
+  "c_paymentterm": {
+   "columns": {
+    "c_paymentterm_id": "numeric",
+    "isduefixed": "character",
+    "netdays": "numeric",
+    "fixmonthcutoff": "numeric",
+    "fixmonthday": "numeric",
+    "fixmonthoffset": "numeric"
+   },
+   "rows": [
+    [
+     "100",
+     "N",
+     "30",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "105",
+     "N",
+     "0",
+     null,
+     null,
+     null
+    ],
+    [
+     "106",
+     "N",
+     "30",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "107",
+     "N",
+     "30",
+     "0",
+     "0",
+     "0"
+    ],
+    [
+     "108",
+     "N",
+     "0",
+     "0",
+     "0",
+     "0"
+    ]
+   ]
+  }
+ }
+}

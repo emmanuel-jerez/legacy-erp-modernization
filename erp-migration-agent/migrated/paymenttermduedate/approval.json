@@ -1,0 +1,38 @@
+{
+  "function": "paymenttermduedate",
+  "run_id": "paymenttermduedate-20261119T180705-fac3",
+  "approved": true,
+  "approver": "implementation agent",
+  "note": "Approved by the build agent after 100% held-out parity; owner review pending.",
+  "auto": false,
+  "agent": true,
+  "decided_at": "2026-11-19T18:07:06+00:00",
+  "label": "APPROVED BY AN AGENT (owner review pending)",
+  "parity": {
+    "visible": {
+      "matched": 28,
+      "total": 28,
+      "rate": 1.0,
+      "passed": true,
+      "runner_failure": null
+    },
+    "held_out": {
+      "matched": 13,
+      "total": 13,
+      "rate": 1.0,
+      "passed": true,
+      "runner_failure": null
+    },
+    "repair_iterations": 0,
+    "cases": {
+      "total": 41,
+      "sampled": 24,
+      "edge": 17,
+      "visible": 28,
+      "held_out": 13,
+      "rejected": 3
+    }
+  },
+  "module_sha256": "0b553b0321f6457f0f25c10ca87b573239a544c422d8849a4f4e217c4fa05337",
+  "golden_cases_sha256": "400213e92f508b9c1834f3991943d029514468dddf144cb6d3ce0b2f7ec6bb65"
+}

@@ -1,0 +1,89 @@
+{
+  "summary": "Rounds an amount to the target currency's precision. If the amount or currency id is NULL, it returns the amount unchanged. Otherwise it looks up MAX(StdPrecision) and MAX(CostingPrecision) in C_Currency for the given id. If no row is found, or the row's StdPrecision is NULL, it returns the amount unchanged. If p_costing is exactly 'Y', it returns ROUND(amount, CostingPrecision). Otherwise it returns ROUND(amount, StdPrecision). Both precisions are first stored in PL/pgSQL int variables, which converts the numeric values to integers with rounding.",
+  "inputs": [
+    {
+      "name": "p_amount",
+      "pg_type": "numeric",
+      "meaning": "Amount to round",
+      "null_behavior": "NULL returns NULL right away. No table lookup happens."
+    },
+    {
+      "name": "p_curto_id",
+      "pg_type": "numeric",
+      "meaning": "Target currency, C_Currency.C_Currency_ID",
+      "null_behavior": "NULL returns p_amount unchanged."
+    },
+    {
+      "name": "p_costing",
+      "pg_type": "character varying",
+      "meaning": "'Y' means use CostingPrecision. Any other value means use StdPrecision.",
+      "null_behavior": "NULL is not 'Y' (the comparison gives NULL, which counts as false), so StdPrecision is used."
+    }
+  ],
+  "output": {
+    "pg_type": "numeric",
+    "meaning": "The amount rounded to the chosen precision. The result's scale equals the precision (or 0 if the precision is negative). Otherwise the original amount is returned unchanged, keeping its original scale.",
+    "null_behavior": "NULL when p_amount is NULL. Also NULL when p_costing='Y', StdPrecision is not NULL, and CostingPrecision is NULL, because ROUND(x, NULL) is NULL."
+  },
+  "branches": [
+    {
+      "condition": "p_amount IS NULL OR p_curto_id IS NULL",
+      "behavior": "Return p_amount (NULL, or the amount unchanged if only the currency id is NULL)."
+    },
+    {
+      "condition": "No C_Currency row with C_Currency_ID = p_curto_id, or that row's StdPrecision IS NULL",
+      "behavior": "Return p_amount unchanged, with its original scale."
+    },
+    {
+      "condition": "p_costing = 'Y' (case-sensitive, exact match)",
+      "behavior": "Return ROUND(p_amount, int(CostingPrecision)). If CostingPrecision is NULL, return NULL."
+    },
+    {
+      "condition": "Otherwise (p_costing NULL, 'N', 'y', '', etc.)",
+      "behavior": "Return ROUND(p_amount, int(StdPrecision))."
+    }
+  ],
+  "table_dependencies": [
+    {
+      "table": "c_currency",
+      "columns": [
+        "c_currency_id",
+        "stdprecision",
+        "costingprecision"
+      ],
+      "purpose": "Look up the standard and costing precision for the target currency. The query uses MAX() as an aggregate, so it always returns one row, which is all NULL when nothing matches."
+    }
+  ],
+  "null_semantics": "A NULL amount or currency id makes the function return the amount as-is. A missing currency and a NULL StdPrecision are treated the same way: the amount comes back unchanged. A NULL p_costing falls through to standard precision. A NULL CostingPrecision is not checked. When costing='Y' it leads to ROUND(x, NULL), which is NULL, so the function returns NULL instead of falling back.",
+  "rounding_semantics": "Numeric ROUND rounds half away from zero: 2.345→2.35, -2.345→-2.35, 0.5→1 at precision 0. In Python this is Decimal.quantize(Decimal(1).scaleb(-p), ROUND_HALF_UP), not banker's rounding. The result's scale is fixed at the precision, so 5 at precision 2 becomes 5.00 (trailing zeros are kept). Negative precision rounds to the left of the decimal point: round(1250, -2)=1300, and the result has scale 0. Before rounding, the numeric precision values are assigned to int variables, which rounds them half away from zero (2.5→3, 1.4→1). Values outside the int range raise an 'integer out of range' error. ROUND(numeric, int) resolves to pg_catalog.round, which is an exact type match. The adempiere.round(numeric,numeric) wrapper would give the same result anyway. NaN stays NaN. On PG14+, ±Infinity stays ±Infinity.",
+  "date_time_semantics": "None. The function has no date or time logic, so the session TimeZone does not matter.",
+  "edge_cases": [
+    "amount NULL → NULL (even with an invalid currency)",
+    "currency id NULL → amount unchanged, scale kept (1.23456 stays 1.23456)",
+    "currency id not found (e.g. 999999) → amount unchanged",
+    "non-integer currency id such as 100.5 → numeric equality matches no row → amount unchanged",
+    "currency id 100.0 matches the row with id 100 (numeric equality)",
+    "costing 'Y' vs 'y' vs 'N' vs NULL vs '' vs 'Y ' (trailing space: varchar comparison does not match 'Y')",
+    "half cases: 2.345, -2.345, 0.5, -0.5 at precision 2 or 0",
+    "result scale padding: 5 at precision 2 → 5.00; 5.000000 at precision 2 → 5.00",
+    "StdPrecision present but CostingPrecision NULL, with costing='Y' → NULL",
+    "StdPrecision NULL but CostingPrecision present → amount unchanged even when costing='Y'",
+    "negative precision in the table (e.g. -2) → round to hundreds, scale 0",
+    "fractional precision in the table (2.5 → 3, 2.4 → 2) caused by the int assignment",
+    "precision too large for int → error",
+    "NaN amount → NaN",
+    "the docstring example: currency 100 (USD), StdPrecision 2"
+  ],
+  "porting_risks": [
+    "Using Python round() or float gives banker's rounding and binary float error. Use Decimal with ROUND_HALF_UP.",
+    "Normalizing the result or dropping trailing zeros changes the scale: PG returns 5.00, not 5.",
+    "A port might fall back to StdPrecision when CostingPrecision is NULL. The legacy function returns NULL instead.",
+    "Lowercasing or trimming p_costing would change behavior. The comparison is an exact, case-sensitive match with 'Y'.",
+    "Passing precision straight from the DB without converting it to int the PG way (half away from zero) is a risk. Python int() truncates instead.",
+    "A port might treat a missing currency as an error. The legacy function returns the amount unchanged and keeps its original scale; do not quantize it.",
+    "Casting the currency id to int before the lookup would let 100.5 match currency 100. PG compares numeric to numeric and finds no match.",
+    "quantize with a negative exponent: Decimal('1250').quantize(Decimal('1E2')) gives 1.3E+3. Convert it back to scale 0 (e.g. quantize(Decimal(1)) afterwards) so it matches PG's 1300.",
+    "Decimal quantize can raise InvalidOperation when the context precision is too small. Raise the context precision to handle large numerics.",
+    "Caching currency precision for the duration of a statement is fine (the function is STABLE), but data changes between statements must be visible."
+  ]
+}

@@ -99,7 +99,9 @@ A port is **accepted** only when all of these hold:
 3. Held-out parity is **100%**.
 
 Anything less is reported as **not converged**, with the failing cases and the last diagnosis.
-An accepted port still needs a human `approve` before it is written to `migrated/<function>/`.
+An accepted port still needs an `approve` decision before it is written to `migrated/<function>/`.
+A person approves with `--by <name>`; an automated agent must add `--agent`, and the auto-approve
+flag is labelled as such. Both non-human decisions are labelled in every record.
 
 ## What this does not prove
 

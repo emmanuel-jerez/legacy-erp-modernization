@@ -1,0 +1,1011 @@
+{
+ "function": "paymenttermdiscount",
+ "arg_names": [
+  "amount",
+  "currency_id",
+  "paymentterm_id",
+  "docdate",
+  "paydate"
+ ],
+ "arg_types": [
+  "numeric",
+  "numeric",
+  "numeric",
+  "timestamp with time zone",
+  "timestamp with time zone"
+ ],
+ "return_type": "numeric",
+ "session_tz": "America/Los_Angeles",
+ "cases": [
+  {
+   "id": "e-25643e57da5d",
+   "source": "edge",
+   "name": "fractional_grace_crosses_midnight",
+   "rationale": "A grace of 0.5 day adds 12h: 18:00 + 10.5d is 06:00 on May 12, so the deadline is May 12 and paying then gives 2.20. A port that ignores the fraction gives 0.00.",
+   "args": [
+    "110",
+    "100",
+    "990015",
+    "2024-05-01T18:00:00-07:00",
+    "2024-05-12T10:00:00-07:00"
+   ],
+   "fixture_spec": [
+    {
+     "table": "c_paymentterm",
+     "id": 990015,
+     "clone_from": 106,
+     "set": {
+      "gracedays": "0.5"
+     }
+    }
+   ],
+   "fixtures": [
+    {
+     "table": "c_paymentterm",
+     "row": {
+      "c_paymentterm_id": "990015",
+      "ad_client_id": "11",
+      "isactive": "Y",
+      "gracedays": "1",
+      "discountdays": "10",
+      "discount": "2",
+      "discountdays2": "0",
+      "discount2": "0",
+      "isnextbusinessday": "N"
+     }
+    }
+   ],
+   "golden": {
+    "value": "2.20"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "e-47cf9c252362",
+   "source": "edge",
+   "name": "utc_offset_docdate_leapday",
+   "rationale": "A UTC instant that is Feb 29 21:00 in LA. The deadline is Mar 10 LA, so paying Mar 11 gives 0.00. A port using the UTC date would give 2.20.",
+   "args": [
+    "110",
+    "100",
+    "106",
+    "2024-02-29T21:00:00-08:00",
+    "2024-03-11T08:00:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.00"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "e-536af1fc6398",
+   "source": "edge",
+   "name": "negative_tie_round_away",
+   "rationale": "-0.015 rounds half away from zero to -0.02.",
+   "args": [
+    "-0.75",
+    "100",
+    "106",
+    "2024-05-01T10:00:00-07:00",
+    "2024-05-01T10:00:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "-0.02"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "e-6f18e1c2dfe6",
+   "source": "edge",
+   "name": "paydate_null_scaled_zero",
+   "rationale": "A NULL paydate is not covered by the early return. The result is 0.00 (scaled).",
+   "args": [
+    "110",
+    "100",
+    "106",
+    "2024-05-01T10:00:00-07:00",
+    null
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.00"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "e-7861b72eef49",
+   "source": "edge",
+   "name": "next_business_day_holiday",
+   "rationale": "The deadline falls on 2002-07-04, a Thursday holiday for client 11, and moves to 07-05. Paying 07-05 gives 2.20.",
+   "args": [
+    "110",
+    "100",
+    "990010",
+    "2002-06-24T10:00:00-07:00",
+    "2002-07-05T10:00:00-07:00"
+   ],
+   "fixture_spec": [
+    {
+     "table": "c_paymentterm",
+     "id": 990010,
+     "clone_from": 106,
+     "set": {
+      "isnextbusinessday": "Y"
+     }
+    }
+   ],
+   "fixtures": [
+    {
+     "table": "c_paymentterm",
+     "row": {
+      "c_paymentterm_id": "990010",
+      "ad_client_id": "11",
+      "isactive": "Y",
+      "gracedays": "0",
+      "discountdays": "10",
+      "discount": "2",
+      "discountdays2": "0",
+      "discount2": "0",
+      "isnextbusinessday": "Y"
+     }
+    }
+   ],
+   "golden": {
+    "value": "2.20"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "e-9e77ac17b9e0",
+   "source": "edge",
+   "name": "currency_nonexistent_gives_null",
+   "rationale": "A missing currency row gives NULL precision, so the result is NULL.",
+   "args": [
+    "110",
+    "999999",
+    "106",
+    "2024-05-01T10:00:00-07:00",
+    "2024-05-01T10:00:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": null
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-31804cd0cd91",
+   "source": "sampled",
+   "name": "sampled row 5",
+   "rationale": "real seeded data",
+   "args": [
+    "98.00",
+    "100",
+    "100",
+    "2026-05-23T03:19:00-07:00",
+    "2026-06-22T03:19:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.00"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-5d06d8797b1d",
+   "source": "sampled",
+   "name": "sampled row 12",
+   "rationale": "real seeded data",
+   "args": [
+    "86.40",
+    "100",
+    "106",
+    "2026-10-05T03:18:00-07:00",
+    "2026-10-05T03:18:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "1.73"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-61c0b0bff330",
+   "source": "sampled",
+   "name": "sampled row 10",
+   "rationale": "real seeded data",
+   "args": [
+    "26.00",
+    "100",
+    "106",
+    "2026-06-15T01:48:00-07:00",
+    "2026-06-27T01:48:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.00"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-62c690f4a7e4",
+   "source": "sampled",
+   "name": "sampled row 4",
+   "rationale": "real seeded data",
+   "args": [
+    "135.40",
+    "100",
+    "106",
+    "2026-07-25T01:57:00-07:00",
+    "2026-08-06T01:57:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.00"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-b7b9b36b11ef",
+   "source": "sampled",
+   "name": "sampled row 2",
+   "rationale": "real seeded data",
+   "args": [
+    "58.00",
+    "100",
+    "106",
+    "2026-06-09T10:04:00-07:00",
+    "2026-06-19T10:04:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "1.16"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-c0382e2ec831",
+   "source": "sampled",
+   "name": "sampled row 17",
+   "rationale": "real seeded data",
+   "args": [
+    "152.00",
+    "100",
+    "106",
+    "2026-07-02T13:57:00-07:00",
+    "2026-08-01T13:57:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.00"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-ee668d1e7061",
+   "source": "sampled",
+   "name": "sampled row 24",
+   "rationale": "real seeded data",
+   "args": [
+    "39.00",
+    "100",
+    "106",
+    "2026-09-22T23:24:00-07:00",
+    "2026-09-22T23:24:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.78"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-fa9d9fbf6733",
+   "source": "sampled",
+   "name": "sampled row 9",
+   "rationale": "real seeded data",
+   "args": [
+    "26.00",
+    "100",
+    "108",
+    "2025-12-19T07:04:00-08:00",
+    "2025-12-30T07:04:00-08:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.00"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "e-1cd46865334b",
+   "source": "edge",
+   "name": "currency_null_gives_null",
+   "rationale": "A NULL currency gives NULL precision, so the result is NULL even when a discount applies.",
+   "args": [
+    "110",
+    null,
+    "106",
+    "2024-05-01T10:00:00-07:00",
+    "2024-05-01T10:00:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": null
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-1e8c5f1d54b8",
+   "source": "edge",
+   "name": "discount2_branch",
+   "rationale": "Payment falls after window 1 (5 days) but within window 2 (10 days), so 1% applies: 1.10.",
+   "args": [
+    "110",
+    "100",
+    "990014",
+    "2024-05-01T10:00:00-07:00",
+    "2024-05-09T10:00:00-07:00"
+   ],
+   "fixture_spec": [
+    {
+     "table": "c_paymentterm",
+     "id": 990014,
+     "clone_from": 106,
+     "set": {
+      "discountdays": "5",
+      "discountdays2": "10",
+      "discount2": "1"
+     }
+    }
+   ],
+   "fixtures": [
+    {
+     "table": "c_paymentterm",
+     "row": {
+      "c_paymentterm_id": "990014",
+      "ad_client_id": "11",
+      "isactive": "Y",
+      "gracedays": "0",
+      "discountdays": "5",
+      "discount": "2",
+      "discountdays2": "10",
+      "discount2": "1",
+      "isnextbusinessday": "N"
+     }
+    }
+   ],
+   "golden": {
+    "value": "1.10"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-1e9759818bbb",
+   "source": "edge",
+   "name": "documented_example",
+   "rationale": "Baseline: 2% within 10 days, docdate = paydate, so the expected result is 2.20 with scale 2.",
+   "args": [
+    "110",
+    "100",
+    "106",
+    "2024-05-01T10:00:00-07:00",
+    "2024-05-01T10:00:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2.20"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-2fb598fa88c3",
+   "source": "edge",
+   "name": "precision_zero_half_up",
+   "rationale": "Precision 0: a discount of 1.5 rounds half away from zero to 2, which banker's rounding gets wrong.",
+   "args": [
+    "75",
+    "990001",
+    "106",
+    "2024-05-01T10:00:00-07:00",
+    "2024-05-01T10:00:00-07:00"
+   ],
+   "fixture_spec": [
+    {
+     "table": "c_currency",
+     "id": 990001,
+     "clone_from": 100,
+     "set": {
+      "stdprecision": "0"
+     }
+    }
+   ],
+   "fixtures": [
+    {
+     "table": "c_currency",
+     "row": {
+      "c_currency_id": "990001",
+      "ad_client_id": "0",
+      "isactive": "Y",
+      "stdprecision": "0"
+     }
+    }
+   ],
+   "golden": {
+    "value": "2"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-320d5ed8b275",
+   "source": "edge",
+   "name": "currency_zero_uses_max_acctschema",
+   "rationale": "currency_id 0 should pick MAX(acctschema currency) for client 11. The fixture adds a schema whose currency has precision 0 and a higher id, so 0.6 is zeroed by the threshold and the result is 0. Using a fixed or primary currency would give 0.60.",
+   "args": [
+    "30",
+    "0",
+    "106",
+    "2024-05-01T10:00:00-07:00",
+    "2024-05-01T10:00:00-07:00"
+   ],
+   "fixture_spec": [
+    {
+     "table": "c_currency",
+     "id": 990001,
+     "clone_from": 100,
+     "set": {
+      "stdprecision": "0"
+     }
+    },
+    {
+     "table": "c_acctschema",
+     "id": 990002,
+     "clone_from": 101,
+     "set": {
+      "ad_client_id": "11",
+      "c_currency_id": "990001"
+     }
+    }
+   ],
+   "fixtures": [
+    {
+     "table": "c_currency",
+     "row": {
+      "c_currency_id": "990001",
+      "ad_client_id": "0",
+      "isactive": "Y",
+      "stdprecision": "0"
+     }
+    },
+    {
+     "table": "c_acctschema",
+     "row": {
+      "c_acctschema_id": "990002",
+      "ad_client_id": "11",
+      "isactive": "Y",
+      "c_currency_id": "990001"
+     }
+    }
+   ],
+   "golden": {
+    "value": "0"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-6118d727cd1f",
+   "source": "edge",
+   "name": "currency_null_amount_null_gives_zero",
+   "rationale": "The early return of 0 overrides the NULL precision.",
+   "args": [
+    null,
+    null,
+    "106",
+    "2024-05-01T10:00:00-07:00",
+    "2024-05-01T10:00:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-647a9c7f0559",
+   "source": "edge",
+   "name": "dst_springforward_shifts_deadline_later",
+   "rationale": "23:30 PST + 240h crosses the Mar 10 spring-forward and becomes 00:30 PDT on Mar 12. Paying Mar 12 gives 2.20.",
+   "args": [
+    "110",
+    "100",
+    "106",
+    "2024-03-01T23:30:00-08:00",
+    "2024-03-12T10:00:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2.20"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-65cf41597df2",
+   "source": "edge",
+   "name": "one_day_past_deadline",
+   "rationale": "Day 11: Discount2Date is docdate (DiscountDays2 = 0), which is earlier than paydate, so 0.00 (scaled).",
+   "args": [
+    "110",
+    "100",
+    "106",
+    "2024-05-01T10:00:00-07:00",
+    "2024-05-12T00:01:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-75a4d8c1a3e1",
+   "source": "edge",
+   "name": "tiny_below_threshold",
+   "rationale": "0.30*2% = 0.006, which is under v_Min, so the result is 0.00 and not the 0.01 that rounding would give.",
+   "args": [
+    "0.30",
+    "100",
+    "106",
+    "2024-05-01T10:00:00-07:00",
+    "2024-05-01T10:00:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-76460fdf7665",
+   "source": "edge",
+   "name": "dst_fallback_shifts_deadline_earlier",
+   "rationale": "Adding absolute seconds across the Nov 3 fall-back lands at 23:30 PST on Nov 6. Paying on Nov 7 gives 0.00, but a wall-clock port would give 2.20.",
+   "args": [
+    "110",
+    "100",
+    "106",
+    "2024-10-28T00:30:00-07:00",
+    "2024-11-07T12:00:00-08:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-9782fc0cfbdf",
+   "source": "edge",
+   "name": "deadline_same_day_late",
+   "rationale": "Payment late in the evening on the deadline's LA date must still get the discount (>= compares calendar dates).",
+   "args": [
+    "110",
+    "100",
+    "106",
+    "2024-05-01T10:00:00-07:00",
+    "2024-05-11T23:59:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2.20"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-b81494a01d8c",
+   "source": "edge",
+   "name": "term_nonexistent_currency_zero",
+   "rationale": "The default lookup finds nothing, so the currency is 0. That currency has no row, so the result is NULL.",
+   "args": [
+    "110",
+    "0",
+    "999998",
+    "2024-05-01T10:00:00-07:00",
+    "2024-05-01T10:00:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": null
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-dbc35f29e497",
+   "source": "edge",
+   "name": "next_business_day_friday_holiday_then_weekend",
+   "rationale": "Deadline is Fri Mar 15. A holiday row whose date1 has a time part moves it to Saturday, and the repeated weekend check moves it to Mon Mar 18. Paying Mar 18 gives 2.20.",
+   "args": [
+    "110",
+    "100",
+    "990011",
+    "2024-03-06T12:00:00-08:00",
+    "2024-03-18T09:00:00-07:00"
+   ],
+   "fixture_spec": [
+    {
+     "table": "c_paymentterm",
+     "id": 990011,
+     "clone_from": 106,
+     "set": {
+      "isnextbusinessday": "Y",
+      "discountdays": "9"
+     }
+    },
+    {
+     "table": "c_nonbusinessday",
+     "id": 990012,
+     "clone_from": 100,
+     "set": {
+      "date1": "2024-03-15 13:00:00"
+     }
+    }
+   ],
+   "fixtures": [
+    {
+     "table": "c_paymentterm",
+     "row": {
+      "c_paymentterm_id": "990011",
+      "ad_client_id": "11",
+      "isactive": "Y",
+      "gracedays": "0",
+      "discountdays": "9",
+      "discount": "2",
+      "discountdays2": "0",
+      "discount2": "0",
+      "isnextbusinessday": "Y"
+     }
+    },
+    {
+     "table": "c_nonbusinessday",
+     "row": {
+      "c_nonbusinessday_id": "990012",
+      "ad_client_id": "11",
+      "isactive": "Y",
+      "date1": "2024-03-15T13:00:00",
+      "c_country_id": null
+     }
+    }
+   ],
+   "golden": {
+    "value": "2.20"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-01255cb93f57",
+   "source": "sampled",
+   "name": "sampled row 16",
+   "rationale": "real seeded data",
+   "args": [
+    "366.60",
+    "100",
+    "106",
+    "2026-06-29T05:08:00-07:00",
+    "2026-07-11T05:08:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-0e8de12f66f0",
+   "source": "sampled",
+   "name": "sampled row 18",
+   "rationale": "real seeded data",
+   "args": [
+    "140.25",
+    "100",
+    "106",
+    "2026-06-06T04:05:00-07:00",
+    "2026-06-06T04:05:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2.81"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-0eafecfa3e06",
+   "source": "sampled",
+   "name": "sampled row 21",
+   "rationale": "real seeded data",
+   "args": [
+    "42.90",
+    "100",
+    "105",
+    "2026-01-08T20:09:00-08:00",
+    "2026-01-19T20:09:00-08:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-17e307d3f0ec",
+   "source": "sampled",
+   "name": "sampled row 15",
+   "rationale": "real seeded data",
+   "args": [
+    "88.35",
+    "100",
+    "100",
+    "2026-05-17T23:40:00-07:00",
+    "2026-05-28T23:40:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-24ac5e8e4b54",
+   "source": "sampled",
+   "name": "sampled row 1",
+   "rationale": "real seeded data",
+   "args": [
+    "140.70",
+    "100",
+    "105",
+    "2026-07-04T00:46:00-07:00",
+    "2026-07-13T00:46:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-250e3c1e1b27",
+   "source": "sampled",
+   "name": "sampled row 3",
+   "rationale": "real seeded data",
+   "args": [
+    "46.20",
+    "100",
+    "107",
+    "2026-04-28T18:05:00-07:00",
+    "2026-05-09T18:05:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-269018cefb17",
+   "source": "sampled",
+   "name": "sampled row 22",
+   "rationale": "real seeded data",
+   "args": [
+    "90.20",
+    "100",
+    "106",
+    "2026-07-31T18:40:00-07:00",
+    "2026-08-12T18:40:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-4fd831b7083d",
+   "source": "sampled",
+   "name": "sampled row 13",
+   "rationale": "real seeded data",
+   "args": [
+    "142.60",
+    "100",
+    "107",
+    "2026-10-23T08:07:00-07:00",
+    "2026-11-01T08:07:00-08:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-8b9eda8c764f",
+   "source": "sampled",
+   "name": "sampled row 19",
+   "rationale": "real seeded data",
+   "args": [
+    "141.40",
+    "100",
+    "108",
+    "2026-09-02T00:24:00-07:00",
+    "2026-09-11T00:24:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-9ac5c396fd19",
+   "source": "sampled",
+   "name": "sampled row 6",
+   "rationale": "real seeded data",
+   "args": [
+    "122.40",
+    "100",
+    "106",
+    "2026-07-04T07:07:00-07:00",
+    "2026-07-04T07:07:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2.45"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-af67de006daf",
+   "source": "sampled",
+   "name": "sampled row 23",
+   "rationale": "real seeded data",
+   "args": [
+    "115.20",
+    "100",
+    "107",
+    "2026-07-09T14:10:00-07:00",
+    "2026-08-08T14:10:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-bc4085ebffd9",
+   "source": "sampled",
+   "name": "sampled row 8",
+   "rationale": "real seeded data",
+   "args": [
+    "34.00",
+    "100",
+    "106",
+    "2026-09-26T12:23:00-07:00",
+    "2026-10-06T12:23:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.68"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-d155060808ef",
+   "source": "sampled",
+   "name": "sampled row 11",
+   "rationale": "real seeded data",
+   "args": [
+    "156.00",
+    "100",
+    "105",
+    "2026-09-11T10:36:00-07:00",
+    "2026-10-11T10:36:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-d70e7a32f0d8",
+   "source": "sampled",
+   "name": "sampled row 14",
+   "rationale": "real seeded data",
+   "args": [
+    "129.00",
+    "100",
+    "106",
+    "2026-07-29T18:35:00-07:00",
+    "2026-08-08T18:35:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2.58"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-e3e3700453b0",
+   "source": "sampled",
+   "name": "sampled row 20",
+   "rationale": "real seeded data",
+   "args": [
+    "46.20",
+    "100",
+    "106",
+    "2026-07-11T09:35:00-07:00",
+    "2026-07-21T09:35:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.92"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-f87b7b971f60",
+   "source": "sampled",
+   "name": "sampled row 7",
+   "rationale": "real seeded data",
+   "args": [
+    "38.00",
+    "100",
+    "106",
+    "2026-07-05T20:45:00-07:00",
+    "2026-07-14T20:45:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "0.76"
+   },
+   "split": "visible"
+  }
+ ]
+}

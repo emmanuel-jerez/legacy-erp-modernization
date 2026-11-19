@@ -1,0 +1,935 @@
+{
+ "function": "paymenttermduedate",
+ "arg_names": [
+  "paymentterm_id",
+  "docdate"
+ ],
+ "arg_types": [
+  "numeric",
+  "timestamp with time zone"
+ ],
+ "return_type": "timestamp with time zone",
+ "session_tz": "America/Los_Angeles",
+ "cases": [
+  {
+   "id": "e-25b8416e742f",
+   "source": "edge",
+   "name": "fixed_offset_negative_fraction",
+   "rationale": "Offset -1.5 truncates toward zero to -1 month (floor would give -2).",
+   "args": [
+    "990008",
+    "2026-06-05T09:00:00-07:00"
+   ],
+   "fixture_spec": [
+    {
+     "table": "c_paymentterm",
+     "id": 990008,
+     "clone_from": 100,
+     "set": {
+      "isduefixed": "Y",
+      "fixmonthday": "10",
+      "fixmonthoffset": "-1.5",
+      "fixmonthcutoff": "31"
+     }
+    }
+   ],
+   "fixtures": [
+    {
+     "table": "c_paymentterm",
+     "row": {
+      "c_paymentterm_id": "990008",
+      "isduefixed": "Y",
+      "netdays": "30",
+      "fixmonthcutoff": "31",
+      "fixmonthday": "10",
+      "fixmonthoffset": "-2"
+     }
+    }
+   ],
+   "golden": {
+    "value": "2026-04-10T00:00:00-07:00"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "e-36298598f4e1",
+   "source": "edge",
+   "name": "term_id_null",
+   "rationale": "A NULL id matches no row, so the result is local midnight of docdate.",
+   "args": [
+    null,
+    "2026-07-04T18:30:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-07-04T00:00:00-07:00"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "e-49ed900bfd37",
+   "source": "edge",
+   "name": "fixed_day0_prev_month_end",
+   "rationale": "FixMonthDay 0 gives the last day of the previous month (Apr 30), then +1 month = May 30, not May 31.",
+   "args": [
+    "990004",
+    "2026-05-10T09:00:00-07:00"
+   ],
+   "fixture_spec": [
+    {
+     "table": "c_paymentterm",
+     "id": 990004,
+     "clone_from": 100,
+     "set": {
+      "isduefixed": "Y",
+      "fixmonthday": "0",
+      "fixmonthoffset": "1",
+      "fixmonthcutoff": "31"
+     }
+    }
+   ],
+   "fixtures": [
+    {
+     "table": "c_paymentterm",
+     "row": {
+      "c_paymentterm_id": "990004",
+      "isduefixed": "Y",
+      "netdays": "30",
+      "fixmonthcutoff": "31",
+      "fixmonthday": "0",
+      "fixmonthoffset": "1"
+     }
+    }
+   ],
+   "golden": {
+    "value": "2026-05-30T00:00:00-07:00"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "e-5dbd740092ef",
+   "source": "edge",
+   "name": "fixed_november_after_fallback",
+   "rationale": "Nov 1 00:00 PDT + 14*86400s = Nov 14 23:00 PST, so the due date lands on the 14th, not the 15th.",
+   "args": [
+    "990002",
+    "2026-11-20T09:00:00-08:00"
+   ],
+   "fixture_spec": [
+    {
+     "table": "c_paymentterm",
+     "id": 990002,
+     "clone_from": 100,
+     "set": {
+      "isduefixed": "Y",
+      "fixmonthday": "15",
+      "fixmonthoffset": "0",
+      "fixmonthcutoff": "31"
+     }
+    }
+   ],
+   "fixtures": [
+    {
+     "table": "c_paymentterm",
+     "row": {
+      "c_paymentterm_id": "990002",
+      "isduefixed": "Y",
+      "netdays": "30",
+      "fixmonthcutoff": "31",
+      "fixmonthday": "15",
+      "fixmonthoffset": "0"
+     }
+    }
+   ],
+   "golden": {
+    "value": "2026-11-14T23:00:00-08:00"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "e-5e304cd49856",
+   "source": "edge",
+   "name": "docdate_null",
+   "rationale": "A NULL docdate gives NULL even when the term exists.",
+   "args": [
+    "106",
+    null
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": null
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-2adb12a31dc8",
+   "source": "sampled",
+   "name": "sampled row 12",
+   "rationale": "real seeded data",
+   "args": [
+    "105",
+    "2026-10-05T03:18:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-10-05T00:00:00-07:00"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-2e7c5e043cfa",
+   "source": "sampled",
+   "name": "sampled row 11",
+   "rationale": "real seeded data",
+   "args": [
+    "105",
+    "2026-09-11T10:36:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-09-11T00:00:00-07:00"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-35ab4cd86cad",
+   "source": "sampled",
+   "name": "sampled row 21",
+   "rationale": "real seeded data",
+   "args": [
+    "105",
+    "2026-01-08T20:09:00-08:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-01-08T00:00:00-08:00"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-4da6f4b156aa",
+   "source": "sampled",
+   "name": "sampled row 17",
+   "rationale": "real seeded data",
+   "args": [
+    "106",
+    "2026-07-02T13:57:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-08-01T00:00:00-07:00"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-a88562da7fe4",
+   "source": "sampled",
+   "name": "sampled row 3",
+   "rationale": "real seeded data",
+   "args": [
+    "107",
+    "2026-04-28T18:05:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-05-28T00:00:00-07:00"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-b254fa71fb55",
+   "source": "sampled",
+   "name": "sampled row 4",
+   "rationale": "real seeded data",
+   "args": [
+    "105",
+    "2026-07-25T01:57:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-07-25T00:00:00-07:00"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-c0cb56fae5b6",
+   "source": "sampled",
+   "name": "sampled row 13",
+   "rationale": "real seeded data",
+   "args": [
+    "107",
+    "2026-10-23T08:07:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-11-21T23:00:00-08:00"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "s-c6b1508ac437",
+   "source": "sampled",
+   "name": "sampled row 16",
+   "rationale": "real seeded data",
+   "args": [
+    "105",
+    "2026-06-29T05:08:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-06-29T00:00:00-07:00"
+   },
+   "split": "held_out"
+  },
+  {
+   "id": "e-0bd077f51054",
+   "source": "edge",
+   "name": "fixed_cutoff_null",
+   "rationale": "A NULL cutoff skips the extra month and does not propagate NULL.",
+   "args": [
+    "990006",
+    "2026-06-25T09:00:00-07:00"
+   ],
+   "fixture_spec": [
+    {
+     "table": "c_paymentterm",
+     "id": 990006,
+     "clone_from": 100,
+     "set": {
+      "isduefixed": "Y",
+      "fixmonthday": "10",
+      "fixmonthoffset": "1",
+      "fixmonthcutoff": null
+     }
+    }
+   ],
+   "fixtures": [
+    {
+     "table": "c_paymentterm",
+     "row": {
+      "c_paymentterm_id": "990006",
+      "isduefixed": "Y",
+      "netdays": "30",
+      "fixmonthcutoff": null,
+      "fixmonthday": "10",
+      "fixmonthoffset": "1"
+     }
+    }
+   ],
+   "golden": {
+    "value": "2026-07-10T00:00:00-07:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-1906c08077a7",
+   "source": "edge",
+   "name": "netdays_cross_fallback",
+   "rationale": "NetDays 30 is added as exact seconds and crosses the Nov 1 fall-back, so the result is 2026-11-18 23:00 PST, not 11-19 00:00.",
+   "args": [
+    "106",
+    "2026-10-20T10:00:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-11-18T23:00:00-08:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-3fd364d35fa8",
+   "source": "edge",
+   "name": "fixed_double_clamp",
+   "rationale": "Jan 31 +1 month = Feb 28, then the cutoff month gives Mar 28 (clamped twice), not Mar 31.",
+   "args": [
+    "990005",
+    "2026-01-20T09:00:00-08:00"
+   ],
+   "fixture_spec": [
+    {
+     "table": "c_paymentterm",
+     "id": 990005,
+     "clone_from": 100,
+     "set": {
+      "isduefixed": "Y",
+      "fixmonthday": "31",
+      "fixmonthoffset": "1",
+      "fixmonthcutoff": "5"
+     }
+    }
+   ],
+   "fixtures": [
+    {
+     "table": "c_paymentterm",
+     "row": {
+      "c_paymentterm_id": "990005",
+      "isduefixed": "Y",
+      "netdays": "30",
+      "fixmonthcutoff": "5",
+      "fixmonthday": "31",
+      "fixmonthoffset": "1"
+     }
+    }
+   ],
+   "golden": {
+    "value": "2026-03-28T00:00:00-07:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-855cca4ff007",
+   "source": "edge",
+   "name": "fixed_ambiguous_fallback_0100",
+   "rationale": "Fractional day 1+1/24 gives Oct 1 01:00 PDT. +1 month = Nov 1 01:00, which is ambiguous; PG resolves it as PST (fold=1), while zoneinfo defaults to PDT.",
+   "args": [
+    "990012",
+    "2026-10-05T09:00:00-07:00"
+   ],
+   "fixture_spec": [
+    {
+     "table": "c_paymentterm",
+     "id": 990012,
+     "clone_from": 100,
+     "set": {
+      "isduefixed": "Y",
+      "fixmonthday": "1.0416666666666667",
+      "fixmonthoffset": "1",
+      "fixmonthcutoff": "31"
+     }
+    }
+   ],
+   "fixtures": [
+    {
+     "table": "c_paymentterm",
+     "row": {
+      "c_paymentterm_id": "990012",
+      "isduefixed": "Y",
+      "netdays": "30",
+      "fixmonthcutoff": "31",
+      "fixmonthday": "1",
+      "fixmonthoffset": "1"
+     }
+    }
+   ],
+   "golden": {
+    "value": "2026-11-01T00:00:00-07:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-8b16f38f7228",
+   "source": "edge",
+   "name": "fixed_march_dst_nodays",
+   "rationale": "The justify_hours interval across the DST start gives NoDays 10, not 11. With cutoff 10 no extra month is added: 2026-04-15 00:00 PDT.",
+   "args": [
+    "990001",
+    "2026-03-12T12:00:00-07:00"
+   ],
+   "fixture_spec": [
+    {
+     "table": "c_paymentterm",
+     "id": 990001,
+     "clone_from": 100,
+     "set": {
+      "isduefixed": "Y",
+      "fixmonthday": "15",
+      "fixmonthoffset": "1",
+      "fixmonthcutoff": "10"
+     }
+    }
+   ],
+   "fixtures": [
+    {
+     "table": "c_paymentterm",
+     "row": {
+      "c_paymentterm_id": "990001",
+      "isduefixed": "Y",
+      "netdays": "30",
+      "fixmonthcutoff": "10",
+      "fixmonthday": "15",
+      "fixmonthoffset": "1"
+     }
+    }
+   ],
+   "golden": {
+    "value": "2026-04-15T01:00:00-07:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-9166bdc1e0bc",
+   "source": "edge",
+   "name": "fixed_fractional_cutoff",
+   "rationale": "NoDays 10 > cutoff 9.5 is true, so the extra month is added. A port that truncates the cutoff to an integer (9) also adds it, but one that rounds or casts it wrongly may not.",
+   "args": [
+    "990014",
+    "2026-06-11T09:00:00-07:00"
+   ],
+   "fixture_spec": [
+    {
+     "table": "c_paymentterm",
+     "id": 990014,
+     "clone_from": 100,
+     "set": {
+      "isduefixed": "Y",
+      "fixmonthday": "5",
+      "fixmonthoffset": "0",
+      "fixmonthcutoff": "9.5"
+     }
+    }
+   ],
+   "fixtures": [
+    {
+     "table": "c_paymentterm",
+     "row": {
+      "c_paymentterm_id": "990014",
+      "isduefixed": "Y",
+      "netdays": "30",
+      "fixmonthcutoff": "10",
+      "fixmonthday": "5",
+      "fixmonthoffset": "0"
+     }
+    }
+   ],
+   "golden": {
+    "value": "2026-06-05T00:00:00-07:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-bb06cb85406c",
+   "source": "edge",
+   "name": "utc_input_la_date",
+   "rationale": "05:00 UTC is 21:00 on the previous day in LA, so truncation must use the LA date (11-19), giving 12-19 00:00 PST.",
+   "args": [
+    "106",
+    "2026-11-19T21:00:00-08:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-12-19T00:00:00-08:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-cb60202610d0",
+   "source": "edge",
+   "name": "term_not_found",
+   "rationale": "No matching row returns TRUNC(docdate), not NULL.",
+   "args": [
+    "999",
+    "2026-07-04T18:30:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-07-04T00:00:00-07:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-e094adb0756d",
+   "source": "edge",
+   "name": "fixed_day31_february_spill",
+   "rationale": "Day 31 in February is added as days with no clamping and spills to Mar 3, crossing no DST change (Mar 3 < Mar 8).",
+   "args": [
+    "990003",
+    "2026-02-10T09:00:00-08:00"
+   ],
+   "fixture_spec": [
+    {
+     "table": "c_paymentterm",
+     "id": 990003,
+     "clone_from": 100,
+     "set": {
+      "isduefixed": "Y",
+      "fixmonthday": "31",
+      "fixmonthoffset": "0",
+      "fixmonthcutoff": "31"
+     }
+    }
+   ],
+   "fixtures": [
+    {
+     "table": "c_paymentterm",
+     "row": {
+      "c_paymentterm_id": "990003",
+      "isduefixed": "Y",
+      "netdays": "30",
+      "fixmonthcutoff": "31",
+      "fixmonthday": "31",
+      "fixmonthoffset": "0"
+     }
+    }
+   ],
+   "golden": {
+    "value": "2026-03-03T00:00:00-08:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-e956eadc86de",
+   "source": "edge",
+   "name": "netdays_cross_springforward",
+   "rationale": "Crosses the Mar 8 spring-forward, so the result is 2026-03-22 01:00 PDT.",
+   "args": [
+    "106",
+    "2026-02-20T15:00:00-08:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-03-22T01:00:00-07:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-f3572c44fc46",
+   "source": "edge",
+   "name": "fixed_offset_null",
+   "rationale": "A NULL FixMonthOffset makes add_months return NULL.",
+   "args": [
+    "990007",
+    "2026-06-25T09:00:00-07:00"
+   ],
+   "fixture_spec": [
+    {
+     "table": "c_paymentterm",
+     "id": 990007,
+     "clone_from": 100,
+     "set": {
+      "isduefixed": "Y",
+      "fixmonthday": "10",
+      "fixmonthoffset": null,
+      "fixmonthcutoff": "31"
+     }
+    }
+   ],
+   "fixtures": [
+    {
+     "table": "c_paymentterm",
+     "row": {
+      "c_paymentterm_id": "990007",
+      "isduefixed": "Y",
+      "netdays": "30",
+      "fixmonthcutoff": "31",
+      "fixmonthday": "10",
+      "fixmonthoffset": null
+     }
+    }
+   ],
+   "golden": {
+    "value": null
+   },
+   "split": "visible"
+  },
+  {
+   "id": "e-fda1f1640aa9",
+   "source": "edge",
+   "name": "fixed_leap_year_day30",
+   "rationale": "Feb 2028 is a leap month: Feb 1 + 29 days = Feb 30 overflow lands on Mar 1, not Mar 2.",
+   "args": [
+    "990013",
+    "2028-02-15T09:00:00-08:00"
+   ],
+   "fixture_spec": [
+    {
+     "table": "c_paymentterm",
+     "id": 990013,
+     "clone_from": 100,
+     "set": {
+      "isduefixed": "Y",
+      "fixmonthday": "30",
+      "fixmonthoffset": "0",
+      "fixmonthcutoff": "31"
+     }
+    }
+   ],
+   "fixtures": [
+    {
+     "table": "c_paymentterm",
+     "row": {
+      "c_paymentterm_id": "990013",
+      "isduefixed": "Y",
+      "netdays": "30",
+      "fixmonthcutoff": "31",
+      "fixmonthday": "30",
+      "fixmonthoffset": "0"
+     }
+    }
+   ],
+   "golden": {
+    "value": "2028-03-01T00:00:00-08:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-3950a413546c",
+   "source": "sampled",
+   "name": "sampled row 8",
+   "rationale": "real seeded data",
+   "args": [
+    "105",
+    "2026-09-26T12:23:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-09-26T00:00:00-07:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-427d6dfc60b9",
+   "source": "sampled",
+   "name": "sampled row 19",
+   "rationale": "real seeded data",
+   "args": [
+    "108",
+    "2026-09-02T00:24:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-09-02T00:00:00-07:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-47944c2c5fd9",
+   "source": "sampled",
+   "name": "sampled row 22",
+   "rationale": "real seeded data",
+   "args": [
+    "105",
+    "2026-07-31T18:40:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-07-31T00:00:00-07:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-4fdcc007e994",
+   "source": "sampled",
+   "name": "sampled row 18",
+   "rationale": "real seeded data",
+   "args": [
+    "105",
+    "2026-06-06T04:05:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-06-06T00:00:00-07:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-676ee5d21649",
+   "source": "sampled",
+   "name": "sampled row 7",
+   "rationale": "real seeded data",
+   "args": [
+    "106",
+    "2026-07-05T20:45:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-08-04T00:00:00-07:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-7fbb96d8673e",
+   "source": "sampled",
+   "name": "sampled row 14",
+   "rationale": "real seeded data",
+   "args": [
+    "105",
+    "2026-07-29T18:35:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-07-29T00:00:00-07:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-97c4139d49f3",
+   "source": "sampled",
+   "name": "sampled row 20",
+   "rationale": "real seeded data",
+   "args": [
+    "105",
+    "2026-07-11T09:35:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-07-11T00:00:00-07:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-984a404ed07c",
+   "source": "sampled",
+   "name": "sampled row 9",
+   "rationale": "real seeded data",
+   "args": [
+    "108",
+    "2025-12-19T07:04:00-08:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2025-12-19T00:00:00-08:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-c08281cacc1d",
+   "source": "sampled",
+   "name": "sampled row 15",
+   "rationale": "real seeded data",
+   "args": [
+    "100",
+    "2026-05-17T23:40:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-06-16T00:00:00-07:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-ccdbd9fca1ff",
+   "source": "sampled",
+   "name": "sampled row 23",
+   "rationale": "real seeded data",
+   "args": [
+    "107",
+    "2026-07-09T14:10:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-08-08T00:00:00-07:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-dcd053261b1b",
+   "source": "sampled",
+   "name": "sampled row 2",
+   "rationale": "real seeded data",
+   "args": [
+    "105",
+    "2026-06-09T10:04:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-06-09T00:00:00-07:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-e15b58500b0a",
+   "source": "sampled",
+   "name": "sampled row 1",
+   "rationale": "real seeded data",
+   "args": [
+    "105",
+    "2026-07-04T00:46:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-07-04T00:00:00-07:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-e49b918a953c",
+   "source": "sampled",
+   "name": "sampled row 5",
+   "rationale": "real seeded data",
+   "args": [
+    "100",
+    "2026-05-23T03:19:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-06-22T00:00:00-07:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-ecb4967a5e07",
+   "source": "sampled",
+   "name": "sampled row 24",
+   "rationale": "real seeded data",
+   "args": [
+    "105",
+    "2026-09-22T23:24:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-09-22T00:00:00-07:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-ed0c30144665",
+   "source": "sampled",
+   "name": "sampled row 10",
+   "rationale": "real seeded data",
+   "args": [
+    "105",
+    "2026-06-15T01:48:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-06-15T00:00:00-07:00"
+   },
+   "split": "visible"
+  },
+  {
+   "id": "s-fee85ad11b05",
+   "source": "sampled",
+   "name": "sampled row 6",
+   "rationale": "real seeded data",
+   "args": [
+    "105",
+    "2026-07-04T07:07:00-07:00"
+   ],
+   "fixture_spec": [],
+   "fixtures": [],
+   "golden": {
+    "value": "2026-07-04T00:00:00-07:00"
+   },
+   "split": "visible"
+  }
+ ]
+}

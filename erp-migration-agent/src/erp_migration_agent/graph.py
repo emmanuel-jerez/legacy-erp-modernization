@@ -195,18 +195,22 @@ def build_graph(deps: Deps, checkpointer: Any) -> Any:
                                 "visible": _summary(state["visible_report"]),
                                 "held_out": _summary(state["held_out_report"])})
             decision = {"approved": bool(answer.get("approved")), "approver": str(answer.get("approver", "")),
-                        "note": str(answer.get("note", "")), "auto": False}
+                        "note": str(answer.get("note", "")), "auto": False, "agent": bool(answer.get("agent"))}
         decision["decided_at"] = datetime.now(UTC).isoformat(timespec="seconds")
+        decision["label"] = decision_label(decision)  # stored in every record, not only printed
         audit(state).verdict("approval", decision)
         # The decision is durable on its own, even if publishing later fails and is retried.
         record = deps.runs_dir / state["run_id"] / "decision.json"
         record.write_text(json.dumps({"function": state["function"], "run_id": state["run_id"], **decision}, indent=2) + "\n",
                           encoding="utf-8")
-        deps.reporter("approval", f"{decision_label(decision)} by {decision['approver']} at {decision['decided_at']}")
+        who = "" if decision["auto"] else f" by {decision['approver']}"
+        deps.reporter("approval", f"{decision['label']}{who} at {decision['decided_at']}")
         return {"decision": decision, "status": "approved" if decision["approved"] else "rejected"}
 
     def publish_node(state: MigrationState) -> dict[str, Any]:
-        audit(state).verdict("publish", {"out_dir": state["out_dir"], "function": state["function"]})
+        out = Path(state["out_dir"])
+        shown = out.relative_to(config.REPO_ROOT) if out.is_relative_to(config.REPO_ROOT) else out.name
+        audit(state).verdict("publish", {"out_dir": str(shown), "function": state["function"]})
         paths = publish(state, Path(state["out_dir"]), deps.runs_dir / state["run_id"])
         deps.reporter("publish", f"wrote {len(paths)} files to {state['out_dir']}/{state['function']}/")
         return {"artifacts": paths, "status": "published"}
@@ -273,7 +277,7 @@ def start(graph: Any, function: str, *, run_id: str, out_dir: Path, auto_approve
     return run_state(graph, run_id)
 
 
-def resume(graph: Any, run_id: str, *, approved: bool, approver: str, note: str = "") -> dict[str, Any]:
+def resume(graph: Any, run_id: str, *, approved: bool, approver: str, note: str = "", agent: bool = False) -> dict[str, Any]:
     """Answer the approval gate. An approved run whose publish step failed is retried instead."""
     state = graph.get_state(_thread(run_id))
     if not state.interrupts:
@@ -281,7 +285,8 @@ def resume(graph: Any, run_id: str, *, approved: bool, approver: str, note: str 
             graph.invoke(None, _thread(run_id))  # retry the failed publish with the recorded decision
             return run_state(graph, run_id)
         raise RuntimeError(f"run {run_id} is not waiting for approval (status: {state.values.get('status', 'unknown')})")
-    graph.invoke(Command(resume={"approved": approved, "approver": approver, "note": note}), _thread(run_id))
+    graph.invoke(Command(resume={"approved": approved, "approver": approver, "note": note, "agent": agent}),
+                 _thread(run_id))
     return run_state(graph, run_id)
 
 

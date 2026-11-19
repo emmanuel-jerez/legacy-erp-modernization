@@ -1,0 +1,81 @@
+{
+  "function": "paymenttermdiscount",
+  "status": "approved",
+  "cases": {
+    "total": 43,
+    "sampled": 24,
+    "edge": 19,
+    "visible": 29,
+    "held_out": 14,
+    "rejected": 1
+  },
+  "visible": {
+    "matched": 29,
+    "total": 29,
+    "rate": 1.0,
+    "passed": true,
+    "runner_failure": null
+  },
+  "held_out": {
+    "matched": 14,
+    "total": 14,
+    "rate": 1.0,
+    "passed": true,
+    "runner_failure": null
+  },
+  "repair_iterations": 0,
+  "history": [
+    {
+      "iteration": 0,
+      "visible_matched": 29,
+      "visible_total": 29,
+      "runner_failure": null
+    }
+  ],
+  "decision": {
+    "approved": true,
+    "approver": "implementation agent",
+    "note": "Approved by the build agent after 100% held-out parity; owner review pending.",
+    "auto": false,
+    "agent": true,
+    "decided_at": "2026-11-19T18:07:07+00:00",
+    "label": "APPROVED BY AN AGENT (owner review pending)"
+  },
+  "usage": {
+    "calls": 3,
+    "live_calls": 0,
+    "cassette_hits": 3,
+    "model_duration_ms": 205363,
+    "cost_usd_estimate_as_recorded": 0.757,
+    "models": [
+      "claude-opus-5-5"
+    ],
+    "efforts": [
+      "medium"
+    ],
+    "tokens_as_recorded": {
+      "cache_creation_input_tokens": 37873,
+      "cache_read_input_tokens": 2661,
+      "input_tokens": 6,
+      "output_tokens": 22473
+    }
+  },
+  "visible_report": {
+    "split": "visible",
+    "total": 29,
+    "matched": 29,
+    "rate": 1.0,
+    "passed": true,
+    "runner_failure": null,
+    "mismatches": []
+  },
+  "held_out_report": {
+    "split": "held_out",
+    "total": 14,
+    "matched": 14,
+    "rate": 1.0,
+    "passed": true,
+    "runner_failure": null,
+    "mismatches": []
+  }
+}
