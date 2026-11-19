@@ -1,0 +1,87 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "recorded_at": "2026-11-19T11:46:42-0800",
+  "duration_ms": 3127,
+  "cost_usd_estimate": 0.0222597,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 2137,
+    "cache_read_input_tokens": 0,
+    "output_tokens": 250,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: How many Fernhollow sales orders were voided?\n\nSQL that ran: SELECT COUNT(*) AS voided_sales_orders FROM adempiere.c_order AS o WHERE o.ad_client_id = 11 AND o.issotrx = 'Y' AND o.documentno LIKE 'FH-SO-%' AND o.docstatus = 'VO' LIMIT 200\nAssumptions made when writing it: [\"'Voided' means DocStatus = 'VO'. Reversed orders (RE) are not included.\", \"Covers all Fernhollow sales order history (2025-12-01 to 2026-11-15), with no date filter.\", \"Inactive rows are counted too, because voided orders stay in the table as rows.\"]\n\nColumns: [\"voided_sales_orders\"]\nRows returned: 1; showing 1:\n[125]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "125 Fernhollow sales orders were voided.",
+    "figures": [
+      {
+        "label": "Voided Fernhollow sales orders",
+        "value": 125,
+        "kind": "value"
+      }
+    ],
+    "caveats": [
+      "'Voided' means document status VO only. Reversed orders (RE) are not counted.",
+      "There is no date filter, so this covers all Fernhollow sales order history (2025-12-01 to 2026-11-15).",
+      "Only orders with document numbers starting with 'FH-SO-' are counted.",
+      "Inactive rows are counted too."
+    ]
+  }
+}

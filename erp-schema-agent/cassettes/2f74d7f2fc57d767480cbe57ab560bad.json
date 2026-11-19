@@ -1,0 +1,96 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "recorded_at": "2026-11-19T11:49:16-0800",
+  "duration_ms": 4350,
+  "cost_usd_estimate": 0.0180173,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1301,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 362,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: What is the total open purchase order quantity?\n\nSQL that ran: SELECT COUNT(DISTINCT o.c_order_id) AS open_po_count, COUNT(*) AS open_po_lines, SUM(ol.qtyordered - ol.qtydelivered) AS total_open_po_qty FROM adempiere.c_order AS o JOIN adempiere.c_orderline AS ol ON ol.c_order_id = o.c_order_id WHERE o.ad_client_id = 11 AND o.issotrx = 'N' AND o.docstatus = 'CO' AND o.documentno LIKE 'FH-PO-%' AND ol.qtyordered > ol.qtydelivered LIMIT 200\nAssumptions made when writing it: [\"Only Fernhollow purchase orders count (document numbers starting with 'FH-PO-').\", \"Open quantity means ordered minus delivered, counted only on lines of completed (CO) purchase orders where some quantity is still undelivered. Drafted, voided and closed orders are left out.\"]\n\nColumns: [\"open_po_count\", \"open_po_lines\", \"total_open_po_qty\"]\nRows returned: 1; showing 1:\n[2, 24, 2400]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "The total open purchase order quantity is 2,400 units. That amount is spread over 24 order lines on 2 purchase orders that are completed but not yet fully delivered.",
+    "figures": [
+      {
+        "label": "Total open PO quantity",
+        "value": 2400,
+        "kind": "total"
+      },
+      {
+        "label": "Open PO lines",
+        "value": 24,
+        "kind": "total"
+      },
+      {
+        "label": "Open purchase orders",
+        "value": 2,
+        "kind": "total"
+      }
+    ],
+    "caveats": [
+      "Only Fernhollow purchase orders were counted, meaning document numbers starting with 'FH-PO-'.",
+      "Open quantity is the amount ordered minus the amount delivered. It only counts lines on completed (CO) purchase orders that still have something left to deliver. Draft, voided and closed orders are left out.",
+      "The total adds up quantities across all products, which may use different units of measure."
+    ]
+  }
+}

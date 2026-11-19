@@ -1,0 +1,152 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "recorded_at": "2026-11-19T11:48:51-0800",
+  "duration_ms": 12400,
+  "cost_usd_estimate": 0.04085520000000001,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1703,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 1341,
+    "output_tokens_details": {
+      "thinking_tokens": 233
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: What was booked revenue by product type in 2026?\n\nSQL that ran: SELECT COALESCE(p.group1, '(none)') AS product_type, COUNT(DISTINCT o.c_order_id) AS booked_orders, SUM(ol.qtyordered) AS units_sold, ROUND(SUM(ol.linenetamt), 2) AS booked_revenue FROM adempiere.c_order AS o JOIN adempiere.c_orderline AS ol ON ol.c_order_id = o.c_order_id JOIN adempiere.m_product AS p ON p.m_product_id = ol.m_product_id WHERE o.ad_client_id = 11 AND o.issotrx = 'Y' AND o.documentno LIKE 'FH-SO-%' AND o.docstatus IN ('CO', 'CL') AND p.value LIKE 'FH-%' AND o.dateordered >= CAST('2026-01-01' AS DATE) AND o.dateordered < CAST('2027-01-01' AS DATE) GROUP BY COALESCE(p.group1, '(none)') ORDER BY booked_revenue DESC LIMIT 200\nAssumptions made when writing it: [\"'Product type' means M_Product.Group1 (Fernhollow's product type), not the iDempiere ProductType field.\", \"Booked revenue means SUM(LineNetAmt) on Completed or Closed Fernhollow sales orders.\", \"2026 means DateOrdered from 2026-01-01 up to but not including 2027-01-01. The data ends on 2026-11-15, so 2026 covers that date at most.\"]\n\nColumns: [\"product_type\", \"booked_orders\", \"units_sold\", \"booked_revenue\"]\nRows returned: 11; showing 11:\n[\"Serums\", 2489, 3306, 230183.4]\n[\"Eye Care\", 1486, 1910, 105211.65]\n[\"Toners\", 1491, 1960, 72344.4]\n[\"Sun Care\", 1235, 1570, 62439.2]\n[\"Moisturizers\", 789, 991, 59890.5]\n[\"Bundles\", 681, 863, 59030]\n[\"Masks\", 577, 722, 38398.8]\n[\"Body\", 1311, 1646, 37690.4]\n[\"Cleansers\", 512, 641, 21016.4]\n[\"Lip Care\", 535, 652, 13900.8]\n[\"Tools\", 234, 299, 6886]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "I can give the total and a ranked list. Booked revenue for 2026 so far was about $706,991.55 across 11 product types. Serums brought in the most, at $230,183.40, which is about 32.6% of the total.\n\n1. Serums: $230,183.40\n2. Eye Care: $105,211.65\n3. Toners: $72,344.40\n4. Sun Care: $62,439.20\n5. Moisturizers: $59,890.50\n6. Bundles: $59,030.00\n7. Masks: $38,398.80\n8. Body: $37,690.40\n9. Cleansers: $21,016.40\n10. Lip Care: $13,900.80\n11. Tools: $6,886.00",
+    "figures": [
+      {
+        "label": "Total booked revenue 2026",
+        "value": 706991.55,
+        "kind": "total"
+      },
+      {
+        "label": "Number of product types",
+        "value": 11,
+        "kind": "value"
+      },
+      {
+        "label": "Serums booked revenue",
+        "value": 230183.4,
+        "kind": "value"
+      },
+      {
+        "label": "Serums share of total revenue",
+        "value": 32.6,
+        "kind": "share"
+      },
+      {
+        "label": "Eye Care booked revenue",
+        "value": 105211.65,
+        "kind": "value"
+      },
+      {
+        "label": "Toners booked revenue",
+        "value": 72344.4,
+        "kind": "value"
+      },
+      {
+        "label": "Sun Care booked revenue",
+        "value": 62439.2,
+        "kind": "value"
+      },
+      {
+        "label": "Moisturizers booked revenue",
+        "value": 59890.5,
+        "kind": "value"
+      },
+      {
+        "label": "Bundles booked revenue",
+        "value": 59030,
+        "kind": "value"
+      },
+      {
+        "label": "Masks booked revenue",
+        "value": 38398.8,
+        "kind": "value"
+      },
+      {
+        "label": "Body booked revenue",
+        "value": 37690.4,
+        "kind": "value"
+      },
+      {
+        "label": "Cleansers booked revenue",
+        "value": 21016.4,
+        "kind": "value"
+      },
+      {
+        "label": "Lip Care booked revenue",
+        "value": 13900.8,
+        "kind": "value"
+      },
+      {
+        "label": "Tools booked revenue",
+        "value": 6886,
+        "kind": "value"
+      }
+    ],
+    "caveats": [
+      "Booked revenue is the sum of order-line net amounts on Fernhollow sales orders with a status of Completed or Closed. Draft, voided and other statuses are left out.",
+      "'Product type' here means Fernhollow's product grouping (Group1 on the product record), not the system's built-in ProductType field.",
+      "2026 runs only to 2026-11-15, when the data ends, so it is not a full year.",
+      "The per-type order counts can't be added together, because one order can include products of several types."
+    ]
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "recorded_at": "2026-11-19T11:46:54-0800",
+  "duration_ms": 4707,
+  "cost_usd_estimate": 0.0173885,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1309,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 323,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: What is the total value of sales orders that are still in progress?\n\nSQL that ran: SELECT COUNT(DISTINCT o.c_order_id) AS in_progress_order_count, ROUND(COALESCE(SUM(ol.linenetamt), 0), 2) AS total_in_progress_value FROM adempiere.c_order AS o LEFT JOIN adempiere.c_orderline AS ol ON ol.c_order_id = o.c_order_id WHERE o.ad_client_id = 11 AND o.issotrx = 'Y' AND o.documentno LIKE 'FH-SO-%' AND o.docstatus = 'IP' LIMIT 200\nAssumptions made when writing it: [\"'Still in progress' means DocStatus = 'IP', following the tenant convention.\", \"Only Fernhollow sales orders count (DocumentNo LIKE 'FH-SO-%'). GardenWorld demo orders are left out.\", \"Order value is the sum of C_OrderLine.LineNetAmt. The seed data has no tax, so this equals GrandTotal.\"]\n\nColumns: [\"in_progress_order_count\", \"total_in_progress_value\"]\nRows returned: 1; showing 1:\n[36, 2921.5]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "There are 36 Fernhollow sales orders still in progress, and their total value is 2,921.50.",
+    "figures": [
+      {
+        "label": "In-progress sales order count",
+        "value": 36,
+        "kind": "value"
+      },
+      {
+        "label": "Total value of in-progress sales orders",
+        "value": 2921.5,
+        "kind": "value"
+      }
+    ],
+    "caveats": [
+      "\"Still in progress\" means document status 'IP' (In Progress). Drafted or completed-but-undelivered orders aren't included.",
+      "Only Fernhollow sales orders (document numbers starting with FH-SO-) are counted. GardenWorld demo orders are left out.",
+      "Value is the sum of the order lines' net amounts, without tax. The seed data has no tax, so this should match the orders' grand totals."
+    ]
+  }
+}

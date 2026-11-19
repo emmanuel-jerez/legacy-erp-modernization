@@ -1,0 +1,85 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "recorded_at": "2026-11-19T11:47:14-0800",
+  "duration_ms": 4009,
+  "cost_usd_estimate": 0.0157254,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1191,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 292,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: Which Fernhollow products are retired? Give SKU and name.\n\nSQL that ran: SELECT p.value AS sku, p.name AS product_name FROM adempiere.m_product AS p WHERE p.ad_client_id = 11 AND p.value LIKE 'FH-%' AND p.isactive = 'N' ORDER BY p.value LIMIT 200\nAssumptions made when writing it: [\"Retired means M_Product.IsActive = 'N', following the tenant convention. The Discontinued flag is not used.\", \"Fernhollow products are those with a SKU (M_Product.Value) starting with 'FH-' in tenant AD_Client_ID 11.\"]\n\nColumns: [\"sku\", \"product_name\"]\nRows returned: 2; showing 2:\n[\"FH-003-1\", \"Brightening Eye Patches 30 pairs\"]\n[\"FH-026-1\", \"Morning Routine Kit\"]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "Two Fernhollow products are retired:\n- FH-003-1: Brightening Eye Patches 30 pairs\n- FH-026-1: Morning Routine Kit",
+    "figures": [
+      {
+        "label": "Retired Fernhollow products",
+        "value": 2,
+        "kind": "value"
+      }
+    ],
+    "caveats": [
+      "I counted a product as retired if it is marked inactive (IsActive = 'N'), which is how this tenant usually does it. I didn't check the separate Discontinued flag, so products flagged that way but still active aren't in this list.",
+      "I took Fernhollow products to be those in tenant 11 whose SKU starts with 'FH-'."
+    ]
+  }
+}

@@ -1,0 +1,311 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "recorded_at": "2026-11-19T11:50:12-0800",
+  "duration_ms": 22838,
+  "cost_usd_estimate": 0.0818994,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 2647,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 3011,
+    "output_tokens_details": {
+      "thinking_tokens": 191
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: Which active products sell below their compare-at price? Give SKU, price and compare-at price.\n\nSQL that ran: SELECT p.value AS sku, p.name AS product_name, ROUND(pp.pricestd, 2) AS price, ROUND(pp.pricelist, 2) AS compare_at_price, ROUND(pp.pricelist - pp.pricestd, 2) AS discount_amount, ROUND(100.0 * (pp.pricelist - pp.pricestd) / NULLIF(pp.pricelist, 0), 1) AS discount_pct FROM adempiere.m_product AS p JOIN adempiere.m_productprice AS pp ON pp.m_product_id = p.m_product_id AND pp.m_pricelist_version_id = 104 WHERE p.ad_client_id = 11 AND p.value LIKE 'FH-%' AND p.isactive = 'Y' AND pp.isactive = 'Y' AND pp.pricestd < pp.pricelist ORDER BY discount_pct DESC, p.value LIMIT 200\nAssumptions made when writing it: [\"Price = PriceStd and compare-at price = PriceList on sales price list version 104.\", \"Active means M_Product.IsActive = 'Y'. Price rows marked inactive are left out.\", \"Only Fernhollow products (SKU LIKE 'FH-%') are included.\"]\n\nColumns: [\"sku\", \"product_name\", \"price\", \"compare_at_price\", \"discount_amount\", \"discount_pct\"]\nRows returned: 22; showing 22:\n[\"FH-001-1P2\", \"Cooling Eye Gel 0.5 oz / 2-Pack\", 70.2, 84.24, 14.04, 16.7]\n[\"FH-002-1P2\", \"Overnight Eye Mask 0.5 oz / 2-Pack\", 79.2, 95.04, 15.84, 16.7]\n[\"FH-003-1P2\", \"Brightening Eye Patches 30 pairs / 2-Pack\", 50.4, 60.48, 10.08, 16.7]\n[\"FH-004-1P2\", \"Vitamin C Serum 1 oz / 2-Pack\", 93.6, 112.32, 18.72, 16.7]\n[\"FH-005-1P2\", \"Retinol Night Serum 1 oz / 2-Pack\", 104.4, 125.28, 20.88, 16.7]\n[\"FH-006-1P2\", \"Hyaluronic Hydration Serum 1 oz / 2-Pack\", 82.8, 99.36, 16.56, 16.7]\n[\"FH-007-1P2\", \"Peptide Firming Serum 1 oz / 2-Pack\", 115.2, 138.24, 23.04, 16.7]\n[\"FH-008-1P2\", \"Niacinamide Pore Serum 1 oz / 2-Pack\", 61.2, 73.44, 12.24, 16.7]\n[\"FH-009-1P2\", \"Daily Moisturizer 1.7 oz / 2-Pack\", 75.6, 90.72, 15.12, 16.7]\n[\"FH-010-1P2\", \"Rich Barrier Cream 1.7 oz / 2-Pack\", 86.4, 103.68, 17.28, 16.7]\n[\"FH-011-1P2\", \"Oil-Free Gel Cream 1.7 oz / 2-Pack\", 72, 86.4, 14.4, 16.7]\n[\"FH-012-1P2\", \"Gentle Gel Cleanser 5 oz / 2-Pack\", 46.8, 56.16, 9.36, 16.7]\n[\"FH-013-1P2\", \"Cleansing Balm 3 oz / 2-Pack\", 57.6, 69.12, 11.52, 16.7]\n[\"FH-014-1P2\", \"Exfoliating Toner 6 oz / 2-Pack\", 54, 64.8, 10.8, 16.7]\n[\"FH-015-1P2\", \"Hydrating Essence 5 oz / 2-Pack\", 64.8, 77.76, 12.96, 16.7]\n[\"FH-016-1P2\", \"Mineral Sunscreen SPF 40 1.7 oz / 2-Pack\", 61.2, 73.44, 12.24, 16.7]\n[\"FH-017-1P2\", \"Tinted Sunscreen SPF 30 1.7 oz / 2-Pack\", 68.4, 82.08, 13.68, 16.7]\n[\"FH-018-1P2\", \"Clay Detox Mask 2 oz / 2-Pack\", 52.2, 62.64, 10.44, 16.7]\n[\"FH-019-1P2\", \"Overnight Recovery Mask 2 oz / 2-Pack\", 81, 97.2, 16.2, 16.7]\n[\"FH-020-1P2\", \"Lip Repair Balm 0.35 oz / 2-Pack\", 28.8, 34.56, 5.76, 16.7]\n[\"FH-021-1P2\", \"Body Firming Lotion 8 oz / 2-Pack\", 68.4, 82.08, 13.68, 16.7]\n[\"FH-022-1P2\", \"Hand Cream 2.5 oz / 2-Pack\", 32.4, 38.88, 6.48, 16.7]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "22 active products sell below their compare-at price. All of them are 2-Pack variants, and each one is priced 16.7% below its compare-at price.\n\n| SKU | Price | Compare-at price |\n|---|---|---|\n| FH-001-1P2 | 70.20 | 84.24 |\n| FH-002-1P2 | 79.20 | 95.04 |\n| FH-003-1P2 | 50.40 | 60.48 |\n| FH-004-1P2 | 93.60 | 112.32 |\n| FH-005-1P2 | 104.40 | 125.28 |\n| FH-006-1P2 | 82.80 | 99.36 |\n| FH-007-1P2 | 115.20 | 138.24 |\n| FH-008-1P2 | 61.20 | 73.44 |\n| FH-009-1P2 | 75.60 | 90.72 |\n| FH-010-1P2 | 86.40 | 103.68 |\n| FH-011-1P2 | 72.00 | 86.40 |\n| FH-012-1P2 | 46.80 | 56.16 |\n| FH-013-1P2 | 57.60 | 69.12 |\n| FH-014-1P2 | 54.00 | 64.80 |\n| FH-015-1P2 | 64.80 | 77.76 |\n| FH-016-1P2 | 61.20 | 73.44 |\n| FH-017-1P2 | 68.40 | 82.08 |\n| FH-018-1P2 | 52.20 | 62.64 |\n| FH-019-1P2 | 81.00 | 97.20 |\n| FH-020-1P2 | 28.80 | 34.56 |\n| FH-021-1P2 | 68.40 | 82.08 |\n| FH-022-1P2 | 32.40 | 38.88 |",
+    "figures": [
+      {
+        "label": "Active products priced below compare-at",
+        "value": 22,
+        "kind": "value"
+      },
+      {
+        "label": "Discount below compare-at (every product)",
+        "value": 16.7,
+        "kind": "value"
+      },
+      {
+        "label": "FH-001-1P2 price",
+        "value": 70.2,
+        "kind": "value"
+      },
+      {
+        "label": "FH-001-1P2 compare-at",
+        "value": 84.24,
+        "kind": "value"
+      },
+      {
+        "label": "FH-002-1P2 price",
+        "value": 79.2,
+        "kind": "value"
+      },
+      {
+        "label": "FH-002-1P2 compare-at",
+        "value": 95.04,
+        "kind": "value"
+      },
+      {
+        "label": "FH-003-1P2 price",
+        "value": 50.4,
+        "kind": "value"
+      },
+      {
+        "label": "FH-003-1P2 compare-at",
+        "value": 60.48,
+        "kind": "value"
+      },
+      {
+        "label": "FH-004-1P2 price",
+        "value": 93.6,
+        "kind": "value"
+      },
+      {
+        "label": "FH-004-1P2 compare-at",
+        "value": 112.32,
+        "kind": "value"
+      },
+      {
+        "label": "FH-005-1P2 price",
+        "value": 104.4,
+        "kind": "value"
+      },
+      {
+        "label": "FH-005-1P2 compare-at",
+        "value": 125.28,
+        "kind": "value"
+      },
+      {
+        "label": "FH-006-1P2 price",
+        "value": 82.8,
+        "kind": "value"
+      },
+      {
+        "label": "FH-006-1P2 compare-at",
+        "value": 99.36,
+        "kind": "value"
+      },
+      {
+        "label": "FH-007-1P2 price",
+        "value": 115.2,
+        "kind": "value"
+      },
+      {
+        "label": "FH-007-1P2 compare-at",
+        "value": 138.24,
+        "kind": "value"
+      },
+      {
+        "label": "FH-008-1P2 price",
+        "value": 61.2,
+        "kind": "value"
+      },
+      {
+        "label": "FH-008-1P2 compare-at",
+        "value": 73.44,
+        "kind": "value"
+      },
+      {
+        "label": "FH-009-1P2 price",
+        "value": 75.6,
+        "kind": "value"
+      },
+      {
+        "label": "FH-009-1P2 compare-at",
+        "value": 90.72,
+        "kind": "value"
+      },
+      {
+        "label": "FH-010-1P2 price",
+        "value": 86.4,
+        "kind": "value"
+      },
+      {
+        "label": "FH-010-1P2 compare-at",
+        "value": 103.68,
+        "kind": "value"
+      },
+      {
+        "label": "FH-011-1P2 price",
+        "value": 72,
+        "kind": "value"
+      },
+      {
+        "label": "FH-011-1P2 compare-at",
+        "value": 86.4,
+        "kind": "value"
+      },
+      {
+        "label": "FH-012-1P2 price",
+        "value": 46.8,
+        "kind": "value"
+      },
+      {
+        "label": "FH-012-1P2 compare-at",
+        "value": 56.16,
+        "kind": "value"
+      },
+      {
+        "label": "FH-013-1P2 price",
+        "value": 57.6,
+        "kind": "value"
+      },
+      {
+        "label": "FH-013-1P2 compare-at",
+        "value": 69.12,
+        "kind": "value"
+      },
+      {
+        "label": "FH-014-1P2 price",
+        "value": 54,
+        "kind": "value"
+      },
+      {
+        "label": "FH-014-1P2 compare-at",
+        "value": 64.8,
+        "kind": "value"
+      },
+      {
+        "label": "FH-015-1P2 price",
+        "value": 64.8,
+        "kind": "value"
+      },
+      {
+        "label": "FH-015-1P2 compare-at",
+        "value": 77.76,
+        "kind": "value"
+      },
+      {
+        "label": "FH-016-1P2 price",
+        "value": 61.2,
+        "kind": "value"
+      },
+      {
+        "label": "FH-016-1P2 compare-at",
+        "value": 73.44,
+        "kind": "value"
+      },
+      {
+        "label": "FH-017-1P2 price",
+        "value": 68.4,
+        "kind": "value"
+      },
+      {
+        "label": "FH-017-1P2 compare-at",
+        "value": 82.08,
+        "kind": "value"
+      },
+      {
+        "label": "FH-018-1P2 price",
+        "value": 52.2,
+        "kind": "value"
+      },
+      {
+        "label": "FH-018-1P2 compare-at",
+        "value": 62.64,
+        "kind": "value"
+      },
+      {
+        "label": "FH-019-1P2 price",
+        "value": 81,
+        "kind": "value"
+      },
+      {
+        "label": "FH-019-1P2 compare-at",
+        "value": 97.2,
+        "kind": "value"
+      },
+      {
+        "label": "FH-020-1P2 price",
+        "value": 28.8,
+        "kind": "value"
+      },
+      {
+        "label": "FH-020-1P2 compare-at",
+        "value": 34.56,
+        "kind": "value"
+      },
+      {
+        "label": "FH-021-1P2 price",
+        "value": 68.4,
+        "kind": "value"
+      },
+      {
+        "label": "FH-021-1P2 compare-at",
+        "value": 82.08,
+        "kind": "value"
+      },
+      {
+        "label": "FH-022-1P2 price",
+        "value": 32.4,
+        "kind": "value"
+      },
+      {
+        "label": "FH-022-1P2 compare-at",
+        "value": 38.88,
+        "kind": "value"
+      }
+    ],
+    "caveats": [
+      "For price I used the standard price, and for compare-at price I used the list price. Both come from sales price list version 104 only.",
+      "Only Fernhollow products are included, meaning SKUs that start with FH-.",
+      "A product counts as active if both the product and its price row are marked active."
+    ]
+  }
+}

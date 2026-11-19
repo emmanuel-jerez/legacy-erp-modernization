@@ -1,0 +1,91 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "recorded_at": "2026-11-19T11:47:38-0800",
+  "duration_ms": 5337,
+  "cost_usd_estimate": 0.018999400000000003,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1412,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 366,
+    "output_tokens_details": {
+      "thinking_tokens": 0
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: What was total booked revenue in 2026 so far?\n\nSQL that ran: SELECT ROUND(SUM(ol.linenetamt), 2) AS total_booked_revenue_2026, COUNT(DISTINCT o.c_order_id) AS booked_orders, CAST(MIN(o.dateordered) AS DATE) AS first_order_date, CAST(MAX(o.dateordered) AS DATE) AS last_order_date FROM adempiere.c_order AS o JOIN adempiere.c_orderline AS ol ON ol.c_order_id = o.c_order_id WHERE o.ad_client_id = 11 AND o.issotrx = 'Y' AND o.documentno LIKE 'FH-SO-%' AND o.docstatus IN ('CO', 'CL') AND o.dateordered >= CAST('2026-01-01' AS DATE) AND o.dateordered < CAST('2026-11-16' AS DATE) LIMIT 200\nAssumptions made when writing it: [\"'2026 so far' means 2026-01-01 through 2026-11-15, the data's 'today' per tenant conventions.\", \"Booked revenue = SUM(LineNetAmt) on Fernhollow sales orders (FH-SO-%) with DocStatus CO or CL.\"]\n\nColumns: [\"total_booked_revenue_2026\", \"booked_orders\", \"first_order_date\", \"last_order_date\"]\nRows returned: 1; showing 1:\n[706991.55, 7996, \"2026-01-01\", \"2026-11-15\"]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "Booked revenue for 2026 so far is 706,991.55. That comes from 7,996 completed or closed Fernhollow sales orders dated between January 1 and November 15, 2026.",
+    "figures": [
+      {
+        "label": "Total booked revenue 2026 so far",
+        "value": 706991.55,
+        "kind": "total"
+      },
+      {
+        "label": "Booked sales orders",
+        "value": 7996,
+        "kind": "total"
+      }
+    ],
+    "caveats": [
+      "'So far' means January 1 through November 15, 2026, which the data treats as today.",
+      "Booked revenue is the sum of order line net amounts (before tax) on Fernhollow sales orders (document numbers starting FH-SO-). Only orders with status Completed (CO) or Closed (CL) are counted, so drafts, voided and reversed orders are left out.",
+      "The amount is in the document currency, assumed to be one currency. No currency conversion was done."
+    ]
+  }
+}

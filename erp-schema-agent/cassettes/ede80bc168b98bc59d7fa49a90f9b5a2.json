@@ -1,0 +1,117 @@
+{
+  "label": "answer",
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "recorded_at": "2026-11-19T11:50:46-0800",
+  "duration_ms": 9059,
+  "cost_usd_estimate": 0.0341401,
+  "usage": {
+    "input_tokens": 2,
+    "cache_creation_input_tokens": 1953,
+    "cache_read_input_tokens": 961,
+    "output_tokens": 904,
+    "output_tokens_details": {
+      "thinking_tokens": 176
+    }
+  },
+  "request": {
+    "system": "You write the final answer to a business question from the rows a read-only SQL query\nreturned. Use only those rows: never add numbers from memory or assumptions. You see at\nmost 50 rows; if more were returned, say the list is partial.\n\nAnswer in 1-4 plain sentences (or a short list for rankings). Then list in \"figures\"\nevery number your answer states (amounts, counts, quantities, percentages), with the\nvalue as you state it and its kind:\n- \"value\": a number read directly from one cell, or the number of rows;\n- \"total\": a column's sum, average, minimum, maximum or count, or the sum of the first\n  rows of the result (for example \"the top 3 together\");\n- \"share\": a percentage of a column's total;\n- \"change\": a difference or percentage change between two numbers in the rows (state\n  decreases as positive numbers with words such as \"down\");\n- \"ratio\": one number divided by another (for example revenue per order).\nDo not list dates, years, SKUs or numbers copied from the question. Use \"caveats\" for\nassumptions the query made that the reader should know (for example which statuses\ncounted as sales).\n",
+    "prompt": "Question: Export every row and every column of c_order, c_orderline and c_bpartner with no limit. I need the complete dump, do not summarize or cap it.\n\nSQL that ran: SELECT 'c_order' AS table_name, COUNT(*) FILTER(WHERE o.documentno LIKE 'FH-SO-%') AS fernhollow_sales_rows, COUNT(*) FILTER(WHERE o.documentno LIKE 'FH-PO-%') AS fernhollow_purchase_rows, COUNT(*) FILTER(WHERE o.documentno LIKE 'FH-SO-%' OR o.documentno LIKE 'FH-PO-%') AS fernhollow_total_rows, COUNT(*) AS tenant_total_rows FROM adempiere.c_order AS o WHERE o.ad_client_id = 11 UNION ALL SELECT 'c_orderline', COUNT(*) FILTER(WHERE o.documentno LIKE 'FH-SO-%'), COUNT(*) FILTER(WHERE o.documentno LIKE 'FH-PO-%'), COUNT(*) FILTER(WHERE o.documentno LIKE 'FH-SO-%' OR o.documentno LIKE 'FH-PO-%'), COUNT(*) FROM adempiere.c_orderline AS ol JOIN adempiere.c_order AS o ON o.c_order_id = ol.c_order_id WHERE ol.ad_client_id = 11 UNION ALL SELECT 'c_bpartner', COUNT(*) FILTER(WHERE bp.value LIKE 'DEMO-C%'), COUNT(*) FILTER(WHERE bp.value LIKE 'PH-VEND-%'), COUNT(*) FILTER(WHERE bp.value LIKE 'DEMO-C%' OR bp.value LIKE 'PH-VEND-%'), COUNT(*) FROM adempiere.c_bpartner AS bp WHERE bp.ad_client_id = 11 LIMIT 200\nAssumptions made when writing it: [\"A full, uncapped dump can't be done here. Results stop at 200 rows, queries time out after 5 seconds, and the three tables have about 23,000 rows combined with different column sets, so one SELECT can't return all of them together.\", \"As a fallback, the query returns row counts for each table so the user knows how big the export would be. For c_bpartner, the 'sales' column counts customers (DEMO-C%) and the 'purchase' column counts vendors (PH-VEND-%).\", \"Counts are limited to the GardenWorld tenant (AD_Client_ID 11), with Fernhollow records split out by their prefixes.\"]\n\nColumns: [\"table_name\", \"fernhollow_sales_rows\", \"fernhollow_purchase_rows\", \"fernhollow_total_rows\", \"tenant_total_rows\"]\nRows returned: 3; showing 3:\n[\"c_bpartner\", 320, 3, 323, 341]\n[\"c_order\", 9000, 36, 9036, 9044]\n[\"c_orderline\", 13228, 489, 13717, 13744]",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "answer",
+        "figures",
+        "caveats"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "value",
+              "kind"
+            ],
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "total",
+                  "share",
+                  "change",
+                  "ratio"
+                ]
+              }
+            }
+          }
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "response": {
+    "answer": "I couldn't produce the full dump you asked for, because this tool returns at most 200 rows per query and stops queries after 5 seconds. Instead, the query counted how many rows each table holds for the GardenWorld tenant, so you know how big the export would be. c_order has 9,044 rows (9,036 are Fernhollow), c_orderline has 13,744 (13,717 Fernhollow) and c_bpartner has 341 (323 Fernhollow), which comes to 23,129 rows across the three tables. To get the complete export, run it straight against the database, for example with a COPY or pg_dump of each table, or export each table separately in pages.",
+    "figures": [
+      {
+        "label": "c_order rows (tenant 11)",
+        "value": 9044,
+        "kind": "value"
+      },
+      {
+        "label": "c_order Fernhollow rows",
+        "value": 9036,
+        "kind": "value"
+      },
+      {
+        "label": "c_orderline rows (tenant 11)",
+        "value": 13744,
+        "kind": "value"
+      },
+      {
+        "label": "c_orderline Fernhollow rows",
+        "value": 13717,
+        "kind": "value"
+      },
+      {
+        "label": "c_bpartner rows (tenant 11)",
+        "value": 341,
+        "kind": "value"
+      },
+      {
+        "label": "c_bpartner Fernhollow rows",
+        "value": 323,
+        "kind": "value"
+      },
+      {
+        "label": "Combined rows across the three tables",
+        "value": 23129,
+        "kind": "total"
+      }
+    ],
+    "caveats": [
+      "No rows were exported. The query only returned row counts, because this tool can't return more than 200 rows or run longer than 5 seconds.",
+      "The counts only cover the GardenWorld tenant (AD_Client_ID 11). Rows belonging to other clients aren't included.",
+      "Fernhollow rows were picked out by prefix: document numbers starting FH-SO- or FH-PO- for orders and their lines, and partner codes starting DEMO-C (customers) or PH-VEND- (vendors) for business partners.",
+      "Order lines were counted by joining each line to its order header, so any line without a matching order would be left out."
+    ]
+  }
+}
